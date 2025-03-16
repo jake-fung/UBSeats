@@ -23,7 +23,6 @@ const SpotMap: React.FC<SpotMapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const accessToken = localStorage.getItem('accessToken');
   
   // Initialize map
   useEffect(() => {
@@ -50,7 +49,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       markers.current.forEach(marker => marker.remove());
       map.current?.remove();
     };
-  });
+  }, []);
   
   // Add markers for study spots when map is loaded
   useEffect(() => {
@@ -138,15 +137,6 @@ const SpotMap: React.FC<SpotMapProps> = ({
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 15
-      });
-    }
-    
-    // Focus on selected spot if any
-    if (selectedSpot) {
-      map.current.flyTo({
-        center: [selectedSpot.location.lng, selectedSpot.location.lat],
-        zoom: 16,
-        essential: true
       });
     }
   }, [spots, selectedSpot, mapLoaded]);

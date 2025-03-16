@@ -17,7 +17,7 @@ import {
     UtensilsCrossed,
     Moon,
     Plug,
-    ParkingCircle
+    ParkingCircle, Volume, Volume1, Volume2
 } from 'lucide-react';
 import RatingStars from './RatingStars';
 import ReviewCard from './ReviewCard';
@@ -151,7 +151,11 @@ const SpotDetail: React.FC<SpotDetailProps> = ({spot, onClose}) => {
                             {/* Stats */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <div className="p-4 bg-gray-50 rounded-lg flex flex-col items-center">
-                                    <VolumeX className="h-5 w-5 text-gray-700 mb-2"/>
+                                    {spot.noise == 1 ? <Volume className="h-5 w-5 mr-1" /> :
+                                        spot.noise == 2 ? <Volume1 className="h-5 w-5 mr-1" /> :
+                                            spot.noise == 3 ? <Volume1 className="h-5 w-5 mr-1" /> :
+                                                spot.noise == 4 ? <Volume2 className="h-5 w-5 mr-1" /> :
+                                                    <Volume2 className="h-5 w-5 mr-1" />}
                                     <div className="text-center">
                                         <h4 className="text-sm font-medium text-gray-900 mb-1">Noise Level</h4>
                                         <RatingStars rating={spot.noise} max={5}/>

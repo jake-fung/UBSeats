@@ -1,11 +1,11 @@
-import React, {useEffect, useState} from 'react';
+ import React, {useEffect, useState} from 'react';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import SpotCard from '@/components/SpotCard';
 import SpotDetail from '@/components/SpotDetail';
 import SpotMap from '@/components/SpotMap';
 import ReviewCard from '@/components/ReviewCard';
-import {useRecentReviews, useReviews, useStudySpots} from '@/hooks/useStudySpots';
+import {useRecentReviews, useStudySpots} from '@/hooks/useStudySpots';
 import {Filter, StudySpot} from '@/utils/types';
 import {Library, MapPin, Search} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
@@ -94,14 +94,14 @@ const Index = () => {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
               <a 
                 href="#spots"
-                className="px-6 py-3 bg-white text-blue-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow font-medium flex items-center"
+                className="px-6 py-3 bg-white text-blue-700 rounded-lg shadow-lg hover:bg-gray-100 hover:scale-105 hover:shadow-xl transition-all font-medium flex items-center"
               >
                 <Library className="mr-2 h-5 w-5" />
                 Browse Study Spots
               </a>
               <a 
                 href="#map"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl hover:bg-blue-500 transition-all font-medium flex items-center"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-105 hover:bg-blue-700 transition-all font-medium flex items-center"
               >
                 <MapPin className="mr-2 h-5 w-5" />
                 View Map
