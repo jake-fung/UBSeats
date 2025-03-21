@@ -1,3 +1,4 @@
 node_modules
 supabase
 src/utils/token.ts
+src/integrations/supabase/client.ts
