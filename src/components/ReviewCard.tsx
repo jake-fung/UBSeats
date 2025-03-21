@@ -1,8 +1,8 @@
-import React from 'react';
-import {Review} from '@/utils/types';
-import RatingStars from './RatingStars';
-import {Flag, ThumbsUp} from 'lucide-react';
-import {cn} from '@/lib/utils';
+import React from "react";
+import { Review } from "@/utils/types";
+import RatingStars from "./RatingStars";
+import { Flag, ThumbsUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ReviewCardProps {
   review: Review;
@@ -12,16 +12,25 @@ interface ReviewCardProps {
 const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
   // Format date
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   return (
-    <div className={cn("p-4 rounded-lg bg-white border border-gray-100 shadow-soft transition-all duration-200 hover:shadow-md", className)}>
+    <div
+      className={cn(
+        "p-4 rounded-lg bg-white border border-gray-100 shadow-soft transition-all duration-200 hover:shadow-md",
+        className
+      )}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center">
-          <img 
-            src={review.user.avatar} 
+          <img
+            src={review.user.avatar}
             alt={review.user.name}
             className="w-10 h-10 rounded-full object-cover border border-gray-200"
           />
@@ -32,11 +41,11 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
         </div>
         <RatingStars rating={review.rating} size="sm" />
       </div>
-      
+
       <div className="mb-4">
         <p className="text-gray-700 text-sm">{review.content}</p>
       </div>
-      
+
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="flex flex-col items-center px-3 py-1.5 bg-gray-50 rounded-lg">
           <span className="text-xs text-gray-500 mb-1">Comfort</span>
@@ -51,7 +60,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
           <RatingStars rating={review.categories.amenities} size="sm" />
         </div>
       </div>
-      
+
       <div className="flex justify-between items-center">
         <button className="flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
           <ThumbsUp className="h-4 w-4 mr-1" />

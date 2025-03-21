@@ -1,0 +1,3 @@
+node_modules
+supabase
+src/utils/token.ts
