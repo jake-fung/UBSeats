@@ -1,11 +1,9 @@
 import {useQuery} from '@tanstack/react-query';
 import {
-    fetchAmenities,
-    fetchCategories,
-    fetchRecentReviews,
-    fetchReviewsBySpotId,
-    fetchStudySpotById,
-    fetchStudySpots
+  fetchAmenities,
+  fetchCategories,
+  fetchReviewsBySpotId,
+  fetchStudySpots,
 } from '@/services/studySpotService';
 import {Filter} from '@/utils/types';
 
@@ -76,15 +74,6 @@ export const useStudySpots = (filters?: Filter) => {
   };
 };
 
-// Hook to fetch a single spot by ID
-export const useStudySpot = (id?: string) => {
-  return useQuery({
-    queryKey: ['studySpot', id],
-    queryFn: () => id ? fetchStudySpotById(id) : Promise.resolve(null),
-    enabled: !!id
-  });
-};
-
 // Hook to fetch reviews for a spot
 export const useReviews = (spotId?: string) => {
   return useQuery({
@@ -92,12 +81,4 @@ export const useReviews = (spotId?: string) => {
     queryFn: () => spotId ? fetchReviewsBySpotId(spotId) : Promise.resolve([]),
     enabled: !!spotId
   });
-};
-
-// Hook to fetch recent reviews
-export const useRecentReviews = () => {
-    return useQuery({
-        queryKey: ['reviews'],
-        queryFn: fetchRecentReviews,
-    });
 }

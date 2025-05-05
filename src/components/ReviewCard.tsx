@@ -1,15 +1,34 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { Review } from "@/utils/types";
 import RatingStars from "./RatingStars";
 import { Flag, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
+import {updateReviewHelpfulCount} from "@/services/studySpotService.ts";
 
 interface ReviewCardProps {
   review: Review;
   className?: string;
+  onClick?: () => void;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
+const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) => {
+  const [helpfulCount, setHelpfulCount] = useState(review.helpful);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  // Set initial helpful count from review prop
+  useEffect(() => {
+    setHelpfulCount(review.helpful);
+  }, [review.helpful]);
+
+  useEffect(() => {
+    const storedVote = localStorage.getItem(`review-${review.id}-voted`);
+    if (storedVote) {
+      setHasVoted(true);
+    }
+    }, [review.id]);
+
   // Format date
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -20,12 +39,46 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const handleHelpfulClick = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
+
+    if (hasVoted || isUpdating) return;
+
+    // Check if the user has already voted
+    const storedVote = localStorage.getItem(`review-${review.id}-voted`);
+    if (storedVote) {
+      toast.error("You have already voted.");
+      return;
+    }
+
+    // Store the vote in local storage
+    localStorage.setItem(`review-${review.id}-voted`, "true");
+
+    try {
+      setIsUpdating(true);
+
+      const newHelpfulCount = await updateReviewHelpfulCount(review.id, helpfulCount + 1);
+
+      setHelpfulCount(newHelpfulCount);
+      setHasVoted(true);
+
+      console.log('Updated helpful count:', newHelpfulCount); // Log the new value
+      toast.success('Thanks for your feedback!');
+    } catch (helpfulError) {
+        console.error('Error updating helpful count:', helpfulError);
+        toast.error('Failed to update helpful count. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div
       className={cn(
         "p-4 rounded-lg bg-white border border-gray-100 shadow-soft transition-all duration-200 hover:shadow-md",
         className
       )}
+      onClick={onClick}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center">
@@ -62,11 +115,15 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className }) => {
       </div>
 
       <div className="flex justify-between items-center">
-        <button className="flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
-          <ThumbsUp className="h-4 w-4 mr-1" />
-          <span>Helpful ({review.helpful})</span>
+        <button className={cn(
+            "flex items-center text-sm transition-colors",
+            hasVoted ? "text-green-600" : "text-gray-500 hover:text-gray-700 hover:-translate-y-0.5 transition-all",
+            isUpdating && "opacity-50 cursor-not-allowed"
+        )} onClick={handleHelpfulClick}  disabled={isUpdating || hasVoted}>
+          <ThumbsUp className={cn("h-4 w-4 mr-1", hasVoted && "fill-green-600")} />
+          <span>Helpful ({helpfulCount})</span>
         </button>
-        <button className="flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors">
+        <button className="flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors" onClick={(e) => e.stopPropagation()}>
           <Flag className="h-4 w-4 mr-1" />
           <span>Report</span>
         </button>

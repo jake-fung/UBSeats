@@ -24,6 +24,7 @@ import {
 import RatingStars from "./RatingStars";
 import ReviewCard from "./ReviewCard";
 import { cn } from "@/lib/utils";
+import WritingReview from "@/components/WritingReview.tsx";
 
 interface SpotDetailProps {
   spot: StudySpot;
@@ -33,6 +34,8 @@ interface SpotDetailProps {
 const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReviews, setShowReviews] = useState(false);
+  const [showAllTimes, setShowAllTimes] = useState(false);
+  const [writingReview, setWritingReview] = useState(false);
 
   const iconMap = {
     Accessibility: Accessibility,
@@ -48,6 +51,47 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
   const { data: categories = [] } = useCategories();
   const { data: amenities = [] } = useAmenities();
   const { data: reviews = [] } = useReviews(spot.id);
+
+  const dayNames = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+
+  const todayOpenHours = () => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    return spot.hours.opening_hours[`${dayNames[currentDay]}_open`];
+  }
+
+  const todayClosingHours = () => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    return spot.hours.opening_hours[`${dayNames[currentDay]}_close`];
+  }
+
+  const formatTimeRange = (start: string, end: string) => {
+    if (start === "00:00:00" && end === "24:00:00") {
+      return "Open all day";
+    } else if (start === "00:00:00" && end === "00:00:00") {
+      return "Closed";
+    }
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  }
+
+  const formatTime = (timeString: string) => {
+    if (!timeString) return "";
+
+    const [hours, minutes] = timeString.split(":").map(Number);
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+
+    return `${displayHours}${minutes > 0 ? ":" + minutes.toString().padStart(2, "0") : ""} ${period}`;
+  };
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % spot.images.length);
@@ -69,8 +113,16 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
     spot.amenities.includes(amenity.id)
   );
 
+    const writeReview = () => {
+        setWritingReview(true);
+    };
+
+    const handleOnClose = () => {
+        setWritingReview(false);
+    };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm fade-in">
       <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-xl overflow-hidden scale-in">
         <button
           onClick={onClose}
@@ -240,18 +292,45 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
                 </h3>
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <Clock className="h-5 w-5 text-gray-700 mr-2" />
-                      <h4 className="text-sm font-medium text-gray-900">
-                        Opening Hours
-                      </h4>
+                    <div className="flex justify-between">
+                      <div className="flex items-center mb-2">
+                        <Clock className="h-5 w-5 text-gray-700 mr-2" />
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {showAllTimes?
+                                "All Opening Hours"
+                                :
+                                "Today's Opening Hours"
+                            }
+                        </h4>
+                      </div>
+                      <button
+                          onClick={() => setShowAllTimes(!showAllTimes)}
+                          className="text-xs text-primary font-medium mb-2">
+                        {showAllTimes ? "Show today's time" : "Show all times"}
+                      </button>
                     </div>
-                    <p className="text-gray-700">
-                      {spot.hours.open === "0:00" &&
-                      spot.hours.close === "24:00"
-                        ? "Open 24/7"
-                        : `${spot.hours.open} - ${spot.hours.close}`}
-                    </p>
+                      {showAllTimes?
+                          <p className="text-gray-700">
+                            {"Sunday: "} {formatTimeRange(spot.hours.opening_hours.sunday_open, spot.hours.opening_hours.sunday_close)}
+                            <br/>
+                            {"Monday: "} {formatTimeRange(spot.hours.opening_hours.monday_open, spot.hours.opening_hours.monday_close)}
+                              <br/>
+                            {"Tuesday: "} {formatTimeRange(spot.hours.opening_hours.tuesday_open, spot.hours.opening_hours.tuesday_close)}
+                            <br/>
+                            {"Wednesday: "} {formatTimeRange(spot.hours.opening_hours.wednesday_open, spot.hours.opening_hours.wednesday_close)}
+                            <br/>
+                            {"Thursday: "} {formatTimeRange(spot.hours.opening_hours.thursday_open, spot.hours.opening_hours.thursday_close)}
+                            <br/>
+                            {"Friday: "} {formatTimeRange(spot.hours.opening_hours.friday_open, spot.hours.opening_hours.friday_close)}
+                            <br/>
+                            {"Saturday: "} {formatTimeRange(spot.hours.opening_hours.saturday_open, spot.hours.opening_hours.saturday_close)}
+                            </p>
+                          :
+                          <p className="text-gray-700">
+                            {formatTimeRange(todayOpenHours(), todayClosingHours())}
+                          </p>
+                      }
+
                   </div>
 
                   <div className="flex-1 p-4 bg-gray-50 rounded-lg">
@@ -338,7 +417,8 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
                   </button>
                 )}
 
-                <button className="mt-6 w-full py-3 flex items-center justify-center text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+                <button className="mt-6 w-full py-3 flex items-center justify-center text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+                onClick={writeReview}>
                   <ThumbsUp className="h-4 w-4 mr-2" />
                   Write a review
                 </button>
@@ -347,6 +427,7 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
           </div>
         </div>
       </div>
+      {writingReview && <WritingReview onClose={handleOnClose} spot={spot} />}
     </div>
   );
 };

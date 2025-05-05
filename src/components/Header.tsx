@@ -37,16 +37,16 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-5 px-6 md:px-8",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-7 px-6 md:px-8 md:py-5",
         scrolled ? "bg-white backdrop-blur-md shadow-soft" : "bg-transparent"
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center">
           <MapPin className="h-6 w-6 text-primary mr-2" />
-          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">
+          <a href="#root" className="text-xl font-semibold text-gray-900 tracking-tight">
             UBSeats
-          </h1>
+          </a>
         </div>
 
         {/* Mobile menu button */}
@@ -72,22 +72,17 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
           </form>
 
           <a
-            href="#spots"
-            className="text-gray-700 hover:text-primary transition-colors font-bold"
-          >
-            Spots
-          </a>
-          <a
             href="#map"
             className="text-gray-700 hover:text-primary transition-colors font-bold"
           >
             Map
           </a>
+
           <a
-            href="#reviews"
-            className="text-gray-700 hover:text-primary transition-colors font-bold"
+              href="#spots"
+              className="text-gray-700 hover:text-primary transition-colors font-bold"
           >
-            Reviews
+            Spots
           </a>
 
           <button className="rounded-full bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 transition-colors">

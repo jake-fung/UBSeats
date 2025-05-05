@@ -4,8 +4,9 @@ import FilterBar from "@/components/FilterBar";
 import SpotCard from "@/components/SpotCard";
 import SpotDetail from "@/components/SpotDetail";
 import SpotMap from "@/components/SpotMap";
-import ReviewCard from "@/components/ReviewCard";
-import { useRecentReviews, useStudySpots } from "@/hooks/useStudySpots";
+import GradientText from "@/components/ui/GradientText";
+import MagnetButton from "@/components/ui/MagnetButton.tsx";
+import { useStudySpots } from "@/hooks/useStudySpots";
 import { Filter, StudySpot } from "@/utils/types";
 import { Library, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +22,6 @@ const Index = () => {
     isLoading,
     error,
   } = useStudySpots(activeFilters);
-  const { data: recentReviews = [] } = useRecentReviews();
 
   useEffect(() => {
     if (error) {
@@ -86,39 +86,40 @@ const Index = () => {
             showIntro ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <div className="max-w-3xl fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+          <div className="max-w-full fade-in">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
               Find Your Perfect{" "}
-              <span className="text-blue-200">Study Spot</span> at UBC
+              <GradientText>Study Spot</GradientText> at UBC
             </h1>
-            <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl md:text-xl text-blue-100 mb-8 max-w-4xl mx-auto">
               Discover libraries, cafés, quiet zones, and outdoor areas across
               campus. Filter by amenities, noise levels, and more.
             </p>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <a
-                href="#spots"
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              <MagnetButton
+                  onClick={() => location.href = "#map"}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-105 hover:bg-blue-700 transition-all font-medium flex items-center"
+              >
+                <MapPin className="mr-2 h-5 w-5" />
+                View Map
+              </MagnetButton>
+              <MagnetButton
+                onClick={() => location.href = "#spots"}
                 className="px-6 py-3 bg-white text-blue-700 rounded-lg shadow-lg hover:bg-gray-100 hover:scale-105 hover:shadow-xl transition-all font-medium flex items-center"
               >
                 <Library className="mr-2 h-5 w-5" />
                 Browse Study Spots
-              </a>
-              <a
-                href="#map"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-105 hover:bg-blue-700 transition-all font-medium flex items-center"
-              >
-                <MapPin className="mr-2 h-5 w-5" />
-                View Map
-              </a>
+              </MagnetButton>
+
             </div>
           </div>
         </div>
       </section>
 
       <FilterBar
-        onFilterChange={handleFilterChange}
-        activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+          activeFilters={activeFilters}
       />
 
       <main className="container max-w-7xl mx-auto px-4 py-8">
@@ -183,23 +184,12 @@ const Index = () => {
                 </div>
               )}
             </section>
-
-            <section id="reviews" className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Recent Reviews
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {recentReviews.slice(0, 4).map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
-            </section>
           </>
         )}
       </main>
 
       <footer className="bg-gray-900 text-white py-12">
-        <div className="container max-w-7xl mx-auto px-4">
+        <div className="container max-w-7xl mx-auto px-10">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="flex items-center">
@@ -239,54 +229,6 @@ const Index = () => {
                       className="text-gray-300 hover:text-white transition-colors"
                     >
                       Map
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#reviews"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Reviews
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold uppercase text-gray-400 mb-2">
-                  Connect
-                </h3>
-                <ul className="space-y-2">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      About
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Contact
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Feedback
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Privacy Policy
                     </a>
                   </li>
                 </ul>

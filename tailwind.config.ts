@@ -24,7 +24,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -98,6 +98,16 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        'gradient': {
+          '0%, 100%': {
+            backgroundSize:'200% 200%',
+            backgroundPosition: 'left center'
+          },
+          '50%': {
+            backgroundSize:'200% 200%',
+            backgroundPosition: 'right center'
+          }
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -105,6 +115,7 @@ export default {
         'pulse-soft': 'pulse-soft 3s infinite ease-in-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out',
         'fade-in': 'fade-in 0.5s ease-out',
+        'gradient': 'gradient 3s ease infinite'
       },
     }
   },

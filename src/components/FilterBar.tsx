@@ -51,10 +51,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
   return (
-    <div className="bg-white backdrop-blur-md shadow-soft sticky top-16 z-40 w-full pt-4 pb-2 px-4">
+    <div className="bg-white backdrop-blur-md shadow-soft sticky top-20 z-40 w-full pt-2 pb-2 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4 pt-2">
-          <h2 className="text-2xl font-semibold text-gray-800">
+        <div className="flex items-center justify-between pb-4 pt-2 px-3">
+          <h2 className="text-xl font-semibold text-gray-800">
             Filter Study Spots
           </h2>
 
@@ -137,7 +137,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* More filter options would go here */}
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-lg font-bold text-gray-700">
                   Noise Level
                 </h3>
                 <div className="flex space-x-2 justify-center">
@@ -145,7 +145,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-sm",
+                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.noise === level
                           ? "bg-primary text-white"
                           : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -161,7 +161,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-lg font-bold text-gray-700">
                   WiFi Strength
                 </h3>
                 <div className="flex space-x-2">
@@ -169,7 +169,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-sm",
+                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.wifi === level
                           ? "bg-primary text-white"
                           : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -185,7 +185,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-lg font-bold text-gray-700">
                   Seating Availability
                 </h3>
                 <div className="flex space-x-2">
@@ -193,7 +193,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-sm",
+                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.seating === level
                           ? "bg-primary text-white"
                           : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"

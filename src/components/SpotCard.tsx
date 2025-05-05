@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, {Fragment, useContext, useEffect, useState} from "react";
 import { StudySpot } from "@/utils/types";
 import { useCategories } from "@/hooks/useStudySpots";
 import {
@@ -35,6 +35,36 @@ const SpotCard: React.FC<SpotCardProps> = ({
     spot.categories.includes(category.id)
   );
 
+  const todayOpenHours = () => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const dayNames = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        ];
+    return spot.hours.opening_hours[`${dayNames[currentDay]}_open`];
+  }
+
+  const todayClosingHours = () => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const dayNames = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    return spot.hours.opening_hours[`${dayNames[currentDay]}_close`];
+  }
+
   // Check if spot is currently open
   const isOpen = () => {
     const now = new Date();
@@ -42,8 +72,11 @@ const SpotCard: React.FC<SpotCardProps> = ({
     const currentMinutes = now.getMinutes();
     const currentTime = currentHours + currentMinutes / 60;
 
-    const [openHours, openMinutes] = spot.hours.open.split(":").map(Number);
-    const [closeHours, closeMinutes] = spot.hours.close.split(":").map(Number);
+    todayOpenHours();
+    todayClosingHours();
+
+    const [openHours, openMinutes] = todayOpenHours().split(":").map(Number);
+    const [closeHours, closeMinutes] = todayClosingHours().split(":").map(Number);
 
     const openTime = openHours + openMinutes / 60;
     const closeTime = closeHours + closeMinutes / 60;
@@ -55,6 +88,16 @@ const SpotCard: React.FC<SpotCardProps> = ({
       return currentTime >= openTime && currentTime < closeTime;
     }
   };
+
+  // Format time range for display
+  const formatTimeRange = (start: string, end: string) => {
+    if (start === "00:00:00" && end === "24:00:00") {
+      return "Open all day";
+    } else if (start === "00:00:00" && end === "00:00:00") {
+      return "Closed";
+    }
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  }
 
   // Format time to show only hours and minutes
   const formatTime = (timeString: string) => {
@@ -167,7 +210,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="mr-1 h-4 w-4" />
             <span>
-              {formatTime(spot.hours.open)} – {formatTime(spot.hours.close)}
+              {formatTimeRange(todayOpenHours(), todayClosingHours())}
             </span>
           </div>
         </div>

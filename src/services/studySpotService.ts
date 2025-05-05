@@ -1,4 +1,4 @@
-import {supabase} from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import {Amenity, Category, Review, StudySpot} from '@/utils/types';
 import {validateCategoryType} from '@/utils/spotUtils';
 
@@ -67,11 +67,19 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
     
     // Fetch peak hours for this spot
     const { data: peakHoursData, error: peakHoursError } = await supabase
-      .from('peak_hours')
+      .from('spot_peak_hours')
       .select('time_range')
       .eq('spot_id', spot.id);
     
     if (peakHoursError) throw peakHoursError;
+
+    // Fetch opening hours for this spot
+    const { data: hoursData, error: hoursError } = await supabase
+        .from('spot_opening_hours')
+        .select('*')
+        .eq('spot_id', spot.id);
+
+    if (hoursError) throw hoursError;
     
     // Transform categories to array of category IDs
     const categories = categoriesData.map(cat => {
@@ -87,6 +95,24 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
     
     // Transform peak hours to array of time ranges
     const peakHours = peakHoursData.map(ph => ph.time_range);
+
+    // Transform opening hours to a readable format
+    const openingHours = hoursData.length > 0 ? {
+      monday_open: hoursData[0].monday_open,
+      monday_close: hoursData[0].monday_close,
+      tuesday_open: hoursData[0].tuesday_open,
+      tuesday_close: hoursData[0].tuesday_close,
+      wednesday_open: hoursData[0].wednesday_open,
+      wednesday_close: hoursData[0].wednesday_close,
+      thursday_open: hoursData[0].thursday_open,
+      thursday_close: hoursData[0].thursday_close,
+      friday_open: hoursData[0].friday_open,
+      friday_close: hoursData[0].friday_close,
+      saturday_open: hoursData[0].saturday_open,
+      saturday_close: hoursData[0].saturday_close,
+      sunday_open: hoursData[0].sunday_open,
+      sunday_close: hoursData[0].sunday_close
+    } : null;
     
     // Create the complete spot object
     spots.push({
@@ -106,8 +132,22 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
       wifi: spot.wifi,
       seating: spot.seating,
       hours: {
-        open: spot.hours_open,
-        close: spot.hours_close,
+        opening_hours: openingHours || {
+          monday_open: "0",
+          monday_close: "0",
+          tuesday_open: "0",
+          tuesday_close: "0",
+          wednesday_open: "0",
+          wednesday_close: "0",
+          thursday_open: "0",
+          thursday_close: "0",
+          friday_open: "0",
+          friday_close: "0",
+          saturday_open: "0",
+          saturday_close: "0",
+          sunday_open: "0",
+          sunday_close: "0",
+        },
         peakHours
       },
       amenities
@@ -123,15 +163,16 @@ export const fetchStudySpotById = async (id: string): Promise<StudySpot | null> 
   return spots.find(spot => spot.id === id) || null;
 };
 
-// Fetch recent reviews
-export const fetchRecentReviews = async (): Promise<Review[]> => {
+// Fetch reviews for a specific study spot
+export const fetchReviewsBySpotId = async (spotId: string): Promise<Review[]> => {
   const { data, error } = await supabase
     .from('reviews')
     .select('*')
-      .order('date', { ascending: false });
-
+    .eq('spot_id', spotId)
+  .order('date', { ascending: false });
+  
   if (error) throw error;
-
+  
   return data.map(review => ({
     id: review.id,
     spotId: review.spot_id,
@@ -151,30 +192,17 @@ export const fetchRecentReviews = async (): Promise<Review[]> => {
   }));
 };
 
-// Fetch reviews for a specific study spot
-export const fetchReviewsBySpotId = async (spotId: string): Promise<Review[]> => {
-  const { data, error } = await supabase
+// Update the helpful count for a review
+export const updateReviewHelpfulCount = async (reviewId: string, newHelpfulCount: number): Promise<number> => {
+  const { data, error: helpfulError } = await supabase
     .from('reviews')
-    .select('*')
-    .eq('spot_id', spotId);
-  
-  if (error) throw error;
-  
-  return data.map(review => ({
-    id: review.id,
-    spotId: review.spot_id,
-    user: {
-      name: review.user_name,
-      avatar: review.user_avatar
-    },
-    date: review.date,
-    rating: review.rating,
-    content: review.content,
-    helpful: review.helpful,
-    categories: {
-      comfort: review.comfort_rating,
-      noise: review.noise_rating,
-      amenities: review.amenities_rating
-    }
-  }));
+    .update({ helpful: newHelpfulCount })
+    .eq('id', reviewId)
+    .select('helpful');
+
+  if (helpfulError) throw helpfulError;
+
+  console.log(data);
+
+  return data[0].helpful;
 };

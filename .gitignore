@@ -1,4 +1,7 @@
 node_modules
-supabase
-src/utils/token.ts
-src/integrations/supabase/client.ts
+.env
+dist
+.DS_Store
+.vscode
+*.log
+.idea

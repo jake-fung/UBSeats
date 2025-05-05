@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { StudySpot } from "@/utils/types";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { token } from "@/utils/token";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -26,7 +25,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
 
   // Initialize map
   useEffect(() => {
-    mapboxgl.accessToken = token();
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 
     // Initialize the map centered on UBC campus
     map.current = new mapboxgl.Map({
