@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,50 +56,53 @@ const RatingStars: React.FC<RatingStarsProps> = ({
     setHoveredIndex(null);
   };
 
+  useEffect(() => {
+      setRating(initialRating);
+    }, [initialRating]);
+
   return (
       <div className={cn("flex items-center", className)}>
         <div className="flex">
-          {[...Array(max)].map((_, i) => {
-            const isActive = hoveredIndex !== null
-                ? i <= hoveredIndex
-                : i < fullStars || (i === fullStars && hasHalfStar);
+            {[...Array(max)].map((_, i) => {
+                const isActive = hoveredIndex !== null
+                    ? i <= hoveredIndex
+                    : i < fullStars || (i === fullStars && hasHalfStar);
 
-            return (
-                <span
-                    key={i}
-                    className={cn("relative", { "cursor-pointer": clickable })}
-                    onClick={() => handleStarClick(i)}
-                    onMouseEnter={() => handleMouseEnter(i)}
-                    onMouseLeave={handleMouseLeave}
-                >
-              <Star
-                  className={cn(
-                      starClass,
-                      "text-gray-300",
-                      "transition-transform duration-200 ease-in-out hover:scale-110"
-                  )}
-                  fill="currentColor"
-              />
-                  {isActive ? (
-                      <Star
-                          className={cn(
-                              starClass,
-                              "absolute top-0 left-0 text-yellow-400",
-                              "transition-transform duration-200 ease-in-out hover:scale-110",
-                              {
-                                "clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%)":
-                                    hoveredIndex === null && i === fullStars && hasHalfStar,
-                              }
-                          )}
-                          fill="currentColor"
-                      />
-                  ) : null}
-            </span>
-            );
-          })}
+                const isHalfStar = hoveredIndex === null && i === fullStars && hasHalfStar;
+
+                return (
+                    <span
+                        key={i}
+                        className={cn("relative", { "cursor-pointer": clickable })}
+                        onClick={() => handleStarClick(i)}
+                        onMouseEnter={() => handleMouseEnter(i)}
+                        onMouseLeave={handleMouseLeave}
+                    >
+        <Star
+            className={cn(
+                starClass,
+                "text-gray-300",
+                "transition-transform duration-200 ease-in-out hover:scale-110"
+            )}
+            fill="currentColor"
+        />
+                        {isActive && (
+                            <Star
+                                className={cn(
+                                    starClass,
+                                    "absolute top-0 left-0 text-yellow-400",
+                                    "transition-transform duration-200 ease-in-out hover:scale-110"
+                                )}
+                                fill="currentColor"
+                                style={isHalfStar ? { clipPath: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" } : undefined}
+                            />
+                        )}
+      </span>
+                );
+            })}
         </div>
 
-        {showValue && (
+          {showValue && (
             <span className="ml-2 text-sm font-medium text-gray-700">
           {rating.toFixed(1)}
         </span>

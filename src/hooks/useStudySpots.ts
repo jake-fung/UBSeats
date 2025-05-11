@@ -75,7 +75,7 @@ export const useStudySpots = (filters?: Filter) => {
 };
 
 // Hook to fetch reviews for a spot
-export const useReviews = (spotId?: string) => {
+export const useReviews = (spotId?: number) => {
   return useQuery({
     queryKey: ['reviews', spotId],
     queryFn: () => spotId ? fetchReviewsBySpotId(spotId) : Promise.resolve([]),

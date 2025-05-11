@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { StudySpot } from "@/utils/types";
 import { useAmenities, useCategories, useReviews } from "@/hooks/useStudySpots";
 import {
@@ -119,7 +119,15 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
 
     const handleOnClose = () => {
         setWritingReview(false);
+        onClose();
     };
+
+
+  const numberOfReviews = reviews.length;
+  // Calculate the average of review ratings
+  const averageRating = numberOfReviews > 0
+      ? Number((reviews.reduce((acc, review) => acc + review.rating, 0) / numberOfReviews).toFixed(1))
+      : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm fade-in">
@@ -196,9 +204,9 @@ const SpotDetail: React.FC<SpotDetailProps> = ({ spot, onClose }) => {
               </h2>
 
               <div className="flex items-center mb-2">
-                <RatingStars rating={spot.rating} showValue size="md" />
+                <RatingStars rating={averageRating} showValue size="md" />
                 <span className="ml-2 text-sm text-gray-500">
-                  {spot.reviewCount} reviews
+                  {numberOfReviews} reviews
                 </span>
               </div>
 

@@ -15,7 +15,7 @@ export interface Amenity {
 }
 
 export interface StudySpot {
-  id: string;
+  id: number;
   name: string;
   description: string;
   categories: CategoryType[];
@@ -25,8 +25,6 @@ export interface StudySpot {
     address: string;
   };
   images: string[];
-  rating: number;
-  reviewCount: number;
   noise: number; // 1-5 scale (1: silent, 5: loud)
   wifi: number; // 1-5 scale (1: none, 5: excellent)
   seating: number; // 1-5 scale (1: limited, 5: abundant)
@@ -54,12 +52,13 @@ export interface StudySpot {
 
 export interface Review {
   id: string;
-  spotId: string;
+  spotId: number;
   user: {
     name: string;
     avatar: string;
   };
   date: string;
+  time: string;
   rating: number;
   content: string;
   helpful: number;

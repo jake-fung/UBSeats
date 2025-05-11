@@ -1,6 +1,6 @@
-import React, {Fragment, useContext, useEffect, useState} from "react";
+import React, {useState} from "react";
 import { StudySpot } from "@/utils/types";
-import { useCategories } from "@/hooks/useStudySpots";
+import {useCategories, useReviews} from "@/hooks/useStudySpots";
 import {
   ArrowRight,
   Clock,
@@ -27,8 +27,11 @@ const SpotCard: React.FC<SpotCardProps> = ({
   className,
   featured = false,
 }) => {
+
   const [imageLoaded, setImageLoaded] = useState(false);
+
   const { data: categories = [] } = useCategories();
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviews(spot.id);
 
   // Get the categories for this spot
   const spotCategories = categories.filter((category) =>
@@ -151,6 +154,13 @@ const SpotCard: React.FC<SpotCardProps> = ({
 
   const spotStatus = isOpen();
 
+  const numberOfReviews = reviews.length;
+  // Calculate the average of review ratings
+  const averageRating = numberOfReviews > 0
+      ? Number((reviews.reduce((acc, review) => acc + review.rating, 0) / numberOfReviews).toFixed(1))
+      : 0;
+
+
   return (
     <div
       className={cn(
@@ -201,12 +211,18 @@ const SpotCard: React.FC<SpotCardProps> = ({
 
       <div className={cn("p-4", featured ? "md:w-1/2 md:p-6" : "")}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <RatingStars rating={spot.rating} size="sm" />
-            <span className="ml-2 text-sm text-gray-500">
-              {spot.reviewCount} reviews
-            </span>
-          </div>
+          {reviewsLoading ? (
+              <div className="flex items-center">
+                <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+              </div>
+          ) : (
+              <div className="flex items-center">
+                <RatingStars rating={averageRating} showValue size="sm" />
+                <span className="ml-2 text-sm text-gray-500">
+      {numberOfReviews} reviews
+    </span>
+              </div>
+          )}
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="mr-1 h-4 w-4" />
             <span>

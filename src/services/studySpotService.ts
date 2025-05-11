@@ -30,8 +30,8 @@ export const fetchAmenities = async (): Promise<Amenity[]> => {
 export const fetchStudySpots = async (): Promise<StudySpot[]> => {
   // Fetch base study spots data
   const { data: spotsData, error: spotsError } = await supabase
-    .from('study_spots')
-    .select('*')
+      .from('study_spots')
+      .select('*')
       .order('name', { ascending: true });
   
   if (spotsError) throw spotsError;
@@ -126,8 +126,6 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
         address: spot.location_address
       },
       images,
-      rating: spot.rating,
-      reviewCount: spot.review_count,
       noise: spot.noise,
       wifi: spot.wifi,
       seating: spot.seating,
@@ -158,29 +156,31 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
 };
 
 // Fetch a single study spot by ID
-export const fetchStudySpotById = async (id: string): Promise<StudySpot | null> => {
-  const spots = await fetchStudySpots();
-  return spots.find(spot => spot.id === id) || null;
-};
+// export const fetchStudySpotById = async (id: string): Promise<StudySpot | null> => {
+//   const spots = await fetchStudySpots();
+//   return spots.find(spot => spot.id === id) || null;
+// };
 
 // Fetch reviews for a specific study spot
-export const fetchReviewsBySpotId = async (spotId: string): Promise<Review[]> => {
+export const fetchReviewsBySpotId = async (spotId: number): Promise<Review[]> => {
   const { data, error } = await supabase
     .from('reviews')
     .select('*')
     .eq('spot_id', spotId)
-  .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .order('time', { ascending: false });
   
   if (error) throw error;
   
   return data.map(review => ({
-    id: review.id,
+    id: review.reviews_id,
     spotId: review.spot_id,
     user: {
       name: review.user_name,
       avatar: review.user_avatar
     },
     date: review.date,
+    time: review.time,
     rating: review.rating,
     content: review.content,
     helpful: review.helpful,
@@ -197,12 +197,31 @@ export const updateReviewHelpfulCount = async (reviewId: string, newHelpfulCount
   const { data, error: helpfulError } = await supabase
     .from('reviews')
     .update({ helpful: newHelpfulCount })
-    .eq('id', reviewId)
+    .eq('reviews_id', reviewId)
     .select('helpful');
 
   if (helpfulError) throw helpfulError;
 
-  console.log(data);
-
   return data[0].helpful;
+};
+
+// Submit a new review
+export const submitReviewByReviewId = async (review: any): Promise<void> => {
+  const { error: submitError } = await supabase
+    .from('reviews')
+    .insert({
+      spot_id: review.spotId,
+      user_name: "Jake Fung",
+      user_avatar: "https://randomuser.me/api/portraits/lego/1.jpg",
+      date: review.date,
+      time: review.time,
+      rating: review.ratings.overall,
+      content: review.comment,
+      helpful: 0,
+      comfort_rating: review.ratings.comfort,
+      noise_rating: review.ratings.noise,
+      amenities_rating: review.ratings.amenities
+    });
+
+  if (submitError) throw submitError;
 };

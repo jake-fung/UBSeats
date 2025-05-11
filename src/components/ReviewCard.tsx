@@ -39,6 +39,17 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Format time
+    const formatTime = (timeString: string) => {
+        const options: Intl.DateTimeFormatOptions = {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+        };
+        return new Date(`1970-01-01T${timeString}`).toLocaleTimeString(undefined, options);
+    }
+
   const handleHelpfulClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent onClick
 
@@ -62,7 +73,6 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
       setHelpfulCount(newHelpfulCount);
       setHasVoted(true);
 
-      console.log('Updated helpful count:', newHelpfulCount); // Log the new value
       toast.success('Thanks for your feedback!');
     } catch (helpfulError) {
         console.error('Error updating helpful count:', helpfulError);
@@ -89,7 +99,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
           />
           <div className="ml-3">
             <h4 className="font-medium text-gray-900">{review.user.name}</h4>
-            <p className="text-xs text-gray-500">{formatDate(review.date)}</p>
+            <p className="text-xs text-gray-500">{formatDate(review.date)} at {formatTime(review.time)}</p>
           </div>
         </div>
         <RatingStars rating={review.rating} size="sm" />

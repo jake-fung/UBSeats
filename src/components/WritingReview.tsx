@@ -3,10 +3,12 @@ import RatingStars from "@/components/RatingStars.tsx";
 import { SendHorizontal, X } from "lucide-react";
 import {StudySpot} from "@/utils/types.ts";
 import { toast } from "sonner";
+import {submitReviewByReviewId} from "@/services/studySpotService.ts";
 
 interface WritingReviewProps {
   onClose: () => void;
   spot?: StudySpot; // Optional prop to identify which spot is being reviewed
+  // onSubmit: () => void;
 }
 
 interface RatingValues {
@@ -83,33 +85,26 @@ const WritingReview: React.FC<WritingReviewProps> = ({ onClose, spot }) => {
 
       // Prepare the review data
       const reviewData = {
-        spot,
+        spotId : spot?.id,
         ratings,
         comment: reviewText,
-        timestamp: new Date().toISOString()
+        date: new Date().toDateString(),
+        time: new Date().toLocaleTimeString(),
+
       };
 
-      // Make API request to your backend
-      const response = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reviewData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit review');
-      }
+      // Make API request to backend
+      await submitReviewByReviewId(reviewData);
 
       // Close the review modal on success
       onClose();
 
-    } catch (err) {
-      console.error('Error submitting review:', err);
+    } catch (submitError) {
+      console.error('Error submitting review:', submitError);
       toast.error('Failed to submit review. Please try again.');
     } finally {
       setIsSubmitting(false);
+      toast.success("Thanks for your feedback on " + spot.name + "!");
     }
   };
 
