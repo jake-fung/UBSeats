@@ -188,56 +188,21 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container max-w-7xl mx-auto px-10">
+      <footer className="bg-gray-900 text-white py-8 justify-between">
+        <div className="container max-w-7xl mx-auto px-5">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="flex items-center">
                 <MapPin className="h-6 w-6 text-blue-400 mr-2" />
                 <h2 className="text-xl font-semibold">UBSeats</h2>
               </div>
-              <p className="text-gray-400 mt-2">
+              <p className="text-gray-400 text-sm ml-8">
                 Find your perfect study spot at UBC
               </p>
             </div>
-
-            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
-              <div>
-                <h3 className="text-sm font-semibold uppercase text-gray-400 mb-2">
-                  Navigation
-                </h3>
-                <ul className="space-y-2">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors "
-                    >
-                      Home
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#spots"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Study Spots
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#map"
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      Map
-                    </a>
-                  </li>
-                </ul>
-              </div>
+            <div className="text-gray-400 text-sm">
+              &copy; {new Date().getFullYear()} UBSeats. All rights reserved.
             </div>
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} UBSeats. All rights reserved.
           </div>
         </div>
       </footer>
