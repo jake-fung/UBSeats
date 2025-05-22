@@ -1,6 +1,6 @@
 # UBSeats by Jake Fung
 
-[https://ubseats.vercel.app/](Demo)
+[Demo](https://ubseats.vercel.app/)
 
 ## Description
 UBSeats is a simple web application that allows users to check the availability of seats in various buildings on the University of British Columbia Vancouver campus. It provides a user-friendly interface to view real-time seat availability data.
