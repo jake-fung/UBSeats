@@ -120,13 +120,6 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
             >
               Map
             </a>
-            <a
-              href="#reviews"
-              onClick={toggleMenu}
-              className="text-gray-700 hover:text-primary transition-colors font-bold px-2 py-1"
-            >
-              Reviews
-            </a>
 
             <button className="flex items-center text-gray-700 hover:text-primary transition-colors font-medium px-2 py-1">
               <User className="h-5 w-5 mr-2" />
