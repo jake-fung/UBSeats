@@ -91,11 +91,6 @@ const Index = () => {
               Find Your Perfect{" "}
               <GradientText>Study Spot</GradientText> at UBC
             </h1>
-            <p className="text-xl md:text-xl text-blue-100 mb-8 max-w-4xl mx-auto">
-              Discover libraries, cafés, quiet zones, and outdoor areas across
-              campus. Filter by amenities, noise levels, and more.
-            </p>
-
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
               <MagnetButton
                   onClick={() => location.href = "#map"}
