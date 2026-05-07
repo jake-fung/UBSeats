@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { MapPin, Menu, Search, User, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cnUtils";
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
@@ -38,13 +38,16 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
     <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-7 px-6 md:px-8 md:py-5",
-        scrolled ? "bg-white backdrop-blur-md shadow-soft" : "bg-transparent"
+        scrolled ? "bg-white backdrop-blur-md shadow-soft" : "bg-transparent",
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center">
           <MapPin className="h-6 w-6 text-primary mr-2" />
-          <a href="#root" className="text-xl font-semibold text-gray-900 tracking-tight">
+          <a
+            href="#root"
+            className="text-xl font-semibold text-gray-900 tracking-tight"
+          >
             UBSeats
           </a>
         </div>
@@ -79,8 +82,8 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
           </a>
 
           <a
-              href="#spots"
-              className="text-gray-700 hover:text-primary transition-colors font-bold"
+            href="#spots"
+            className="text-gray-700 hover:text-primary transition-colors font-bold"
           >
             Spots
           </a>

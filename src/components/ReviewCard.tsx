@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Review } from "@/utils/types";
 import RatingStars from "./RatingStars";
 import { Flag, ThumbsUp } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from 'sonner';
-import {updateReviewHelpfulCount} from "@/services/studySpotService.ts";
+import { cn } from "@/utils/cnUtils";
+import { toast } from "sonner";
+import { updateReviewHelpfulCount } from "@/services/studySpotService.ts";
 
 interface ReviewCardProps {
   review: Review;
@@ -12,7 +12,11 @@ interface ReviewCardProps {
   onClick?: () => void;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) => {
+const ReviewCard: React.FC<ReviewCardProps> = ({
+  review,
+  className,
+  onClick,
+}) => {
   const [helpfulCount, setHelpfulCount] = useState(review.helpful);
   const [isUpdating, setIsUpdating] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -27,7 +31,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
     if (storedVote) {
       setHasVoted(true);
     }
-    }, [review.id]);
+  }, [review.id]);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -40,15 +44,18 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
   };
 
   // Format time
-    const formatTime = (timeString: string) => {
-        const options: Intl.DateTimeFormatOptions = {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: true,
-        };
-        return new Date(`1970-01-01T${timeString}`).toLocaleTimeString(undefined, options);
-    }
+  const formatTime = (timeString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    };
+    return new Date(`1970-01-01T${timeString}`).toLocaleTimeString(
+      undefined,
+      options,
+    );
+  };
 
   const handleHelpfulClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent onClick
@@ -68,15 +75,18 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
     try {
       setIsUpdating(true);
 
-      const newHelpfulCount = await updateReviewHelpfulCount(review.id, helpfulCount + 1);
+      const newHelpfulCount = await updateReviewHelpfulCount(
+        review.id,
+        helpfulCount + 1,
+      );
 
       setHelpfulCount(newHelpfulCount);
       setHasVoted(true);
 
-      toast.success('Thanks for your feedback!');
+      toast.success("Thanks for your feedback!");
     } catch (helpfulError) {
-        console.error('Error updating helpful count:', helpfulError);
-        toast.error('Failed to update helpful count. Please try again.');
+      console.error("Error updating helpful count:", helpfulError);
+      toast.error("Failed to update helpful count. Please try again.");
     } finally {
       setIsUpdating(false);
     }
@@ -86,7 +96,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
     <div
       className={cn(
         "p-4 rounded-lg bg-white border border-gray-100 shadow-soft transition-all duration-200 hover:shadow-md",
-        className
+        className,
       )}
       onClick={onClick}
     >
@@ -99,7 +109,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
           />
           <div className="ml-3">
             <h4 className="font-medium text-gray-900">{review.user.name}</h4>
-            <p className="text-xs text-gray-500">{formatDate(review.date)} at {formatTime(review.time)}</p>
+            <p className="text-xs text-gray-500">
+              {formatDate(review.date)} at {formatTime(review.time)}
+            </p>
           </div>
         </div>
         <RatingStars rating={review.rating} size="sm" />
@@ -125,15 +137,26 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, className, onClick }) =
       </div>
 
       <div className="flex justify-between items-center">
-        <button className={cn(
+        <button
+          className={cn(
             "flex items-center text-sm transition-colors",
-            hasVoted ? "text-green-600" : "text-gray-500 hover:text-gray-700 hover:-translate-y-0.5 transition-all",
-            isUpdating && "opacity-50 cursor-not-allowed"
-        )} onClick={handleHelpfulClick}  disabled={isUpdating || hasVoted}>
-          <ThumbsUp className={cn("h-4 w-4 mr-1", hasVoted && "fill-green-600")} />
+            hasVoted
+              ? "text-green-600"
+              : "text-gray-500 hover:text-gray-700 hover:-translate-y-0.5 transition-all",
+            isUpdating && "opacity-50 cursor-not-allowed",
+          )}
+          onClick={handleHelpfulClick}
+          disabled={isUpdating || hasVoted}
+        >
+          <ThumbsUp
+            className={cn("h-4 w-4 mr-1", hasVoted && "fill-green-600")}
+          />
           <span>Helpful ({helpfulCount})</span>
         </button>
-        <button className="flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Flag className="h-4 w-4 mr-1" />
           <span>Report</span>
         </button>

@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { StudySpot } from "@/utils/types";
-import {useCategories, useReviews} from "@/hooks/useStudySpots";
+import { useCategories, useReviews } from "@/hooks/useStudySpots";
 import {
   ArrowRight,
   Clock,
@@ -12,7 +12,7 @@ import {
   Wifi,
 } from "lucide-react";
 import RatingStars from "./RatingStars";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cnUtils";
 
 interface SpotCardProps {
   spot: StudySpot;
@@ -27,7 +27,6 @@ const SpotCard: React.FC<SpotCardProps> = ({
   className,
   featured = false,
 }) => {
-
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const { data: categories = [] } = useCategories();
@@ -35,23 +34,23 @@ const SpotCard: React.FC<SpotCardProps> = ({
 
   // Get the categories for this spot
   const spotCategories = categories.filter((category) =>
-    spot.categories.includes(category.id)
+    spot.categories.includes(category.id),
   );
 
   const todayOpenHours = () => {
     const now = new Date();
     const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     const dayNames = [
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        ];
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
     return spot.hours.opening_hours[`${dayNames[currentDay]}_open`];
-  }
+  };
 
   const todayClosingHours = () => {
     const now = new Date();
@@ -66,7 +65,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
       "saturday",
     ];
     return spot.hours.opening_hours[`${dayNames[currentDay]}_close`];
-  }
+  };
 
   // Check if spot is currently open
   const isOpen = () => {
@@ -79,7 +78,9 @@ const SpotCard: React.FC<SpotCardProps> = ({
     todayClosingHours();
 
     const [openHours, openMinutes] = todayOpenHours().split(":").map(Number);
-    const [closeHours, closeMinutes] = todayClosingHours().split(":").map(Number);
+    const [closeHours, closeMinutes] = todayClosingHours()
+      .split(":")
+      .map(Number);
 
     const openTime = openHours + openMinutes / 60;
     const closeTime = closeHours + closeMinutes / 60;
@@ -100,7 +101,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
       return "Closed";
     }
     return `${formatTime(start)} - ${formatTime(end)}`;
-  }
+  };
 
   // Format time to show only hours and minutes
   const formatTime = (timeString: string) => {
@@ -156,10 +157,15 @@ const SpotCard: React.FC<SpotCardProps> = ({
 
   const numberOfReviews = reviews.length;
   // Calculate the average of review ratings
-  const averageRating = numberOfReviews > 0
-      ? Number((reviews.reduce((acc, review) => acc + review.rating, 0) / numberOfReviews).toFixed(1))
+  const averageRating =
+    numberOfReviews > 0
+      ? Number(
+          (
+            reviews.reduce((acc, review) => acc + review.rating, 0) /
+            numberOfReviews
+          ).toFixed(1),
+        )
       : 0;
-
 
   return (
     <div
@@ -167,20 +173,20 @@ const SpotCard: React.FC<SpotCardProps> = ({
         "group relative overflow-hidden rounded-xl bg-white transition-all duration-300",
         "border border-gray-100 shadow-soft hover:shadow-card hover:-translate-y-2",
         featured ? "md:flex md:h-80" : "h-full",
-        className
+        className,
       )}
       onClick={onClick}
     >
       <div
         className={cn(
           "aspect-video relative overflow-hidden",
-          featured ? "md:w-1/2 md:aspect-auto md:h-full" : ""
+          featured ? "md:w-1/2 md:aspect-auto md:h-full" : "",
         )}
       >
         <div
           className={cn(
             "absolute inset-0 bg-gray-200 animate-pulse",
-            imageLoaded ? "hidden" : "block"
+            imageLoaded ? "hidden" : "block",
           )}
         />
         {spot.images.length > 0 && (
@@ -191,7 +197,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
             className={cn(
               "h-full w-full object-cover transition-transform duration-300 ease-out",
               "group-hover:scale-105",
-              imageLoaded ? "block" : "invisible"
+              imageLoaded ? "block" : "invisible",
             )}
           />
         )}
@@ -212,16 +218,16 @@ const SpotCard: React.FC<SpotCardProps> = ({
       <div className={cn("p-4", featured ? "md:w-1/2 md:p-6" : "")}>
         <div className="flex items-center justify-between">
           {reviewsLoading ? (
-              <div className="flex items-center">
-                <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-              </div>
+            <div className="flex items-center">
+              <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+            </div>
           ) : (
-              <div className="flex items-center">
-                <RatingStars rating={averageRating} showValue size="sm" />
-                <span className="ml-2 text-sm text-gray-500">
-      {numberOfReviews} reviews
-    </span>
-              </div>
+            <div className="flex items-center">
+              <RatingStars rating={averageRating} showValue size="sm" />
+              <span className="ml-2 text-sm text-gray-500">
+                {numberOfReviews} reviews
+              </span>
+            </div>
           )}
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="mr-1 h-4 w-4" />
@@ -235,7 +241,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
           <h3
             className={cn(
               "mt-2 font-semibold text-gray-900 group-hover:text-primary transition-colors",
-              featured ? "text-xl mb-2" : "text-lg mb-1"
+              featured ? "text-xl mb-2" : "text-lg mb-1",
             )}
           >
             {spot.name}
@@ -243,7 +249,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
           <span
             className={cn(
               spotStatus ? "text-green-600" : "text-red-500",
-              "text-sm font-semibold"
+              "text-sm font-semibold",
             )}
           >
             {spotStatus ? "Open" : "Closed"}
@@ -269,7 +275,7 @@ const SpotCard: React.FC<SpotCardProps> = ({
         <button
           className={cn(
             "mt-4 inline-flex items-center text-sm font-medium transition-colors",
-            "text-primary hover:text-primary/80"
+            "text-primary hover:text-primary/80",
           )}
         >
           View details <ArrowRight className="ml-1 h-4 w-4" />

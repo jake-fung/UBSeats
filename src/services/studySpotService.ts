@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/supabase/client';
 import {Amenity, Category, Review, StudySpot} from '@/utils/types';
 import {validateCategoryType} from '@/utils/spotUtils';
 
@@ -205,8 +205,21 @@ export const updateReviewHelpfulCount = async (reviewId: string, newHelpfulCount
   return data[0].helpful;
 };
 
+type SubmitReview = {
+  spotId: number;
+  date: string;
+  time: string;
+  ratings: {
+    overall: number;
+    comfort: number;
+    noise: number;
+    amenities: number;
+  };
+  comment: string;
+};
+
 // Submit a new review
-export const submitReviewByReviewId = async (review: any): Promise<void> => {
+export const submitReviewByReviewId = async (review: SubmitReview): Promise<void> => {
   const { error: submitError } = await supabase
     .from('reviews')
     .insert({

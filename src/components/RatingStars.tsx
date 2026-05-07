@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cnUtils";
 
 interface RatingStarsProps {
   rating: number;
@@ -13,14 +13,14 @@ interface RatingStarsProps {
 }
 
 const RatingStars: React.FC<RatingStarsProps> = ({
-                                                   rating: initialRating,
-                                                   max = 5,
-                                                   size = "md",
-                                                   showValue = false,
-                                                   className,
-                                                   clickable = false,
-                                                   onRatingChange,
-                                                 }) => {
+  rating: initialRating,
+  max = 5,
+  size = "md",
+  showValue = false,
+  className,
+  clickable = false,
+  onRatingChange,
+}) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [rating, setRating] = useState(initialRating);
 
@@ -57,57 +57,63 @@ const RatingStars: React.FC<RatingStarsProps> = ({
   };
 
   useEffect(() => {
-      setRating(initialRating);
-    }, [initialRating]);
+    setRating(initialRating);
+  }, [initialRating]);
 
   return (
-      <div className={cn("flex items-center", className)}>
-        <div className="flex">
-            {[...Array(max)].map((_, i) => {
-                const isActive = hoveredIndex !== null
-                    ? i <= hoveredIndex
-                    : i < fullStars || (i === fullStars && hasHalfStar);
+    <div className={cn("flex items-center", className)}>
+      <div className="flex">
+        {[...Array(max)].map((_, i) => {
+          const isActive =
+            hoveredIndex !== null
+              ? i <= hoveredIndex
+              : i < fullStars || (i === fullStars && hasHalfStar);
 
-                const isHalfStar = hoveredIndex === null && i === fullStars && hasHalfStar;
+          const isHalfStar =
+            hoveredIndex === null && i === fullStars && hasHalfStar;
 
-                return (
-                    <span
-                        key={i}
-                        className={cn("relative", { "cursor-pointer": clickable })}
-                        onClick={() => handleStarClick(i)}
-                        onMouseEnter={() => handleMouseEnter(i)}
-                        onMouseLeave={handleMouseLeave}
-                    >
-        <Star
-            className={cn(
-                starClass,
-                "text-gray-300",
-                "transition-transform duration-200 ease-in-out hover:scale-110"
-            )}
-            fill="currentColor"
-        />
-                        {isActive && (
-                            <Star
-                                className={cn(
-                                    starClass,
-                                    "absolute top-0 left-0 text-yellow-400",
-                                    "transition-transform duration-200 ease-in-out hover:scale-110"
-                                )}
-                                fill="currentColor"
-                                style={isHalfStar ? { clipPath: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" } : undefined}
-                            />
-                        )}
-      </span>
-                );
-            })}
-        </div>
+          return (
+            <span
+              key={i}
+              className={cn("relative", { "cursor-pointer": clickable })}
+              onClick={() => handleStarClick(i)}
+              onMouseEnter={() => handleMouseEnter(i)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Star
+                className={cn(
+                  starClass,
+                  "text-gray-300",
+                  "transition-transform duration-200 ease-in-out hover:scale-110",
+                )}
+                fill="currentColor"
+              />
+              {isActive && (
+                <Star
+                  className={cn(
+                    starClass,
+                    "absolute top-0 left-0 text-yellow-400",
+                    "transition-transform duration-200 ease-in-out hover:scale-110",
+                  )}
+                  fill="currentColor"
+                  style={
+                    isHalfStar
+                      ? { clipPath: "polygon(0 0, 50% 0, 50% 100%, 0 100%)" }
+                      : undefined
+                  }
+                />
+              )}
+            </span>
+          );
+        })}
+      </div>
 
-          {showValue && (
-            <span className="ml-2 text-sm font-medium text-gray-700">
+      {showValue && (
+        <span className="ml-2 text-sm font-medium text-gray-700">
           {rating.toFixed(1)}
         </span>
-        )}
-      </div>
+      )}
+    </div>
   );
 };
 

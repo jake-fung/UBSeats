@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import FilterBar from "@/components/FilterBar";
 import SpotCard from "@/components/SpotCard";
 import SpotDetail from "@/components/SpotDetail";
 import SpotMap from "@/components/SpotMap";
-import GradientText from "@/components/ui/GradientText";
-import MagnetButton from "@/components/ui/MagnetButton.tsx";
 import { useStudySpots } from "@/hooks/useStudySpots";
 import { Filter, StudySpot } from "@/utils/types";
-import { Library, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -71,7 +69,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Header onSearchChange={handleSearchChange} />
 
-      <section className="relative h-[80vh] bg-gradient-to-b from-blue-300 to-blue-700 overflow-hidden">
+      {/* <section className="relative h-[80vh] bg-gradient-to-b from-blue-300 to-blue-700 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src="https://news.ubc.ca/wp-content/uploads/2024/08/53910533763_abd0ab98cc_k.jpg"
@@ -110,11 +108,11 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <FilterBar
-          onFilterChange={handleFilterChange}
-          activeFilters={activeFilters}
+        onFilterChange={handleFilterChange}
+        activeFilters={activeFilters}
       />
 
       <main className="container max-w-7xl mx-auto px-4 py-8">
