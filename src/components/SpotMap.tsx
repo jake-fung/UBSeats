@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StudySpot } from "@/utils/types";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cnUtils";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -66,7 +66,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       const el = document.createElement("div");
       el.className = cn(
         "flex flex-col items-center cursor-pointer",
-        isSelected ? "z-20" : "z-10"
+        isSelected ? "z-20" : "z-10",
       );
 
       const markerDiv = document.createElement("div");
@@ -74,13 +74,13 @@ const SpotMap: React.FC<SpotMapProps> = ({
         "p-1 rounded-full transition-all duration-300",
         isSelected
           ? "bg-primary text-white scale-125"
-          : "bg-white text-primary border border-primary hover:scale-110"
+          : "bg-white text-primary border border-primary hover:scale-110",
       );
 
       // Create svg icon
       const icon = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "svg"
+        "svg",
       );
       icon.setAttribute("width", "20");
       icon.setAttribute("height", "20");
@@ -93,12 +93,12 @@ const SpotMap: React.FC<SpotMapProps> = ({
 
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "path"
+        "path",
       );
       path.setAttribute("d", "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z");
       const circle = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "circle"
+        "circle",
       );
       circle.setAttribute("cx", "12");
       circle.setAttribute("cy", "10");
@@ -170,7 +170,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
     <div
       className={cn(
         "relative rounded-xl overflow-hidden bg-gray-100",
-        className
+        className,
       )}
     >
       {!mapLoaded && (

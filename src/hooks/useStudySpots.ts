@@ -7,7 +7,6 @@ import {
 } from '@/services/studySpotService';
 import {Filter} from '@/utils/types';
 
-// Hook to fetch all categories
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
@@ -15,7 +14,6 @@ export const useCategories = () => {
   });
 };
 
-// Hook to fetch all amenities
 export const useAmenities = () => {
   return useQuery({
     queryKey: ['amenities'],
@@ -23,7 +21,6 @@ export const useAmenities = () => {
   });
 };
 
-// Hook to fetch all study spots
 export const useStudySpots = (filters?: Filter) => {
   const { data: spots = [], isLoading, error } = useQuery({
     queryKey: ['studySpots'],

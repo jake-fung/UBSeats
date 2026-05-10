@@ -1,26 +1,21 @@
-
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
+import animate from 'tailwindcss-animate';
 
 export default {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
-  prefix: "",
+  darkMode: ['class'],
+  content: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './app/**/*.{ts,tsx}', './src/**/*.{ts,tsx}'],
+  prefix: '',
   theme: {
     container: {
       center: true,
       padding: '2rem',
       screens: {
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1400px'
-      }
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1400px',
+      },
     },
     extend: {
       fontFamily: {
@@ -34,31 +29,31 @@ export default {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
+          foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+          foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+          foreground: 'hsl(var(--card-foreground))',
         },
         // Custom colors for study spot categories
         library: '#4361EE',
@@ -70,12 +65,12 @@ export default {
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        'soft': '0px 2px 15px rgba(0, 0, 0, 0.05)',
-        'card': '0px 10px 30px rgba(0, 0, 0, 0.08)',
-        'hover': '0px 20px 40px rgba(0, 0, 0, 0.1)',
+        soft: '0px 2px 15px rgba(0, 0, 0, 0.05)',
+        card: '0px 10px 30px rgba(0, 0, 0, 0.08)',
+        hover: '0px 20px 40px rgba(0, 0, 0, 0.1)',
       },
       keyframes: {
         'accordion-down': {
@@ -98,15 +93,15 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        'gradient': {
+        gradient: {
           '0%, 100%': {
-            backgroundSize:'200% 200%',
-            backgroundPosition: 'left center'
+            backgroundSize: '200% 200%',
+            backgroundPosition: 'left center',
           },
           '50%': {
-            backgroundSize:'200% 200%',
-            backgroundPosition: 'right center'
-          }
+            backgroundSize: '200% 200%',
+            backgroundPosition: 'right center',
+          },
         },
       },
       animation: {
@@ -115,9 +110,9 @@ export default {
         'pulse-soft': 'pulse-soft 3s infinite ease-in-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out',
         'fade-in': 'fade-in 0.5s ease-out',
-        'gradient': 'gradient 3s ease infinite'
+        gradient: 'gradient 3s ease infinite',
       },
-    }
+    },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;

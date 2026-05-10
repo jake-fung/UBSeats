@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { CategoryType, Filter } from "@/utils/types";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cnUtils";
 import { useCategories } from "@/hooks/useStudySpots";
 import { Skeleton } from "./ui/skeleton";
 
@@ -92,14 +92,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
                     "flex-shrink-0 flex flex-col items-center justify-center rounded-lg my-2 py-2 px-4 hover:scale-105 transition-all duration-200 ease-out w-20 md:w-36",
                     isActive
                       ? "bg-primary text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                   )}
                 >
                   {IconComponent && (
                     <IconComponent
                       className={cn(
                         "h-5 w-5 mb-1",
-                        isActive ? "text-white" : "text-gray-500"
+                        isActive ? "text-white" : "text-gray-500",
                       )}
                     />
                   )}
@@ -117,13 +117,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
               "flex-shrink-0 flex flex-col items-center justify-center rounded-lg my-2 py-2 px-4 hover:scale-105 transition-all duration-200 w-20 md:w-36",
               showMoreFilters
                 ? "bg-primary text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200",
             )}
           >
             <SlidersHorizontal
               className={cn(
                 "h-5 w-5 mb-1",
-                showMoreFilters ? "text-white" : "text-gray-500"
+                showMoreFilters ? "text-white" : "text-gray-500",
               )}
             />
             <span className="text-sm font-medium hidden md:block">
@@ -137,9 +137,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* More filter options would go here */}
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-gray-700">
-                  Noise Level
-                </h3>
+                <h3 className="text-lg font-bold text-gray-700">Noise Level</h3>
                 <div className="flex space-x-2 justify-center">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <button
@@ -148,7 +146,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                         "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.noise === level
                           ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
                       )}
                       onClick={() =>
                         onFilterChange({ ...activeFilters, noise: level })
@@ -172,7 +170,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                         "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.wifi === level
                           ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
                       )}
                       onClick={() =>
                         onFilterChange({ ...activeFilters, wifi: level })
@@ -196,7 +194,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                         "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
                         activeFilters.seating === level
                           ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
                       )}
                       onClick={() =>
                         onFilterChange({ ...activeFilters, seating: level })

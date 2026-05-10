@@ -1,27 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { MapPin, Menu, Search, User, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { FilterIcon, MapPin, Menu, Search, X } from 'lucide-react';
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
+  onFilterIconClicked?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [scrolled]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,65 +22,57 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
   };
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-7 px-6 md:px-8 md:py-5",
-        scrolled ? "bg-white backdrop-blur-md shadow-soft" : "bg-transparent"
-      )}
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-white px-6 py-7 shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center">
-          <MapPin className="h-6 w-6 text-primary mr-2" />
-          <a href="#root" className="text-xl font-semibold text-gray-900 tracking-tight">
+          <MapPin className="mr-2 h-6 w-6 text-primary" />
+          <a href="#root" className="text-xl font-semibold tracking-tight text-gray-900">
             UBSeats
           </a>
         </div>
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden flex items-center text-gray-700 hover:text-primary transition-colors"
+          className="flex items-center text-gray-700 transition-colors hover:text-primary md:hidden"
           onClick={toggleMenu}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         >
           {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
 
         {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden items-center space-x-8 md:flex">
           <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
               placeholder="Find study spots..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-full bg-gray-100 border border-transparent focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all outline-none w-64"
+              className="w-64 rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </form>
 
-          <a
-            href="#map"
-            className="text-gray-700 hover:text-primary transition-colors font-bold"
+          <button
+            onClick={() => onFilterIconClicked?.()}
+            className="h-6 w-6 text-gray-700 transition-colors hover:text-primary"
           >
+            <FilterIcon />
+          </button>
+
+          <a href="#map" className="font-bold text-gray-700 transition-colors hover:text-primary">
             Map
           </a>
 
-          <a
-              href="#spots"
-              className="text-gray-700 hover:text-primary transition-colors font-bold"
-          >
+          <a href="#spots" className="font-bold text-gray-700 transition-colors hover:text-primary">
             Spots
           </a>
-
-          <button className="rounded-full bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 transition-colors">
-            <User className="h-5 w-5" />
-          </button>
         </nav>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg rounded-b-lg p-4 slide-up">
+        <div className="slide-up absolute left-0 right-0 top-16 rounded-b-lg bg-white p-4 shadow-lg md:hidden">
           <nav className="flex flex-col space-y-4">
             <form onSubmit={handleSearch} className="relative">
               <input
@@ -101,7 +80,7 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
                 placeholder="Find study spots..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 rounded-full bg-gray-100 border border-transparent focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all outline-none w-full"
+                className="w-full rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </form>
@@ -109,22 +88,17 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
             <a
               href="#spots"
               onClick={toggleMenu}
-              className="text-gray-700 hover:text-primary transition-colors font-bold px-2 py-1"
+              className="px-2 py-1 font-bold text-gray-700 transition-colors hover:text-primary"
             >
               Spots
             </a>
             <a
               href="#map"
               onClick={toggleMenu}
-              className="text-gray-700 hover:text-primary transition-colors font-bold px-2 py-1"
+              className="px-2 py-1 font-bold text-gray-700 transition-colors hover:text-primary"
             >
               Map
             </a>
-
-            <button className="flex items-center text-gray-700 hover:text-primary transition-colors font-medium px-2 py-1">
-              <User className="h-5 w-5 mr-2" />
-              <span>Profile</span>
-            </button>
           </nav>
         </div>
       )}
