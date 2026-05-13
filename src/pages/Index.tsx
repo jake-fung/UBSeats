@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
-import SpotCard from '@/components/SpotCard';
 import SpotDetail from '@/components/SpotDetail';
 import SpotMap from '@/components/SpotMap';
-import { useStudySpots } from '@/hooks/useStudySpots';
+import { useBuildings, useStudySpots } from '@/hooks/useStudySpots';
 import { Filter, StudySpot } from '@/utils/types';
-import { MapPin, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -16,6 +14,20 @@ const Index = () => {
   const { toast } = useToast();
 
   const { spots: filteredSpots, isLoading, error } = useStudySpots(activeFilters);
+
+  const { buildings, isLoading: buildingsLoading, error: buildingsError } = useBuildings();
+
+  useEffect(() => {
+    if (buildingsError) {
+      toast({
+        title: 'Error loading buildings',
+        description: 'Could not load buildings data. Please try again later.',
+        variant: 'destructive',
+      });
+    }
+  }, [buildingsError, toast]);
+
+  console.log(buildings);
 
   useEffect(() => {
     if (error) {
@@ -53,35 +65,34 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {isLoading && (
+    <div className="max-h-screen overflow-y-hidden bg-gray-50">
+      {/* {isLoading && (
         <div className="flex h-screen flex-col items-center justify-center py-12 text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
           <p className="mt-4 text-gray-600">Loading study spots...</p>
         </div>
       )}
-      {!isLoading && (
-        <>
-          <Header onSearchChange={handleSearchChange} onFilterIconClicked={handleFilterIconClicked} />
-          {showFilterBar && <FilterBar onFilterChange={handleFilterChange} activeFilters={activeFilters} />}
-          <main className="mx-18 container mt-20 max-w-7xl px-4 py-8">
-            {filteredSpots.length > 0 && (
+      {!isLoading && ( */}
+      <>
+        <Header onSearchChange={handleSearchChange} onFilterIconClicked={handleFilterIconClicked} />
+        {showFilterBar && <FilterBar onFilterChange={handleFilterChange} activeFilters={activeFilters} />}
+        <main>
+          {/* {filteredSpots.length > 0 && (
               <section className="mb-12">
                 <h2 className="mb-6 text-2xl font-bold text-gray-900">Featured Study Spot</h2>
                 <SpotCard spot={filteredSpots[0]} onClick={() => handleSpotSelect(filteredSpots[0])} featured={true} />
               </section>
-            )}
+            )} */}
 
-            <section id="map" className="mb-12">
-              <h2 className="mb-6 text-2xl font-bold text-gray-900">Map View</h2>
-              <SpotMap
-                spots={filteredSpots}
-                onSpotSelect={handleSpotSelect}
-                selectedSpot={selectedSpot || undefined}
-                className="h-[500px]"
-              />
-            </section>
-
+          <section id="map">
+            <SpotMap
+              spots={filteredSpots}
+              onSpotSelect={handleSpotSelect}
+              selectedSpot={selectedSpot || undefined}
+              className="h-screen w-screen"
+            />
+          </section>
+          {/* 
             <section id="spots" className="mb-12">
               <h2 className="mb-6 text-2xl font-bold text-gray-900">All Study Spots</h2>
 
@@ -98,27 +109,14 @@ const Index = () => {
                   ))}
                 </div>
               )}
-            </section>
-          </main>
+            </section> */}
+        </main>
 
-          <footer className="justify-between bg-gray-900 py-8 text-white">
-            <div className="container mx-auto max-w-7xl px-5">
-              <div className="flex flex-col items-center justify-between md:flex-row">
-                <div className="mb-6 md:mb-0">
-                  <div className="flex items-center">
-                    <MapPin className="mr-2 h-6 w-6 text-blue-400" />
-                    <h2 className="text-xl font-semibold">UBSeats</h2>
-                  </div>
-                  <p className="ml-8 text-sm text-gray-400">Find your perfect study spot at UBC</p>
-                </div>
-                <div className="text-sm text-gray-400">
-                  &copy; {new Date().getFullYear()} UBSeats. All rights reserved.
-                </div>
-              </div>
-            </div>
-          </footer>
-        </>
-      )}
+        <footer className="fixed bottom-0 w-full text-center text-white">
+          <div className="text-sm text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</div>
+        </footer>
+      </>
+      {/* )} */}
       {selectedSpot && <SpotDetail spot={selectedSpot} onClose={handleCloseDetail} />}
     </div>
   );

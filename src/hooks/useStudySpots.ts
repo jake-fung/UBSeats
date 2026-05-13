@@ -1,65 +1,49 @@
-import {useQuery} from '@tanstack/react-query';
-import {
-  fetchAmenities,
-  fetchCategories,
-  fetchReviewsBySpotId,
-  fetchStudySpots,
-} from '@/services/studySpotService';
-import {Filter} from '@/utils/types';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAmenities, fetchBuildings, fetchCategories, fetchStudySpots } from '@/services/studySpotService';
+import { Filter } from '@/utils/types';
 
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories
+    queryFn: fetchCategories,
   });
 };
 
 export const useAmenities = () => {
   return useQuery({
     queryKey: ['amenities'],
-    queryFn: fetchAmenities
+    queryFn: fetchAmenities,
   });
 };
 
 export const useStudySpots = (filters?: Filter) => {
-  const { data: spots = [], isLoading, error } = useQuery({
+  const {
+    data: spots = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['studySpots'],
-    queryFn: fetchStudySpots
+    queryFn: fetchStudySpots,
   });
 
   // Apply filters if provided
   let filteredSpots = [...spots];
-  
+
   if (filters) {
     if (filters.category) {
-      filteredSpots = filteredSpots.filter(spot => 
-        spot.categories.includes(filters.category!)
-      );
+      filteredSpots = filteredSpots.filter((spot) => spot.categories.includes(filters.category!));
     }
-    
-    if (filters.noise) {
-      filteredSpots = filteredSpots.filter(spot => spot.noise <= filters.noise!);
-    }
-    
-    if (filters.wifi) {
-      filteredSpots = filteredSpots.filter(spot => spot.wifi >= filters.wifi!);
-    }
-    
-    if (filters.seating) {
-      filteredSpots = filteredSpots.filter(spot => spot.seating >= filters.seating!);
-    }
-    
+
     if (filters.search) {
       const searchQuery = filters.search.toLowerCase();
-      filteredSpots = filteredSpots.filter(spot => 
-        spot.name.toLowerCase().includes(searchQuery) ||
-        spot.description.toLowerCase().includes(searchQuery)
+      filteredSpots = filteredSpots.filter(
+        (spot) => spot.name.toLowerCase().includes(searchQuery) || spot.description.toLowerCase().includes(searchQuery),
       );
     }
-    
+
     if (filters.amenities && filters.amenities.length > 0) {
-      filteredSpots = filteredSpots.filter(spot => 
-        filters.amenities!.every(amenity => spot.amenities.includes(amenity))
+      filteredSpots = filteredSpots.filter((spot) =>
+        filters.amenities!.every((amenity) => spot.amenities.includes(amenity)),
       );
     }
   }
@@ -67,15 +51,18 @@ export const useStudySpots = (filters?: Filter) => {
   return {
     spots: filteredSpots,
     isLoading,
-    error
+    error,
   };
 };
 
-// Hook to fetch reviews for a spot
-export const useReviews = (spotId?: number) => {
-  return useQuery({
-    queryKey: ['reviews', spotId],
-    queryFn: () => spotId ? fetchReviewsBySpotId(spotId) : Promise.resolve([]),
-    enabled: !!spotId
+export const useBuildings = () => {
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['buildings'],
+    queryFn: fetchBuildings,
   });
-}
+  return {
+    buildings: data,
+    isLoading,
+    error,
+  };
+};

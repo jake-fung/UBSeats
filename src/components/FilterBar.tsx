@@ -1,27 +1,16 @@
-import React, { useState } from "react";
-import {
-  Book,
-  Coffee,
-  SlidersHorizontal,
-  Trees,
-  Users,
-  VolumeX,
-  X,
-} from "lucide-react";
-import { CategoryType, Filter } from "@/utils/types";
-import { cn } from "@/utils/cnUtils";
-import { useCategories } from "@/hooks/useStudySpots";
-import { Skeleton } from "./ui/skeleton";
+import React, { useState } from 'react';
+import { Book, Coffee, SlidersHorizontal, Trees, Users, VolumeX, X } from 'lucide-react';
+import { CategoryType, Filter } from '@/utils/types';
+import { cn } from '@/utils/cnUtils';
+import { useCategories } from '@/hooks/useStudySpots';
+import { Skeleton } from './ui/skeleton';
 
 interface FilterBarProps {
   onFilterChange: (filter: Filter) => void;
   activeFilters: Filter;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({
-  onFilterChange,
-  activeFilters,
-}) => {
+const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters }) => {
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const { data: categories, isLoading: categoriesLoading } = useCategories();
 
@@ -51,25 +40,23 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
   return (
-    <div className="bg-white backdrop-blur-md shadow-soft sticky top-20 z-40 w-full pt-2 pb-2 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between pb-4 pt-2 px-3">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Filter Study Spots
-          </h2>
+    <div className="sticky top-20 z-40 w-full bg-white px-4 pb-2 pt-2 shadow-soft backdrop-blur-md">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between px-3 pb-4 pt-2">
+          <h2 className="text-xl font-semibold text-gray-800">Filter Study Spots</h2>
 
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="flex items-center text-sm text-gray-500 transition-colors hover:text-gray-800"
             >
-              <X className="h-4 w-4 mr-1" />
+              <X className="mr-1 h-4 w-4" />
               Clear filters
             </button>
           )}
         </div>
 
-        <div className="flex overflow-x-auto pb-2 justify-center scrollbar-hide space-x-2">
+        <div className="scrollbar-hide flex justify-center space-x-2 overflow-x-auto pb-2">
           {categoriesLoading ? (
             // Show skeletons while loading
             <>
@@ -81,31 +68,21 @@ const FilterBar: React.FC<FilterBarProps> = ({
             // Show categories when loaded
             categories?.map((category) => {
               const isActive = activeFilters.category === category.id;
-              const IconComponent =
-                iconMap[category.icon as keyof typeof iconMap];
+              const IconComponent = iconMap[category.icon as keyof typeof iconMap];
 
               return (
                 <button
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}
                   className={cn(
-                    "flex-shrink-0 flex flex-col items-center justify-center rounded-lg my-2 py-2 px-4 hover:scale-105 transition-all duration-200 ease-out w-20 md:w-36",
-                    isActive
-                      ? "bg-primary text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                    'my-2 flex w-20 flex-shrink-0 flex-col items-center justify-center rounded-lg px-4 py-2 transition-all duration-200 ease-out hover:scale-105 md:w-36',
+                    isActive ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
                   )}
                 >
                   {IconComponent && (
-                    <IconComponent
-                      className={cn(
-                        "h-5 w-5 mb-1",
-                        isActive ? "text-white" : "text-gray-500",
-                      )}
-                    />
+                    <IconComponent className={cn('mb-1 h-5 w-5', isActive ? 'text-white' : 'text-gray-500')} />
                   )}
-                  <span className=" font-medium whitespace-nowrap hidden md:block">
-                    {category.name}
-                  </span>
+                  <span className="hidden whitespace-nowrap font-medium md:block">{category.name}</span>
                 </button>
               );
             })
@@ -114,43 +91,32 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <button
             onClick={() => setShowMoreFilters(!showMoreFilters)}
             className={cn(
-              "flex-shrink-0 flex flex-col items-center justify-center rounded-lg my-2 py-2 px-4 hover:scale-105 transition-all duration-200 w-20 md:w-36",
-              showMoreFilters
-                ? "bg-primary text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+              'my-2 flex w-20 flex-shrink-0 flex-col items-center justify-center rounded-lg px-4 py-2 transition-all duration-200 hover:scale-105 md:w-36',
+              showMoreFilters ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
             )}
           >
-            <SlidersHorizontal
-              className={cn(
-                "h-5 w-5 mb-1",
-                showMoreFilters ? "text-white" : "text-gray-500",
-              )}
-            />
-            <span className="text-sm font-medium hidden md:block">
-              More Filters
-            </span>
+            <SlidersHorizontal className={cn('mb-1 h-5 w-5', showMoreFilters ? 'text-white' : 'text-gray-500')} />
+            <span className="hidden text-sm font-medium md:block">More Filters</span>
           </button>
         </div>
 
         {showMoreFilters && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg slide-up">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="slide-up mt-4 rounded-lg bg-gray-50 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {/* More filter options would go here */}
               <div className="space-y-2">
                 <h3 className="text-lg font-bold text-gray-700">Noise Level</h3>
-                <div className="flex space-x-2 justify-center">
+                <div className="flex justify-center space-x-2">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
+                        'flex h-20 w-20 items-center justify-center rounded-full text-lg font-bold',
                         activeFilters.noise === level
-                          ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
+                          ? 'bg-primary text-white'
+                          : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100',
                       )}
-                      onClick={() =>
-                        onFilterChange({ ...activeFilters, noise: level })
-                      }
+                      onClick={() => onFilterChange({ ...activeFilters, noise: level })}
                     >
                       {level}
                     </button>
@@ -159,22 +125,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-gray-700">
-                  WiFi Strength
-                </h3>
+                <h3 className="text-lg font-bold text-gray-700">WiFi Strength</h3>
                 <div className="flex space-x-2">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
+                        'flex h-20 w-20 items-center justify-center rounded-full text-lg font-bold',
                         activeFilters.wifi === level
-                          ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
+                          ? 'bg-primary text-white'
+                          : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100',
                       )}
-                      onClick={() =>
-                        onFilterChange({ ...activeFilters, wifi: level })
-                      }
+                      onClick={() => onFilterChange({ ...activeFilters, wifi: level })}
                     >
                       {level}
                     </button>
@@ -183,22 +145,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-gray-700">
-                  Seating Availability
-                </h3>
+                <h3 className="text-lg font-bold text-gray-700">Seating Availability</h3>
                 <div className="flex space-x-2">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <button
                       key={level}
                       className={cn(
-                        "h-20 w-20 rounded-full flex items-center justify-center text-lg font-bold",
+                        'flex h-20 w-20 items-center justify-center rounded-full text-lg font-bold',
                         activeFilters.seating === level
-                          ? "bg-primary text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
+                          ? 'bg-primary text-white'
+                          : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100',
                       )}
-                      onClick={() =>
-                        onFilterChange({ ...activeFilters, seating: level })
-                      }
+                      onClick={() => onFilterChange({ ...activeFilters, seating: level })}
                     >
                       {level}
                     </button>
