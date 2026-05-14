@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
   };
 
   return (
-    <header className="fixed left-[10%] top-5 z-50 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-3">
+    <header className="fixed left-[10%] top-5 z-10 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-3">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center">
           <MapPin className="mr-2 h-6 w-6 text-primary" />
@@ -47,7 +47,10 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
               type="text"
               placeholder="Find study spots..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                onSearchChange?.(e.target.value);
+              }}
               className="w-64 rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:w-[50vw] focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />

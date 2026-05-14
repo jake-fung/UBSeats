@@ -74,10 +74,10 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background font-sans text-foreground;
     font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+      'rlig' 1,
+      'calt' 1;
   }
 }
 
@@ -111,7 +111,7 @@
   }
 
   .shimmer::after {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     right: 0;
@@ -191,6 +191,34 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+.loader {
+  width: 30px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 0 hsl(var(--primary));
+  animation: l2 1.5s infinite linear;
+  position: relative;
+}
+.loader:before,
+.loader:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 hsl(var(--primary));
+  animation: inherit;
+  animation-delay: -0.5s;
+}
+.loader:after {
+  animation-delay: -1s;
+}
+@keyframes l2 {
+  100% {
+    box-shadow: 0 0 0 100px hsl(var(--primary-foreground));
+  }
 }
 
 /* Custom scrollbar */

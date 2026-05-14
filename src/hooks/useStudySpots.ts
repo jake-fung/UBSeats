@@ -55,13 +55,27 @@ export const useStudySpots = (filters?: Filter) => {
   };
 };
 
-export const useBuildings = () => {
-  const { data, error, isLoading } = useQuery({
+export const useBuildings = (filters?: Filter) => {
+  const {
+    data: buildings = [],
+    error,
+    isLoading,
+  } = useQuery({
     queryKey: ['buildings'],
     queryFn: fetchBuildings,
   });
+
+  let filteredBuildings = [...buildings];
+
+  if (filters) {
+    if (filters.search) {
+      const searchQuery = filters.search.toLowerCase();
+      filteredBuildings = filteredBuildings.filter((building) => building.name.toLowerCase().includes(searchQuery));
+    }
+  }
+
   return {
-    buildings: data,
+    buildings: filteredBuildings,
     isLoading,
     error,
   };

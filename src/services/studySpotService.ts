@@ -132,14 +132,27 @@ export const fetchStudySpots = async (): Promise<StudySpot[]> => {
 };
 
 export const fetchBuildings = async (): Promise<Building[]> => {
-  const { data, error } = await supabase.from('buildings').select('*').eq('BLDG_USAGE', 'Academic');
-  if (error) throw error;
+  const { data: buildingData, error: buildingError } = await supabase.from('buildings').select('*');
+  if (buildingError) throw buildingError;
 
-  return data.map((b) => ({
-    uuid: b.uuid,
-    name: b.NAME,
-    primaryAddress: b.PRIMARY_ADDRESS,
-    lat: b.LAT,
-    lng: b.LONG,
-  }));
+  const { data: roomsData, error: roomsError } = await supabase.from('building_rooms').select('*');
+  if (roomsError) throw roomsError;
+
+  return buildingData
+    .map((b) => ({
+      uuid: b.uuid,
+      name: b.NAME,
+      primaryAddress: b.PRIMARY_ADDRESS,
+      lat: b.LAT,
+      lng: b.LONG,
+      rooms: roomsData
+        .filter((r) => r.building_uuid === b.uuid)
+        .map((r) => ({
+          uuid: r.uuid,
+          building_uuid: r.building_uuid,
+          name: r.room_name,
+          capacity: r.capacity,
+        })),
+    }))
+    .filter((b) => b.rooms.length > 0);
 };

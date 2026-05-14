@@ -61,10 +61,18 @@ export interface Filter {
   search?: string;
 }
 
+export interface Room {
+  uuid: string;
+  building_uuid: string;
+  name: string;
+  capacity: number;
+}
+
 export interface Building {
   uuid: string;
   name: string;
   primaryAddress: string;
   lat: number;
   lng: number;
+  rooms: Room[];
 }
