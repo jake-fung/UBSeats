@@ -1,28 +1,29 @@
+import { cn } from '@/utils/cnUtils';
 import React, { useState } from 'react';
 import { FilterIcon, MapPin, Menu, Search, X } from 'lucide-react';
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
+  onSearchSubmit?: () => void;
   onFilterIconClicked?: () => void;
+  customWrapperCss?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) => {
+const Header: React.FC<HeaderProps> = ({ onSearchChange, onSearchSubmit, onFilterIconClicked, customWrapperCss }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSearchChange) {
-      onSearchChange(searchQuery);
-    }
-  };
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
   return (
-    <header className="fixed left-[10%] top-5 z-10 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-3">
+    <header
+      className={cn(
+        'fixed left-[10%] top-5 z-10 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-3',
+        customWrapperCss,
+      )}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center">
           <MapPin className="mr-2 h-6 w-6 text-primary" />
@@ -42,7 +43,13 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
 
         {/* Desktop navigation */}
         <nav className="hidden items-center space-x-8 md:flex">
-          <form onSubmit={handleSearch} className="relative">
+          <form
+            className="relative"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSearchSubmit?.();
+            }}
+          >
             <input
               type="text"
               placeholder="Find study spots..."
@@ -51,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
                 setSearchQuery(e.target.value);
                 onSearchChange?.(e.target.value);
               }}
-              className="w-64 rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:w-[50vw] focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              className="w-64 rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             {searchQuery && (
@@ -65,12 +72,12 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
             )}
           </form>
 
-          <button
+          {/* <button
             onClick={() => onFilterIconClicked?.()}
             className="h-6 w-6 text-gray-700 transition-colors hover:text-primary"
           >
             <FilterIcon />
-          </button>
+          </button> */}
         </nav>
       </div>
 
@@ -78,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onFilterIconClicked }) 
       {menuOpen && (
         <div className="slide-up absolute left-0 right-0 top-16 rounded-b-lg bg-white p-4 shadow-lg md:hidden">
           <nav className="flex flex-col space-y-4">
-            <form onSubmit={handleSearch} className="relative">
+            <form className="relative">
               <input
                 type="text"
                 placeholder="Find study spots..."

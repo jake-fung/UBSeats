@@ -70,7 +70,10 @@ export const useBuildings = (filters?: Filter) => {
   if (filters) {
     if (filters.search) {
       const searchQuery = filters.search.toLowerCase();
-      filteredBuildings = filteredBuildings.filter((building) => building.name.toLowerCase().includes(searchQuery));
+      filteredBuildings = filteredBuildings.filter(
+        (building) =>
+          building.name.toLowerCase().includes(searchQuery) || building.code.toLowerCase().includes(searchQuery),
+      );
     }
   }
 

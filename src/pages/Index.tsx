@@ -1,22 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
-import SpotDetail from '@/components/SpotDetail';
 import SpotMap from '@/components/SpotMap';
-import { useBuildings, useStudySpots } from '@/hooks/useStudySpots';
-import { Filter, StudySpot } from '@/utils/types';
+import { useBuildings } from '@/hooks/useStudySpots';
+import { Building, Filter } from '@/utils/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/utils/cnUtils';
+import { BuildingDetail } from '@/components/BuildingDetail';
 
 const Index = () => {
   const [activeFilters, setActiveFilters] = useState<Filter>({});
-  const [selectedSpot, setSelectedSpot] = useState<StudySpot | null>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [isMenuOpened, setIsMenuOpened] = useState(false);
   const [showFilterBar, setShowFilterBar] = useState(false);
   const { toast } = useToast();
 
   const { buildings, isLoading: isBuildingsLoading, error: buildingsError } = useBuildings(activeFilters);
-
-  console.log('buildings', buildings);
 
   useEffect(() => {
     if (buildingsError) {
@@ -42,12 +41,9 @@ const Index = () => {
     setActiveFilters(filters);
   };
 
-  const handleSpotSelect = (spot: StudySpot) => {
-    setSelectedSpot(spot);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedSpot(null);
+  const handleBuildingSelect = (building: Building) => {
+    setSelectedBuilding(building);
+    setIsMenuOpened(true);
   };
 
   const handleSearchChange = (query: string) => {
@@ -57,6 +53,17 @@ const Index = () => {
     }
 
     setActiveFilters({ ...activeFilters, search: query });
+  };
+
+  const handleSearchSubmit = () => {
+    if (buildings.length === 1) {
+      setSelectedBuilding(buildings[0]);
+      setIsMenuOpened(true);
+    }
+  };
+
+  const handleIsMenuOpened = (isMenuOpened: boolean) => {
+    setIsMenuOpened(isMenuOpened);
   };
 
   const handleFilterIconClicked = () => {
@@ -81,21 +88,35 @@ const Index = () => {
       </div>
       {!isBuildingsLoading && (
         <>
-          <Header onSearchChange={handleSearchChange} onFilterIconClicked={handleFilterIconClicked} />
+          <Header
+            onSearchChange={handleSearchChange}
+            onSearchSubmit={handleSearchSubmit}
+            onFilterIconClicked={handleFilterIconClicked}
+            customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+          />
           {showFilterBar && <FilterBar onFilterChange={handleFilterChange} activeFilters={activeFilters} />}
           <main>
             <section id="map">
               <SpotMap
                 buildings={buildings}
-                onSpotSelect={handleSpotSelect}
-                selectedSpot={selectedSpot || undefined}
-                className="h-screen w-screen"
+                onBuildingSelect={handleBuildingSelect}
+                selectedBuilding={selectedBuilding}
+                isMenuOpened={isMenuOpened}
               />
             </section>
           </main>
-          {selectedSpot && <SpotDetail spot={selectedSpot} onClose={handleCloseDetail} />}
+          <BuildingDetail
+            building={selectedBuilding}
+            isMenuOpened={isMenuOpened}
+            setIsMenuOpened={handleIsMenuOpened}
+          />
 
-          <footer className="fixed bottom-0 w-full text-center">
+          <footer
+            className={cn(
+              'fixed bottom-0 w-full justify-center text-center transition-all duration-300 ease-in-out',
+              isMenuOpened && 'left-[10vw] w-[40vw]',
+            )}
+          >
             <div className="text-sm text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</div>
           </footer>
         </>

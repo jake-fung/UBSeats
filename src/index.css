@@ -194,30 +194,28 @@
 }
 
 .loader {
-  width: 30px;
+  width: 80px;
   aspect-ratio: 1;
-  border-radius: 50%;
-  background: hsl(var(--primary));
-  box-shadow: 0 0 0 0 hsl(var(--primary));
-  animation: l2 1.5s infinite linear;
   position: relative;
+  transform: rotate(45deg);
 }
 .loader:before,
 .loader:after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 0 0 0 hsl(var(--primary));
-  animation: inherit;
-  animation-delay: -0.5s;
+  border-radius: 50% 50% 0 50%;
+  background: hsl(var(--primary));
+  -webkit-mask: radial-gradient(circle 20px at 50% 50%, #0000 94%, #000);
 }
 .loader:after {
-  animation-delay: -1s;
+  animation: l6 1s infinite;
+  transform: perspective(300px) translateZ(0px);
 }
-@keyframes l2 {
-  100% {
-    box-shadow: 0 0 0 100px hsl(var(--primary-foreground));
+@keyframes l6 {
+  to {
+    transform: perspective(300px) translateZ(150px);
+    opacity: 0;
   }
 }
 

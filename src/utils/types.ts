@@ -71,6 +71,7 @@ export interface Room {
 export interface Building {
   uuid: string;
   name: string;
+  code: string;
   primaryAddress: string;
   lat: number;
   lng: number;

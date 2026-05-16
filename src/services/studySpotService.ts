@@ -143,6 +143,7 @@ export const fetchBuildings = async (): Promise<Building[]> => {
       uuid: b.uuid,
       name: b.NAME,
       primaryAddress: b.PRIMARY_ADDRESS,
+      code: b.BLDG_CODE,
       lat: b.LAT,
       lng: b.LONG,
       rooms: roomsData
