@@ -17,6 +17,8 @@ const Index = () => {
 
   const { buildings, isLoading: isBuildingsLoading, error: buildingsError } = useBuildings(activeFilters);
 
+  console.log(buildings.map((building) => building.name));
+
   useEffect(() => {
     if (buildingsError) {
       toast({

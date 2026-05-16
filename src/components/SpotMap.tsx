@@ -61,18 +61,20 @@ const SpotMap: React.FC<SpotMapProps> = ({ buildings, onBuildingSelect, selected
 
       const nameDiv = document.createElement('div');
       nameDiv.id = 'marker-name-label';
-      nameDiv.className =
-        'absolute top-full left-1/2 -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none hidden';
+      nameDiv.className = cn(
+        'absolute top-full left-1/2 -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none',
+        buildings.length > 10 && !isSelected && 'hidden',
+      );
       nameDiv.textContent = building.name;
       el.appendChild(nameDiv);
 
       marker.getElement().addEventListener('mouseenter', () => {
-        if (isSelected) return;
+        if (isSelected || buildings.length <= 10) return;
         nameDiv.classList.remove('hidden');
       });
 
       marker.getElement().addEventListener('mouseleave', () => {
-        if (isSelected) return;
+        if (isSelected || buildings.length <= 10) return;
         nameDiv.classList.add('hidden');
       });
 
@@ -86,8 +88,8 @@ const SpotMap: React.FC<SpotMapProps> = ({ buildings, onBuildingSelect, selected
       });
       map.current?.fitBounds(bounds, {
         padding: {
-          top: 200,
-          bottom: 200,
+          top: 150,
+          bottom: 100,
           left: 200,
           right: 200,
         },

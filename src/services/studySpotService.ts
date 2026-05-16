@@ -135,6 +135,9 @@ export const fetchBuildings = async (): Promise<Building[]> => {
   const { data: buildingData, error: buildingError } = await supabase.from('buildings').select('*');
   if (buildingError) throw buildingError;
 
+  const { data: imagesData, error: imagesError } = await supabase.from('building_images').select('*');
+  if (imagesError) throw imagesError;
+
   const { data: roomsData, error: roomsError } = await supabase.from('building_rooms').select('*');
   if (roomsError) throw roomsError;
 
@@ -146,6 +149,7 @@ export const fetchBuildings = async (): Promise<Building[]> => {
       code: b.BLDG_CODE,
       lat: b.LAT,
       lng: b.LONG,
+      image: imagesData.find((img) => img.building_uuid === b.uuid)?.image_url,
       rooms: roomsData
         .filter((r) => r.building_uuid === b.uuid)
         .map((r) => ({
@@ -153,6 +157,7 @@ export const fetchBuildings = async (): Promise<Building[]> => {
           building_uuid: r.building_uuid,
           name: r.room_name,
           capacity: r.capacity,
+          link: r.link,
         })),
     }))
     .filter((b) => b.rooms.length > 0);

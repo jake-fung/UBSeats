@@ -66,6 +66,7 @@ export interface Room {
   building_uuid: string;
   name: string;
   capacity: number;
+  link: string;
 }
 
 export interface Building {
@@ -75,5 +76,6 @@ export interface Building {
   primaryAddress: string;
   lat: number;
   lng: number;
+  image: string;
   rooms: Room[];
 }
