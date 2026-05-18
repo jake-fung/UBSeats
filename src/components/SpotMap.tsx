@@ -1,19 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StudySpot, Building } from '@/utils/types';
-import { X } from 'lucide-react';
+import { Building, POI } from '@/utils/types';
 import { cn } from '@/utils/cnUtils';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { isSpotOpenNow } from '@/utils/timeUtils';
 
 interface SpotMapProps {
   buildings: Building[];
+  pois: POI[];
   onBuildingSelect: (building: Building) => void;
   selectedBuilding?: Building;
   isMenuOpened: boolean;
 }
 
-const SpotMap: React.FC<SpotMapProps> = ({ buildings, onBuildingSelect, selectedBuilding, isMenuOpened }) => {
+const SpotMap: React.FC<SpotMapProps> = ({ buildings, pois, onBuildingSelect, selectedBuilding, isMenuOpened }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -49,8 +48,17 @@ const SpotMap: React.FC<SpotMapProps> = ({ buildings, onBuildingSelect, selected
       el.className = 'flex flex-col items-center cursor-pointer z-5';
 
       const markerDiv = document.createElement('div');
-      markerDiv.className = 'text-black font-bold bg-white/90 py-1/2 px-2 rounded-md shadow-lg border-2 border-primary';
+      markerDiv.className =
+        'text-black font-bold bg-white/90 py-1/2 px-2 rounded-md shadow-lg border-2 border-primary pr-6';
       markerDiv.textContent = building.code;
+
+      // add indicator to show how many rooms are there in this building
+      const countDiv = document.createElement('div');
+      countDiv.className =
+        'absolute top-0 right-0 text-xs font-medium text-white bg-primary rounded-r-md w-5 h-full flex items-center justify-center';
+      countDiv.textContent = building.rooms.length.toString();
+      el.appendChild(countDiv);
+
       el.appendChild(markerDiv);
 
       const marker = new mapboxgl.Marker(el).setLngLat([building.lng, building.lat]).addTo(map.current);
@@ -97,11 +105,25 @@ const SpotMap: React.FC<SpotMapProps> = ({ buildings, onBuildingSelect, selected
       });
     }
 
+    // pois.forEach((poi) => {
+    //   const el = document.createElement('div');
+    //   el.className = 'flex items-center cursor-pointer z-5';
+
+    //   const markerDiv = document.createElement('div');
+    //   markerDiv.className = 'text-black font-bold bg-white/90 py-1/2 px-2 rounded-md shadow-lg border-2 border-secondary';
+    //   markerDiv.textContent = poi.name;
+    //   el.appendChild(markerDiv);
+
+    //   const marker = new mapboxgl.Marker(el).setLngLat([poi.lng, poi.lat]).addTo(map.current);
+
+    //   markers.current.push(marker);
+    // });
+
     return () => {
       markers.current.forEach((marker) => marker.remove());
       markers.current = [];
     };
-  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect]);
+  }, [buildings, pois, selectedBuilding, mapLoaded, onBuildingSelect]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current) return;

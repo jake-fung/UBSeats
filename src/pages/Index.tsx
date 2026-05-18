@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import SpotMap from '@/components/SpotMap';
-import { useBuildings } from '@/hooks/useStudySpots';
+import { useBuildings, usePOIs } from '@/hooks/useStudySpots';
 import { Building, Filter } from '@/utils/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/utils/cnUtils';
@@ -17,7 +17,9 @@ const Index = () => {
 
   const { buildings, isLoading: isBuildingsLoading, error: buildingsError } = useBuildings(activeFilters);
 
-  console.log(buildings.map((building) => building.name));
+  const { pois, isLoading: isPOIsLoading, error: poisError } = usePOIs();
+
+  console.log(pois);
 
   useEffect(() => {
     if (buildingsError) {
@@ -101,6 +103,7 @@ const Index = () => {
             <section id="map">
               <SpotMap
                 buildings={buildings}
+                pois={pois}
                 onBuildingSelect={handleBuildingSelect}
                 selectedBuilding={selectedBuilding}
                 isMenuOpened={isMenuOpened}

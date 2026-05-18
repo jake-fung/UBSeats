@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchAmenities, fetchBuildings, fetchCategories, fetchStudySpots } from '@/services/studySpotService';
+import { fetchAmenities, fetchBuildings, fetchCategories, fetchPOIs } from '@/services/studySpotService';
 import { Filter } from '@/utils/types';
 
 export const useCategories = () => {
@@ -14,45 +14,6 @@ export const useAmenities = () => {
     queryKey: ['amenities'],
     queryFn: fetchAmenities,
   });
-};
-
-export const useStudySpots = (filters?: Filter) => {
-  const {
-    data: spots = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['studySpots'],
-    queryFn: fetchStudySpots,
-  });
-
-  // Apply filters if provided
-  let filteredSpots = [...spots];
-
-  if (filters) {
-    if (filters.category) {
-      filteredSpots = filteredSpots.filter((spot) => spot.categories.includes(filters.category!));
-    }
-
-    if (filters.search) {
-      const searchQuery = filters.search.toLowerCase();
-      filteredSpots = filteredSpots.filter(
-        (spot) => spot.name.toLowerCase().includes(searchQuery) || spot.description.toLowerCase().includes(searchQuery),
-      );
-    }
-
-    if (filters.amenities && filters.amenities.length > 0) {
-      filteredSpots = filteredSpots.filter((spot) =>
-        filters.amenities!.every((amenity) => spot.amenities.includes(amenity)),
-      );
-    }
-  }
-
-  return {
-    spots: filteredSpots,
-    isLoading,
-    error,
-  };
 };
 
 export const useBuildings = (filters?: Filter) => {
@@ -79,6 +40,23 @@ export const useBuildings = (filters?: Filter) => {
 
   return {
     buildings: filteredBuildings,
+    isLoading,
+    error,
+  };
+};
+
+export const usePOIs = () => {
+  const {
+    data: pois = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['pois'],
+    queryFn: fetchPOIs,
+  });
+
+  return {
+    pois,
     isLoading,
     error,
   };

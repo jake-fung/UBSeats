@@ -67,6 +67,7 @@ export interface Room {
   name: string;
   capacity: number;
   link: string;
+  bookable: boolean;
 }
 
 export interface Building {
@@ -78,4 +79,12 @@ export interface Building {
   lng: number;
   image: string;
   rooms: Room[];
+}
+
+export interface POI {
+  id: string;
+  name: string;
+  url: string;
+  lat: number;
+  lng: number;
 }
