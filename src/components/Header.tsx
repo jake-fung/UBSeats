@@ -1,6 +1,7 @@
+import { useState } from 'react';
+import { FilterIcon, MapPin, Search, X } from 'lucide-react';
+
 import { cn } from '@/utils/cnUtils';
-import React, { useState } from 'react';
-import { FilterIcon, MapPin, Menu, Search, X } from 'lucide-react';
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
@@ -9,18 +10,29 @@ interface HeaderProps {
   customWrapperCss?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearchChange, onSearchSubmit, onFilterIconClicked, customWrapperCss }) => {
+const Header = ({ onSearchChange, onSearchSubmit, onFilterIconClicked, customWrapperCss }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearchSubmit?.();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    onSearchChange?.(value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    onSearchChange?.('');
   };
 
   return (
     <header
       className={cn(
-        'fixed left-[10%] top-5 z-10 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all duration-300 ease-in-out md:px-8 md:py-3',
+        'fixed left-[10vw] top-5 z-10 w-[80vw] rounded-full bg-white shadow-soft backdrop-blur-md transition-all md:px-8 md:py-3',
         customWrapperCss,
       )}
     >
@@ -32,87 +44,33 @@ const Header: React.FC<HeaderProps> = ({ onSearchChange, onSearchSubmit, onFilte
           </a>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="flex items-center text-gray-700 transition-colors hover:text-primary md:hidden"
-          onClick={toggleMenu}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-
-        {/* Desktop navigation */}
         <nav className="hidden items-center space-x-8 md:flex">
-          <form
-            className="relative"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onSearchSubmit?.();
-            }}
-          >
+          <form className="relative" onSubmit={handleSearchSubmit}>
             <input
               type="text"
-              placeholder="Find study spots..."
+              placeholder="Search by building name/code..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                onSearchChange?.(e.target.value);
-              }}
-              className="w-64 rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              onChange={handleInputChange}
+              className="w-[20vw] rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             {searchQuery && (
               <X
                 className="absolute right-3 top-2.5 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
-                onClick={() => {
-                  setSearchQuery('');
-                  onSearchChange?.('');
-                }}
+                onClick={handleClearSearch}
               />
             )}
           </form>
 
-          {/* <button
-            onClick={() => onFilterIconClicked?.()}
+          <button
+            onClick={onFilterIconClicked}
             className="h-6 w-6 text-gray-700 transition-colors hover:text-primary"
+            aria-label="Toggle filter bar"
           >
             <FilterIcon />
-          </button> */}
+          </button>
         </nav>
       </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="slide-up absolute left-0 right-0 top-16 rounded-b-lg bg-white p-4 shadow-lg md:hidden">
-          <nav className="flex flex-col space-y-4">
-            <form className="relative">
-              <input
-                type="text"
-                placeholder="Find study spots..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
-              />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            </form>
-
-            <a
-              href="#spots"
-              onClick={toggleMenu}
-              className="px-2 py-1 font-bold text-gray-700 transition-colors hover:text-primary"
-            >
-              Spots
-            </a>
-            <a
-              href="#map"
-              onClick={toggleMenu}
-              className="px-2 py-1 font-bold text-gray-700 transition-colors hover:text-primary"
-            >
-              Map
-            </a>
-          </nav>
-        </div>
-      )}
     </header>
   );
 };

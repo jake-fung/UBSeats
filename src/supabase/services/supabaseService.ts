@@ -1,5 +1,5 @@
 import { supabase } from '@/supabase/client';
-import { Amenity, Building, Category, POI } from '@/utils/types';
+import { Amenity, Building, Category, POI } from '@/supabase/schema/types';
 import { validateCategoryType } from '@/utils/spotUtils';
 
 export const fetchCategories = async (): Promise<Category[]> => {
@@ -33,6 +33,9 @@ export const fetchBuildings = async (): Promise<Building[]> => {
   const { data: roomsData, error: roomsError } = await supabase.from('building_rooms').select('*');
   if (roomsError) throw roomsError;
 
+  const { data: categoriesData, error: categoriesError } = await supabase.from('room_categories').select('*');
+  if (categoriesError) throw categoriesError;
+
   return buildingData
     .map((b) => ({
       uuid: b.uuid,
@@ -50,7 +53,7 @@ export const fetchBuildings = async (): Promise<Building[]> => {
           name: r.room_name,
           capacity: r.capacity,
           link: r.link,
-          bookable: r.bookable,
+          categoryIds: categoriesData.filter((c) => c.room_uuid === r.uuid).map((c) => c.categories_id),
         })),
     }))
     .filter((b) => b.rooms.length > 0);

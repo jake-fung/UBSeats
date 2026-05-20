@@ -1,26 +1,34 @@
 import { useEffect, useState } from 'react';
+
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import SpotMap from '@/components/SpotMap';
-import { useBuildings, usePOIs } from '@/hooks/useStudySpots';
-import { Building, Filter } from '@/utils/types';
+import { BuildingDetail } from '@/components/BuildingDetail';
+
+import { useBuildings } from '@/hooks/useBuildings';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/utils/cnUtils';
-import { BuildingDetail } from '@/components/BuildingDetail';
+
+import type { Building, Filter } from '@/supabase/schema/types';
 
 const Index = () => {
   const [activeFilters, setActiveFilters] = useState<Filter>({});
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const [showFilterBar, setShowFilterBar] = useState(false);
-  const { toast } = useToast();
+  const [loaderActive, setLoaderActive] = useState(true);
 
+  const { toast } = useToast();
   const { buildings, isLoading: isBuildingsLoading, error: buildingsError } = useBuildings(activeFilters);
 
-  const { pois, isLoading: isPOIsLoading, error: poisError } = usePOIs();
+  // Sync loader visibility when isBuildingsLoading changes to true
+  useEffect(() => {
+    if (isBuildingsLoading) {
+      setLoaderActive(true);
+    }
+  }, [isBuildingsLoading]);
 
-  console.log(pois);
-
+  // Handle toast notifications for building loading errors
   useEffect(() => {
     if (buildingsError) {
       toast({
@@ -31,6 +39,7 @@ const Index = () => {
     }
   }, [buildingsError, toast]);
 
+  // Notify the user if no buildings match the active filters
   useEffect(() => {
     if (!isBuildingsLoading && !buildingsError && buildings.length === 0) {
       toast({
@@ -43,6 +52,8 @@ const Index = () => {
 
   const handleFilterChange = (filters: Filter) => {
     setActiveFilters(filters);
+    setSelectedBuilding(null);
+    setIsMenuOpened(false);
   };
 
   const handleBuildingSelect = (building: Building) => {
@@ -51,12 +62,12 @@ const Index = () => {
   };
 
   const handleSearchChange = (query: string) => {
-    if (!query) {
-      setActiveFilters({ ...activeFilters, search: undefined });
-      return;
-    }
-
-    setActiveFilters({ ...activeFilters, search: query });
+    setSelectedBuilding(null);
+    setIsMenuOpened(false);
+    setActiveFilters((prev) => ({
+      ...prev,
+      search: query || undefined,
+    }));
   };
 
   const handleSearchSubmit = () => {
@@ -66,59 +77,68 @@ const Index = () => {
     }
   };
 
-  const handleIsMenuOpened = (isMenuOpened: boolean) => {
-    setIsMenuOpened(isMenuOpened);
+  const handleFilterIconClicked = () => {
+    setShowFilterBar((prev) => !prev);
+    setIsMenuOpened(false);
   };
 
-  const handleFilterIconClicked = () => {
-    setShowFilterBar(!showFilterBar);
+  const handleTransitionEnd = () => {
+    if (!isBuildingsLoading) {
+      setLoaderActive(false);
+    }
   };
 
   return (
     <div className="overflow-y-hidden">
-      <div
-        id="loader_container"
-        className={cn(
-          'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
-          isBuildingsLoading ? 'opacity-100' : 'opacity-0',
-        )}
-        onTransitionEnd={() => {
-          if (!isBuildingsLoading) {
-            document.getElementById('loader_container')?.classList.add('hidden');
-          }
-        }}
-      >
-        <div className="loader"></div>
-      </div>
+      {loaderActive && (
+        <div
+          id="loader_container"
+          className={cn(
+            'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
+            isBuildingsLoading ? 'opacity-100' : 'opacity-0 pointer-events-none',
+          )}
+          onTransitionEnd={handleTransitionEnd}
+        >
+          <div className="loader"></div>
+        </div>
+      )}
       {!isBuildingsLoading && (
         <>
-          <Header
-            onSearchChange={handleSearchChange}
-            onSearchSubmit={handleSearchSubmit}
-            onFilterIconClicked={handleFilterIconClicked}
-            customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
-          />
-          {showFilterBar && <FilterBar onFilterChange={handleFilterChange} activeFilters={activeFilters} />}
+          <header className="fixed z-10">
+            <Header
+              onSearchChange={handleSearchChange}
+              onSearchSubmit={handleSearchSubmit}
+              onFilterIconClicked={handleFilterIconClicked}
+              customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+            />
+            {showFilterBar && (
+              <FilterBar
+                onFilterChange={handleFilterChange}
+                activeFilters={activeFilters}
+                customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+              />
+            )}
+          </header>
+
           <main>
             <section id="map">
               <SpotMap
                 buildings={buildings}
-                pois={pois}
                 onBuildingSelect={handleBuildingSelect}
-                selectedBuilding={selectedBuilding}
+                selectedBuilding={selectedBuilding || undefined}
                 isMenuOpened={isMenuOpened}
               />
             </section>
           </main>
           <BuildingDetail
-            building={selectedBuilding}
+            building={selectedBuilding || undefined}
             isMenuOpened={isMenuOpened}
-            setIsMenuOpened={handleIsMenuOpened}
+            setIsMenuOpened={setIsMenuOpened}
           />
 
           <footer
             className={cn(
-              'fixed bottom-0 w-full justify-center text-center transition-all duration-300 ease-in-out',
+              'fixed bottom-0 w-full justify-center text-center transition-all',
               isMenuOpened && 'left-[10vw] w-[40vw]',
             )}
           >
@@ -131,3 +151,4 @@ const Index = () => {
 };
 
 export default Index;
+

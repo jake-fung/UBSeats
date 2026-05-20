@@ -1,4 +1,4 @@
-export type CategoryType = 'library' | 'cafe' | 'quiet' | 'outdoor' | 'group';
+export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable';
 
 export interface Category {
   id: CategoryType;
@@ -67,7 +67,7 @@ export interface Room {
   name: string;
   capacity: number;
   link: string;
-  bookable: boolean;
+  categoryIds?: string[];
 }
 
 export interface Building {

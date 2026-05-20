@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchAmenities, fetchBuildings, fetchCategories, fetchPOIs } from '@/services/studySpotService';
-import { Filter } from '@/utils/types';
+import { fetchAmenities, fetchBuildings, fetchCategories, fetchPOIs } from '@/supabase/services/supabaseService';
+import { Filter, Room } from '@/supabase/schema/types';
 
 export const useCategories = () => {
   return useQuery({
@@ -35,6 +35,21 @@ export const useBuildings = (filters?: Filter) => {
         (building) =>
           building.name.toLowerCase().includes(searchQuery) || building.code.toLowerCase().includes(searchQuery),
       );
+    }
+
+    if (filters.category) {
+      const categoryQuery = filters.category.toLowerCase();
+
+      const filteredRooms: Record<string, Room[]> = {};
+      filteredBuildings = filteredBuildings.filter((building) => {
+        filteredRooms[building.uuid] = building.rooms.filter((room) => room.categoryIds?.includes(categoryQuery));
+        return filteredRooms[building.uuid].length > 0;
+      }).map((building) => {
+        return {
+          ...building,
+          rooms: filteredRooms[building.uuid],
+        };
+      });
     }
   }
 

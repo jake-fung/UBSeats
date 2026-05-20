@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StudySpot } from '@/utils/types';
-import { useAmenities, useCategories } from '@/hooks/useStudySpots';
+import { StudySpot } from '@/supabase/schema/types';
+import { useAmenities, useCategories } from '@/hooks/useBuildings';
 import {
   Calendar,
   ChevronLeft,

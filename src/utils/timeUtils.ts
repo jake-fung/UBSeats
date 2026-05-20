@@ -1,4 +1,4 @@
-import { StudySpot } from './types';
+import { StudySpot } from '../supabase/schema/types';
 
 export const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
