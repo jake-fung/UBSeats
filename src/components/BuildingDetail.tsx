@@ -1,7 +1,8 @@
 import { Building, Room } from '@/supabase/schema/types';
-import { ArrowLeft, MapPin, Users, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { RoomCard } from '@/components/RoomCard';
 
 const BOOKABLE_CATEGORY = 'bookable' as const;
 
@@ -9,35 +10,10 @@ const isBookable = (room: Room) => room.categoryIds?.includes(BOOKABLE_CATEGORY)
 
 export interface BuildingDetailProps {
   building?: Building;
-  isMenuOpened: boolean;
-  setIsMenuOpened: (isMenuOpened: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onToggle: () => void;
 }
-
-interface RoomCardProps {
-  room: Room;
-  actionLabel: string;
-}
-
-const RoomCard = ({ room, actionLabel }: RoomCardProps) => (
-  <div className="flex flex-col rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
-    <div className="mb-3 sm:mb-0">
-      <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-      <div className="mt-1 flex items-center text-sm text-gray-500">
-        <Users className="mr-1.5 h-4 w-4" />
-        <span>Capacity: {room.capacity}</span>
-      </div>
-    </div>
-    {room.link && (
-      <button
-        onClick={() => window.open(room.link, '_blank')}
-        className="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 active:bg-blue-800"
-      >
-        {actionLabel}
-        <ExternalLink className="ml-2 h-4 w-4" />
-      </button>
-    )}
-  </div>
-);
 
 interface RoomSectionProps {
   rooms: Room[];
@@ -61,27 +37,27 @@ const RoomSection = ({ rooms, heading, actionLabel }: RoomSectionProps) => {
   );
 };
 
-export const BuildingDetail = ({ building, isMenuOpened, setIsMenuOpened }: BuildingDetailProps) => {
+export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: BuildingDetailProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpened(false);
+      if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [setIsMenuOpened]);
+  }, [onClose]);
 
-  const bookableRooms = building?.rooms?.filter(isBookable) ?? [];
-  const otherRooms = building?.rooms?.filter((room) => !isBookable(room)) ?? [];
+  const bookableRooms = useMemo(() => building?.rooms?.filter(isBookable) ?? [], [building]);
+  const otherRooms = useMemo(() => building?.rooms?.filter((room) => !isBookable(room)) ?? [], [building]);
 
   return (
     <section
       className={cn(
         'fixed bottom-0 right-0 z-20 h-full w-[40%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg transition-transform duration-300',
-        isMenuOpened && 'translate-x-0',
+        isOpen && 'translate-x-0',
       )}
     >
       <button
-        onClick={() => setIsMenuOpened(!isMenuOpened)}
+        onClick={onToggle}
         className={cn(
           'absolute -left-10 top-1/2 z-20 flex h-20 w-10 -translate-y-1/2 items-center justify-center rounded-l-2xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg',
           !building && 'hidden',

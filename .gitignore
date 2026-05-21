@@ -5,3 +5,4 @@ dist
 .vscode
 *.log
 .idea
+.mcp.json

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Book, CalendarFold, Coffee, Trees, Users, VolumeX, X } from 'lucide-react';
+import { Book, CalendarFold, Coffee, VolumeX, X } from 'lucide-react';
 import { CategoryType, Filter } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { useCategories } from '@/hooks/useBuildings';
@@ -60,7 +60,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters, cu
           ) : (
             categories?.map((category) => {
               const isActive = activeFilters.category === category.id;
-              const IconComponent = ICON_MAP[category.icon as keyof typeof ICON_MAP];
+              const IconComponent = ICON_MAP[category.icon as keyof typeof ICON_MAP] || Book;
 
               return (
                 <button
@@ -71,9 +71,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters, cu
                     isActive ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
                   )}
                 >
-                  {IconComponent && (
-                    <IconComponent className={cn('mb-1 h-6 w-6', isActive ? 'text-white' : 'text-gray-500')} />
-                  )}
+                  <IconComponent className={cn('mb-1 h-6 w-6', isActive ? 'text-white' : 'text-gray-500')} />
                   <span className="hidden whitespace-nowrap font-medium md:block">{category.name}</span>
                 </button>
               );
