@@ -42,16 +42,29 @@ export const useBuildings = (filters?: Filter) => {
       if (filters.category) {
         const categoryQuery = filters.category.toLowerCase();
 
-        const filteredRooms: Record<string, Room[]> = {};
+        const filteredRooms: Record<string, Room[]> = {}
+        const filteredLibraryRooms: Record<string, Room[]> = {};
         result = result
           .filter((building) => {
-            filteredRooms[building.uuid] = building.rooms.filter((room) =>
+            const filteredRoomsForBuilding = building.rooms.filter((room) =>
               room.categoryIds?.includes(categoryQuery),
             );
-            return filteredRooms[building.uuid].length > 0;
+            const filteredLibraryRoomsForBuilding = building.library?.rooms.filter((libraryRoom) =>
+              libraryRoom.categoryIds?.includes(categoryQuery),
+            );
+            filteredRooms[building.uuid] = filteredRoomsForBuilding;
+            filteredLibraryRooms[building.uuid] = filteredLibraryRoomsForBuilding;
+            return (
+              filteredRooms[building.uuid].length > 0 ||
+              filteredLibraryRooms[building.uuid]?.length > 0
+            );
           })
           .map((building) => ({
             ...building,
+            library: building.library ? {
+              ...building.library,
+              rooms: filteredLibraryRooms[building.uuid],
+            } : null,
             rooms: filteredRooms[building.uuid],
           }));
       }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Building } from '@/supabase/schema/types';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,6 +15,9 @@ interface SpotMapProps {
   onBuildingSelect: (building: Building) => void;
   selectedBuilding?: Building;
   isMenuOpened: boolean;
+  showFilterBar: boolean;
+  mapLoaded: boolean;
+  setMapLoaded: (loaded: boolean) => void;
 }
 
 const SpotMap: React.FC<SpotMapProps> = ({
@@ -22,11 +25,13 @@ const SpotMap: React.FC<SpotMapProps> = ({
   onBuildingSelect,
   selectedBuilding,
   isMenuOpened,
+  showFilterBar,
+  mapLoaded,
+  setMapLoaded,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
@@ -42,7 +47,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       markers.current = clearMarkers(markers.current);
       map.current?.remove();
     };
-  }, []);
+  }, [setMapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
@@ -53,9 +58,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       const isSelected = selectedBuilding?.uuid === building.uuid;
       const el = createBuildingMarkerElement(building, isSelected, buildings.length);
 
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([building.lng, building.lat])
-        .addTo(map.current!);
+      const marker = new mapboxgl.Marker(el).setLngLat([building.lng, building.lat]).addTo(map.current!);
 
       marker.getElement().addEventListener('click', () => onBuildingSelect(building));
 
@@ -66,7 +69,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       const bounds = new mapboxgl.LngLatBounds();
       buildings.forEach((b) => bounds.extend([b.lng, b.lat]));
       map.current.fitBounds(bounds, {
-        padding: FIT_BOUNDS_PADDING,
+        padding: showFilterBar ? { ...FIT_BOUNDS_PADDING, top: 300 } : FIT_BOUNDS_PADDING,
         maxZoom: FIT_BOUNDS_MAX_ZOOM,
       });
     }
@@ -74,7 +77,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
     return () => {
       markers.current = clearMarkers(markers.current);
     };
-  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect]);
+  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, showFilterBar, setMapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current || !selectedBuilding) return;

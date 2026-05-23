@@ -1,12 +1,11 @@
 import { Building, Room } from '@/supabase/schema/types';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useEffect, useMemo } from 'react';
 import { RoomCard } from '@/components/RoomCard';
-
-const BOOKABLE_CATEGORY = 'bookable' as const;
-
-const isBookable = (room: Room) => room.categoryIds?.includes(BOOKABLE_CATEGORY) ?? false;
+import { getBuildingStatus } from '@/utils/hoursUtils';
+import { HoursPill } from '@/components/HoursPill';
+import { LibraryCard } from '@/components/LibraryCard';
 
 export interface BuildingDetailProps {
   building?: Building;
@@ -45,9 +44,7 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
-
-  const bookableRooms = useMemo(() => building?.rooms?.filter(isBookable) ?? [], [building]);
-  const otherRooms = useMemo(() => building?.rooms?.filter((room) => !isBookable(room)) ?? [], [building]);
+  const status = useMemo(() => (building ? getBuildingStatus(building.hours) : null), [building]);
 
   return (
     <section
@@ -63,7 +60,7 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
           !building && 'hidden',
         )}
       >
-        <ArrowLeft className="h-6 w-6" />
+        {isOpen ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
       </button>
 
       <div className="relative h-full overflow-y-scroll">
@@ -79,15 +76,17 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
               <MapPin className="mr-1 h-4 w-4 flex-shrink-0" />
               <span>{building?.primaryAddress}</span>
             </div>
+            {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
             {building?.image && (
-              <div className="relative rounded-xl bg-gray-900">
+              <div className="relative mt-2 rounded-xl bg-gray-900">
                 <img src={building.image} alt={building.name} className="h-full w-full rounded-xl object-cover" />
               </div>
             )}
 
+            {building?.library && <LibraryCard library={building.library} />}
+
             <div className="mt-4 flex flex-col gap-3">
-              <RoomSection rooms={bookableRooms} heading="Bookable Spaces" actionLabel="Book Space" />
-              <RoomSection rooms={otherRooms} heading="Spaces" actionLabel="View Space" />
+              <RoomSection rooms={building?.rooms ?? []} heading="Spaces" actionLabel="View Space" />
             </div>
           </div>
         </div>

@@ -34,11 +34,26 @@ export interface Note {
 export interface Room {
   uuid: string;
   building_uuid: string;
+  library_id?: string | null;
   name: string;
   capacity: number;
   link: string;
   categoryIds?: string[];
   notes?: Note[];
+}
+
+export interface DayHours {
+  dayOfWeek: number;
+  opensAt: string | null;
+  closesAt: string | null;
+}
+
+export interface Library {
+  id: string;
+  buildingUuid: string;
+  name: string;
+  hours: DayHours[];
+  rooms: Room[];
 }
 
 export interface Building {
@@ -50,5 +65,7 @@ export interface Building {
   lng: number;
   image: string | undefined;
   rooms: Room[];
+  hours: DayHours[];
+  library: Library;
 }
 

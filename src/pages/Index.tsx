@@ -22,7 +22,11 @@ const Index = () => {
     handleSearchSubmit,
     handleFilterIconClicked,
     handleTransitionEnd,
+    mapLoaded,
+    setMapLoaded,
   } = useMapState();
+
+  console.log(buildings);
 
   const building = selectedBuilding ?? undefined;
 
@@ -33,7 +37,7 @@ const Index = () => {
           id="loader_container"
           className={cn(
             'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
-            isBuildingsLoading ? 'opacity-100' : 'opacity-0 pointer-events-none',
+            isBuildingsLoading ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
           onTransitionEnd={handleTransitionEnd}
         >
@@ -49,13 +53,12 @@ const Index = () => {
               onFilterIconClicked={handleFilterIconClicked}
               customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
             />
-            {showFilterBar && (
-              <FilterBar
-                onFilterChange={handleFilterChange}
-                activeFilters={activeFilters}
-                customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
-              />
-            )}
+            <FilterBar
+              onFilterChange={handleFilterChange}
+              activeFilters={activeFilters}
+              customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+              isOpen={showFilterBar}
+            />
           </header>
 
           <main>
@@ -65,6 +68,9 @@ const Index = () => {
                 onBuildingSelect={handleBuildingSelect}
                 selectedBuilding={building}
                 isMenuOpened={isMenuOpened}
+                showFilterBar={showFilterBar}
+                mapLoaded={mapLoaded}
+                setMapLoaded={setMapLoaded}
               />
             </section>
           </main>
@@ -90,4 +96,3 @@ const Index = () => {
 };
 
 export default Index;
-
