@@ -17,10 +17,9 @@ export interface BuildingDetailProps {
 interface RoomSectionProps {
   rooms: Room[];
   heading: string;
-  actionLabel: string;
 }
 
-const RoomSection = ({ rooms, heading, actionLabel }: RoomSectionProps) => {
+const RoomSection = ({ rooms, heading }: RoomSectionProps) => {
   if (rooms.length === 0) return null;
   return (
     <>
@@ -30,7 +29,7 @@ const RoomSection = ({ rooms, heading, actionLabel }: RoomSectionProps) => {
         </h3>
       </div>
       {rooms.map((room) => (
-        <RoomCard key={room.uuid} room={room} actionLabel={actionLabel} />
+        <RoomCard key={room.uuid} room={room} />
       ))}
     </>
   );
@@ -49,7 +48,7 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
   return (
     <section
       className={cn(
-        'fixed bottom-0 right-0 z-20 h-full w-[40%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg transition-transform duration-300',
+        'fixed bottom-0 right-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
         isOpen && 'translate-x-0',
       )}
     >
@@ -82,11 +81,9 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
                 <img src={building.image} alt={building.name} className="h-full w-full rounded-xl object-cover" />
               </div>
             )}
-
             {building?.library && <LibraryCard library={building.library} />}
-
             <div className="mt-4 flex flex-col gap-3">
-              <RoomSection rooms={building?.rooms ?? []} heading="Spaces" actionLabel="View Space" />
+              <RoomSection rooms={building?.rooms ?? []} heading="Spaces" />
             </div>
           </div>
         </div>

@@ -3,12 +3,13 @@ import { Building } from '@/supabase/schema/types';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtils';
+import { getScreenWidth } from '@/utils/screenSizeUtils';
 
 const FIT_BOUNDS_PADDING = { top: 150, bottom: 100, left: 200, right: 200 } as const;
 const FIT_BOUNDS_MAX_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
 const BUILDING_DETAIL_ZOOM = 18;
-const SIDEBAR_PADDING_RIGHT = 700;
+const SIDEBAR_PADDING_RIGHT = getScreenWidth() / 2;
 
 interface SpotMapProps {
   buildings: Building[];

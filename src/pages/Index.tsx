@@ -51,12 +51,12 @@ const Index = () => {
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
               onFilterIconClicked={handleFilterIconClicked}
-              customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+              customWrapperCss={isMenuOpened ? 'left-[5vw] w-[40vw]' : ''}
             />
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              customWrapperCss={isMenuOpened ? 'w-[40vw]' : ''}
+              customWrapperCss={isMenuOpened ? 'left-[5vw] w-[40vw]' : ''}
               isOpen={showFilterBar}
             />
           </header>
@@ -84,7 +84,7 @@ const Index = () => {
           <footer
             className={cn(
               'fixed bottom-0 w-full justify-center text-center transition-all',
-              isMenuOpened && 'left-[10vw] w-[40vw]',
+              isMenuOpened && 'left-[10vw] w-[30vw]',
             )}
           >
             <div className="text-sm text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</div>

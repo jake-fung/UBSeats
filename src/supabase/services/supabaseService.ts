@@ -31,6 +31,7 @@ export async function fetchBuildings(): Promise<Building[]> {
     { data: hoursData, error: hoursError },
     { data: librariesData, error: librariesError },
     { data: libHoursData, error: libHoursError },
+    { data: libImagesData, error: libImagesError },
   ] = await Promise.all([
     supabase.from('buildings').select('*'),
     supabase.from('building_images').select('*'),
@@ -41,6 +42,7 @@ export async function fetchBuildings(): Promise<Building[]> {
     supabase.from('building_hours').select('*'),
     supabase.from('libraries').select('*'),
     supabase.from('library_hours').select('*'),
+    supabase.from('library_images').select('*'),
   ]);
 
   if (buildingError) throw buildingError;
@@ -52,6 +54,7 @@ export async function fetchBuildings(): Promise<Building[]> {
   if (hoursError) throw hoursError;
   if (librariesError) throw librariesError;
   if (libHoursError) throw libHoursError;
+  if (libImagesError) throw libImagesError;
 
   const imageMap = new Map<string, string>();
   imagesData.forEach((img) => {
@@ -126,6 +129,13 @@ export async function fetchBuildings(): Promise<Building[]> {
     libHoursMap.set(h.library_id, list);
   });
 
+  const libImagesMap = new Map<string, string>();
+  libImagesData.forEach((img) => {
+    if (img.library_id && img.image_url) {
+      libImagesMap.set(img.library_id, img.image_url);
+    }
+  });
+
   const librariesMap = new Map<string, Library>();
   librariesData.forEach((lib) => {
     if (!lib.building_uuid) return;
@@ -135,6 +145,7 @@ export async function fetchBuildings(): Promise<Building[]> {
       name: lib.name,
       hours: libHoursMap.get(lib.id) ?? [],
       rooms: libRoomsMap.get(lib.id) ?? [],
+      image: libImagesMap.get(lib.id),
     });
   });
 
@@ -151,5 +162,5 @@ export async function fetchBuildings(): Promise<Building[]> {
       hours: hoursMap.get(b.uuid) ?? [],
       library: librariesMap.get(b.uuid) ?? null,
     }))
-    .filter((b) => b.rooms.length > 0);
+    .filter((b) => b.rooms.length > 0 || b.library !== null);
 }

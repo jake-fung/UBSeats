@@ -6,3 +6,5 @@ dist
 *.log
 .idea
 .mcp.json
+.claude
+CLAUDE.md

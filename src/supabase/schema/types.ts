@@ -54,6 +54,7 @@ export interface Library {
   name: string;
   hours: DayHours[];
   rooms: Room[];
+  image: string | undefined;
 }
 
 export interface Building {
@@ -68,4 +69,3 @@ export interface Building {
   hours: DayHours[];
   library: Library;
 }
-

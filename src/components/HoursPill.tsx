@@ -47,7 +47,7 @@ export const HoursPill = ({ status, hours }: HoursPillProps) => {
       {hours.length > 0 && (
         <div
           className={cn(
-            'my-2 grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
+            'my-1 grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
             expanded && 'max-h-[200px] overflow-visible opacity-100',
           )}
         >
