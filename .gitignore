@@ -4,7 +4,8 @@ dist
 .DS_Store
 .vscode
 *.log
-.idea
 .mcp.json
 .claude
 CLAUDE.md
+.understand-anything
+.idea

@@ -67,7 +67,7 @@ export async function fetchBuildings(): Promise<Building[]> {
   categoriesData.forEach((c) => {
     if (c.room_uuid && c.categories_id) {
       const list = categoriesMap.get(c.room_uuid) ?? [];
-      list.push(c.categories_id);
+      list.push(validateCategoryType(c.categories_id));
       categoriesMap.set(c.room_uuid, list);
     }
   });
