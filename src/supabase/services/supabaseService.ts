@@ -162,5 +162,5 @@ export async function fetchBuildings(): Promise<Building[]> {
       hours: hoursMap.get(b.uuid) ?? [],
       library: librariesMap.get(b.uuid) ?? null,
     }))
-    .filter((b) => b.rooms.length > 0 || b.library !== null);
+    .filter((b) => (b.rooms && b.rooms.length > 0) || (b.library && b.library.rooms.length > 0));
 }
