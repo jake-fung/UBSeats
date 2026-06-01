@@ -6,6 +6,7 @@ import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtil
 import { getScreenWidth } from '@/utils/screenSizeUtils';
 
 const FIT_BOUNDS_PADDING = { top: 150, bottom: 100, left: 200, right: 200 } as const;
+const MOBILE_FIT_BOUNDS_PADDING = { top: 100, bottom: 100, left: 50, right: 50 } as const;
 const FIT_BOUNDS_MAX_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
 const BUILDING_DETAIL_ZOOM = 18;
@@ -19,6 +20,7 @@ interface SpotMapProps {
   showFilterBar: boolean;
   mapLoaded: boolean;
   setMapLoaded: (loaded: boolean) => void;
+  isMobile: boolean;
 }
 
 const SpotMap: React.FC<SpotMapProps> = ({
@@ -29,6 +31,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
   showFilterBar,
   mapLoaded,
   setMapLoaded,
+  isMobile,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -55,9 +58,11 @@ const SpotMap: React.FC<SpotMapProps> = ({
 
     markers.current = clearMarkers(markers.current);
 
-    buildings.forEach((building) => {
+    const validBuildings = buildings.filter((b) => isFinite(b.lng) && isFinite(b.lat));
+
+    validBuildings.forEach((building) => {
       const isSelected = selectedBuilding?.uuid === building.uuid;
-      const el = createBuildingMarkerElement(building, isSelected, buildings.length);
+      const el = createBuildingMarkerElement(building, isSelected, validBuildings.length);
 
       const marker = new mapboxgl.Marker(el).setLngLat([building.lng, building.lat]).addTo(map.current!);
 
@@ -66,11 +71,15 @@ const SpotMap: React.FC<SpotMapProps> = ({
       markers.current.push(marker);
     });
 
-    if (buildings.length > 0) {
+    if (validBuildings.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
-      buildings.forEach((b) => bounds.extend([b.lng, b.lat]));
+      validBuildings.forEach((b) => bounds.extend([b.lng, b.lat]));
       map.current.fitBounds(bounds, {
-        padding: showFilterBar ? { ...FIT_BOUNDS_PADDING, top: 300 } : FIT_BOUNDS_PADDING,
+        padding: isMobile
+          ? MOBILE_FIT_BOUNDS_PADDING
+          : showFilterBar
+            ? { ...FIT_BOUNDS_PADDING, top: 300 }
+            : FIT_BOUNDS_PADDING,
         maxZoom: FIT_BOUNDS_MAX_ZOOM,
       });
     }
@@ -78,10 +87,11 @@ const SpotMap: React.FC<SpotMapProps> = ({
     return () => {
       markers.current = clearMarkers(markers.current);
     };
-  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, showFilterBar, setMapLoaded]);
+  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, showFilterBar, setMapLoaded, isMobile]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current || !selectedBuilding) return;
+    if (!isFinite(selectedBuilding.lng) || !isFinite(selectedBuilding.lat)) return;
 
     if (isMenuOpened) {
       map.current.flyTo({
@@ -89,7 +99,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
         zoom: BUILDING_DETAIL_ZOOM,
         pitch: BUILDING_DETAIL_PITCH,
         essential: true,
-        padding: { right: SIDEBAR_PADDING_RIGHT },
+        padding: !isMobile && { right: SIDEBAR_PADDING_RIGHT },
       });
     } else {
       map.current.flyTo({
@@ -99,7 +109,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
         duration: 300,
       });
     }
-  }, [isMenuOpened, mapLoaded, selectedBuilding]);
+  }, [isMenuOpened, mapLoaded, selectedBuilding, isMobile]);
 
   return (
     <div className="z-0 h-screen w-screen overflow-hidden">

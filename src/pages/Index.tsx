@@ -2,8 +2,10 @@ import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import SpotMap from '@/components/SpotMap';
 import { BuildingDetail } from '@/components/BuildingDetail';
+import { BottomSheet } from '@/components/BottomSheet';
 
 import { useMapState } from '@/hooks/useMapState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
 
 const Index = () => {
@@ -26,9 +28,13 @@ const Index = () => {
     setMapLoaded,
   } = useMapState();
 
+  const isMobile = useIsMobile();
+
   console.log(buildings);
 
   const building = selectedBuilding ?? undefined;
+  const desktopShift = !isMobile && isMenuOpened;
+  const mobileMenuOpened = isMobile && isMenuOpened;
 
   return (
     <div className="overflow-y-hidden">
@@ -51,12 +57,15 @@ const Index = () => {
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
               onFilterIconClicked={handleFilterIconClicked}
-              customWrapperCss={isMenuOpened ? 'left-[5vw] w-[40vw]' : ''}
+              isMobile={isMobile}
+              desktopShift={desktopShift}
+              customWrapperCss={desktopShift ? 'md:left-[5vw] md:w-[201px]' : ''}
             />
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              customWrapperCss={isMenuOpened ? 'left-[5vw] w-[40vw]' : ''}
+              mobileCustomWrapperCss={mobileMenuOpened ? 'opacity-0' : ''}
+              desktopCustomWrapperCss={desktopShift ? 'left-[5vw] w-[0px]' : ''}
               isOpen={showFilterBar}
             />
           </header>
@@ -71,20 +80,26 @@ const Index = () => {
                 showFilterBar={showFilterBar}
                 mapLoaded={mapLoaded}
                 setMapLoaded={setMapLoaded}
+                isMobile={isMobile}
               />
             </section>
           </main>
-          <BuildingDetail
-            building={building}
-            isOpen={isMenuOpened}
-            onClose={() => setIsMenuOpened(false)}
-            onToggle={() => setIsMenuOpened((prev) => !prev)}
-          />
+
+          {isMobile ? (
+            <BottomSheet building={building} isOpen={isMenuOpened} onClose={() => setIsMenuOpened(false)} />
+          ) : (
+            <BuildingDetail
+              building={building}
+              isOpen={isMenuOpened}
+              onClose={() => setIsMenuOpened(false)}
+              onToggle={() => setIsMenuOpened((prev) => !prev)}
+            />
+          )}
 
           <footer
             className={cn(
               'fixed bottom-0 w-full justify-center text-center transition-all',
-              isMenuOpened && 'left-[10vw] w-[30vw]',
+              desktopShift && 'left-[10vw] w-[30vw]',
             )}
           >
             <div className="text-sm text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</div>

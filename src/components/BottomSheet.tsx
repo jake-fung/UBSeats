@@ -1,18 +1,11 @@
 import { Building, Room } from '@/supabase/schema/types';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RoomCard } from '@/components/RoomCard';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/HoursPill';
 import { LibraryCard } from '@/components/LibraryCard';
-
-export interface BuildingDetailProps {
-  building?: Building;
-  isOpen: boolean;
-  onClose: () => void;
-  onToggle: () => void;
-}
 
 interface RoomSectionProps {
   rooms: Room[];
@@ -35,18 +28,30 @@ const RoomSection = ({ rooms, heading }: RoomSectionProps) => {
   );
 };
 
-export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: BuildingDetailProps) => {
+export interface BottomSheetProps {
+  building?: Building;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const BottomSheet = ({ building, isOpen, onClose }: BottomSheetProps) => {
   const [scrolled, setScrolled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = contentRef.current?.scrollTop || 0;
-      setScrolled(scrollY > 10);
-    };
-    contentRef.current?.addEventListener('scroll', handleScroll);
-    return () => contentRef.current?.removeEventListener('scroll', handleScroll);
+    const el = contentRef.current;
+    if (!el) return;
+    const handleScroll = () => setScrolled(el.scrollTop > 10);
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen && contentRef.current) {
+      contentRef.current.scrollTop = 0;
+      setScrolled(false);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,30 +60,36 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
   const status = useMemo(() => (building ? getBuildingStatus(building.hours) : null), [building]);
 
   return (
     <section
       className={cn(
-        'fixed bottom-0 right-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
-        isOpen && 'translate-x-0',
+        'fixed bottom-0 left-0 z-20 w-full overflow-hidden rounded-t-3xl bg-white/80 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
+        isOpen ? 'h-[90vh] translate-y-0' : 'translate-y-full',
       )}
     >
+      {/* Drag handle
+      <div className="z-10 flex justify-center pb-1 pt-3">
+        <div className="h-1 w-10 rounded-full bg-gray-300" />
+      </div> */}
+
+      {/* Close button */}
       <button
-        onClick={onToggle}
-        className={cn(
-          'absolute -left-10 top-1/2 z-20 flex h-20 w-10 -translate-y-1/2 items-center justify-center rounded-l-2xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg',
-          !building && 'hidden',
-        )}
+        onClick={onClose}
+        className="absolute right-4 top-4 z-50 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200"
+        aria-label="Close"
       >
-        {isOpen ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
+        <X className="h-4 w-4" />
       </button>
 
-      <div className="no-scrollbar relative mb-4 h-full overflow-y-auto px-6" ref={contentRef}>
+      {/* Scrollable content */}
+      <div className="no-scrollbar h-full overflow-y-auto px-6 pb-8" ref={contentRef}>
         <div
           className={cn(
-            'sticky top-0 z-10 -mx-6 rounded-tl-3xl px-6 pb-2 pt-6 transition-all duration-200',
-            scrolled && 'bg-white/40 shadow-lg shadow-gray-500/60 backdrop-blur-md',
+            'sticky top-0 z-10 -mx-6 px-6 pb-2 pt-4 transition-all duration-200',
+            scrolled && 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
           )}
         >
           <div className="mb-2 flex flex-wrap gap-2">
@@ -93,12 +104,15 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
           </div>
           {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
         </div>
+
         {building?.image && (
           <div className="relative mt-2 rounded-xl bg-gray-900">
             <img src={building.image} alt={building.name} className="h-full w-full rounded-xl object-cover" />
           </div>
         )}
+
         {building?.library && building.library.rooms.length > 0 && <LibraryCard library={building.library} />}
+
         <div className="mt-4 flex flex-col gap-3">
           <RoomSection rooms={building?.rooms ?? []} heading="Spaces" />
         </div>

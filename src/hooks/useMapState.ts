@@ -45,8 +45,6 @@ export const useMapState = () => {
 
   const handleFilterChange = (filters: Filter) => {
     setActiveFilters(filters);
-    setSelectedBuilding(null);
-    setIsMenuOpened(false);
   };
 
   const handleBuildingSelect = (building: Building) => {
@@ -73,6 +71,7 @@ export const useMapState = () => {
 
   const handleFilterIconClicked = () => {
     setShowFilterBar((prev) => !prev);
+    setSelectedBuilding(null);
     setIsMenuOpened(false);
   };
 

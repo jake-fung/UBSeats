@@ -4,6 +4,7 @@ import { CategoryType, Filter } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { useCategories } from '@/hooks/useBuildings';
 import { Skeleton } from './ui/skeleton';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ICON_MAP = {
   Book,
@@ -12,28 +13,78 @@ const ICON_MAP = {
   CalendarFold,
 } as const;
 
-const SKELETON_COUNT = 6;
+const SKELETON_COUNT = 4;
 
 interface FilterBarProps {
   onFilterChange: (filter: Filter) => void;
   activeFilters: Filter;
-  customWrapperCss?: string;
+  mobileCustomWrapperCss?: string;
+  desktopCustomWrapperCss?: string;
   isOpen?: boolean;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters, customWrapperCss, isOpen = true }) => {
+const FilterBar: React.FC<FilterBarProps> = ({
+  onFilterChange,
+  activeFilters,
+  mobileCustomWrapperCss,
+  desktopCustomWrapperCss,
+  isOpen = true,
+}) => {
   const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const isMobile = useIsMobile();
 
   const handleCategoryClick = (categoryId: CategoryType) => {
     const category = activeFilters.category === categoryId ? undefined : categoryId;
     onFilterChange({ ...activeFilters, category });
   };
 
+  const hasActiveFilters = activeFilters.category !== undefined;
+
+  if (isMobile) {
+    return (
+      <div
+        className={cn(
+          'pointer-events-auto fixed top-[80px] z-10 w-full opacity-100 transition-all duration-300 ease-in-out',
+          mobileCustomWrapperCss,
+        )}
+      >
+        <div className="no-scrollbar flex items-center gap-2 overflow-x-scroll px-6 py-2">
+          {categoriesLoading ? (
+            <>
+              {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+                <Skeleton key={i} className="h-8 w-20 flex-shrink-0 rounded-full" />
+              ))}
+            </>
+          ) : (
+            categories?.map((category) => {
+              const isActive = activeFilters.category === category.id;
+              const IconComponent = ICON_MAP[category.icon as keyof typeof ICON_MAP] || Book;
+
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category.id)}
+                  className={cn(
+                    'flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-sm transition-all duration-200 ease-out active:scale-95',
+                    isActive ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100',
+                  )}
+                >
+                  <IconComponent className={cn('h-3.5 w-3.5', isActive ? 'text-white' : 'text-gray-500')} />
+                  <span className="whitespace-nowrap">{category.name}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        'fixed left-[10vw] top-12 h-auto w-[80vw] rounded-b-[30px] bg-white px-4 pb-2 pt-2 shadow-soft backdrop-blur-md transition-all',
-        customWrapperCss,
+        'fixed left-[10vw] top-12 h-auto w-[80vw] rounded-b-[30px] bg-white px-4 pb-2 pt-2 shadow-soft backdrop-blur-md transition-all duration-300',
+        desktopCustomWrapperCss,
       )}
     >
       <div
@@ -47,7 +98,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters, cu
             <div className="flex items-center justify-between px-3 pt-12">
               <h2 className="text-xl font-semibold text-gray-800">Apply Filters</h2>
 
-              {Object.keys(activeFilters).length > 0 && (
+              {hasActiveFilters && (
                 <button
                   onClick={() => onFilterChange({})}
                   className="flex items-center text-sm text-gray-500 transition-colors hover:text-gray-800"
