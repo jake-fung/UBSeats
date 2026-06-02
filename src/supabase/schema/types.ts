@@ -21,7 +21,6 @@ export interface Filter {
   seating?: number;
   amenities?: string[];
   open?: boolean;
-  search?: string;
 }
 
 export interface Note {

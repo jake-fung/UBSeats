@@ -16,12 +16,14 @@ const Index = () => {
     setIsMenuOpened,
     showFilterBar,
     showSearch,
+    searchQuery,
     loaderActive,
     buildings,
     isBuildingsLoading,
     handleFilterChange,
     handleBuildingSelect,
     handleSearchChange,
+    handleClearSearch,
     handleSearchSubmit,
     handleSearchIconClicked,
     handleFilterIconClicked,
@@ -56,11 +58,14 @@ const Index = () => {
         <>
           <header className="fixed z-10">
             <Header
+              searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
               onSearchIconClicked={handleSearchIconClicked}
+              onClearSearch={handleClearSearch}
               onFilterIconClicked={handleFilterIconClicked}
               isMobile={isMobile}
+              isMenuOpened={isMenuOpened}
               desktopShift={desktopShift}
               showSearch={showSearch}
               customWrapperCss={desktopShift ? 'md:left-[5vw] md:w-[201px]' : ''}

@@ -7,7 +7,7 @@ interface SearchBarProps {
   showSearch?: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  onClear: () => void;
+  onClear?: () => void;
 }
 
 const SearchBar = ({ searchQuery, showSearch, onInputChange, onSubmit, onClear }: SearchBarProps) => {
@@ -16,16 +16,16 @@ const SearchBar = ({ searchQuery, showSearch, onInputChange, onSubmit, onClear }
       <div
         className={cn(
           'grid transition-all duration-300 ease-in-out',
-          showSearch ? 'mt-8 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+          showSearch ? 'mt-8 grid-rows-[1fr] opacity-100' : 'h-0 grid-rows-[0fr] opacity-0',
         )}
       >
-        <form className="relative overflow-hidden" onSubmit={onSubmit}>
+        <form className="relative" onSubmit={onSubmit}>
           <input
             type="text"
             placeholder="Search by building name/code..."
             value={searchQuery}
             onChange={onInputChange}
-            className="w-[80vw] rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
           />
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           {searchQuery && (

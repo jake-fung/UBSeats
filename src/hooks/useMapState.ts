@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useBuildings } from '@/hooks/useBuildings';
+import { useSearch } from '@/hooks/useSearch';
 import type { Building, Filter } from '@/supabase/schema/types';
 
 export const useMapState = () => {
@@ -8,12 +9,35 @@ export const useMapState = () => {
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const [showFilterBar, setShowFilterBar] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [loaderActive, setLoaderActive] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const { toast } = useToast();
-  const { buildings, isLoading: isBuildingsLoading, error: buildingsError } = useBuildings(activeFilters);
+
+  const search = useSearch({
+    onQueryChange: () => {
+      setSelectedBuilding(null);
+      setIsMenuOpened(false);
+    },
+    onToggle: (isOpen) => {
+      setShowFilterBar(isOpen);
+      setSelectedBuilding(null);
+      setIsMenuOpened(false);
+    },
+    onSubmit: () => {
+      if (buildings.length === 1) {
+        setSelectedBuilding(buildings[0]);
+        search.setShowSearch(false);
+        setIsMenuOpened(true);
+      }
+    },
+  });
+
+  const {
+    buildings,
+    isLoading: isBuildingsLoading,
+    error: buildingsError,
+  } = useBuildings(activeFilters, search.searchQuery);
 
   // Sync loader visibility when isBuildingsLoading changes to true
   useEffect(() => {
@@ -55,30 +79,6 @@ export const useMapState = () => {
     setShowFilterBar(false);
   };
 
-  const handleSearchChange = (query: string) => {
-    setSelectedBuilding(null);
-    setIsMenuOpened(false);
-    setActiveFilters((prev) => ({
-      ...prev,
-      search: query || undefined,
-    }));
-  };
-
-  const handleSearchSubmit = () => {
-    if (buildings.length === 1) {
-      setSelectedBuilding(buildings[0]);
-      setShowSearch(false);
-      setIsMenuOpened(true);
-    }
-  };
-
-  const handleSearchIconClicked = () => {
-    setShowSearch((prev) => !prev);
-    setShowFilterBar(!showSearch);
-    setSelectedBuilding(null);
-    setIsMenuOpened(false);
-  };
-
   const handleFilterIconClicked = () => {
     setShowFilterBar((prev) => !prev);
     setSelectedBuilding(null);
@@ -97,15 +97,17 @@ export const useMapState = () => {
     isMenuOpened,
     setIsMenuOpened,
     showFilterBar,
-    showSearch,
+    showSearch: search.showSearch,
+    searchQuery: search.searchQuery,
     loaderActive,
     buildings,
     isBuildingsLoading,
     handleFilterChange,
     handleBuildingSelect,
-    handleSearchChange,
-    handleSearchSubmit,
-    handleSearchIconClicked,
+    handleSearchChange: search.handleSearchChange,
+    handleClearSearch: search.handleClearSearch,
+    handleSearchSubmit: search.handleSearchSubmit,
+    handleSearchIconClicked: search.handleSearchIconClicked,
     handleFilterIconClicked,
     handleTransitionEnd,
     mapLoaded,

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAmenities, fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
 import { Filter, Room } from '@/supabase/schema/types';
+import { filterBuildingsBySearch } from '@/hooks/useSearch';
 
 export const useCategories = () => {
   return useQuery({
@@ -17,7 +18,7 @@ export const useAmenities = () => {
   });
 };
 
-export const useBuildings = (filters?: Filter) => {
+export const useBuildings = (filters?: Filter, searchQuery?: string) => {
   const {
     data: buildings = [],
     error,
@@ -28,17 +29,9 @@ export const useBuildings = (filters?: Filter) => {
   });
 
   const filteredBuildings = useMemo(() => {
-    let result = [...buildings];
+    let result = filterBuildingsBySearch([...buildings], searchQuery);
 
     if (filters) {
-      if (filters.search) {
-        const searchQuery = filters.search.toLowerCase();
-        result = result.filter(
-          (building) =>
-            building.name.toLowerCase().includes(searchQuery) || building.code.toLowerCase().includes(searchQuery),
-        );
-      }
-
       if (filters.category) {
         const categoryQuery = filters.category.toLowerCase();
 
@@ -71,7 +64,7 @@ export const useBuildings = (filters?: Filter) => {
     }
 
     return result;
-  }, [buildings, filters]);
+  }, [buildings, filters, searchQuery]);
 
   return {
     buildings: filteredBuildings,

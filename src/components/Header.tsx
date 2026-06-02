@@ -1,31 +1,36 @@
-import { useState } from 'react';
 import { FilterIcon, MapPin, Search, X } from 'lucide-react';
 
-import SearchBar from '@/components/SearchBar';
 import { cn } from '@/utils/cnUtils';
+import SearchBar from './SearchBar';
 
 interface HeaderProps {
+  searchQuery: string;
   onSearchChange?: (query: string) => void;
   onSearchSubmit?: () => void;
   onSearchIconClicked?: () => void;
+  onClearSearch?: () => void;
   onFilterIconClicked?: () => void;
   isMobile?: boolean;
+  isMenuOpened?: boolean;
   desktopShift?: boolean;
   showSearch?: boolean;
   customWrapperCss?: string;
 }
 
 const Header = ({
+  searchQuery,
   onSearchChange,
   onSearchSubmit,
   onSearchIconClicked,
+  onClearSearch,
   onFilterIconClicked,
   isMobile,
+  isMenuOpened,
   desktopShift = false,
   showSearch,
   customWrapperCss,
 }: HeaderProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const shouldShowSearch = showSearch && !isMenuOpened;
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,14 +38,7 @@ const Header = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    onSearchChange?.(value);
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery('');
-    onSearchChange?.('');
+    onSearchChange?.(e.target.value);
   };
 
   return (
@@ -72,7 +70,7 @@ const Header = ({
                   {searchQuery && (
                     <X
                       className="absolute right-3 top-2.5 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
-                      onClick={handleClearSearch}
+                      onClick={onClearSearch}
                     />
                   )}
                 </form>
@@ -81,7 +79,7 @@ const Header = ({
               {isMobile && (
                 <button
                   onClick={onSearchIconClicked}
-                  className={cn('h-6 w-6 transition-colors', showSearch ? 'text-primary' : 'text-gray-700')}
+                  className={cn('h-6 w-6 transition-colors', shouldShowSearch ? 'text-primary' : 'text-gray-700')}
                   aria-label="Search"
                 >
                   <Search />
@@ -105,10 +103,10 @@ const Header = ({
       {isMobile && (
         <SearchBar
           searchQuery={searchQuery}
-          showSearch={showSearch}
+          showSearch={shouldShowSearch}
           onInputChange={handleInputChange}
           onSubmit={handleSearchSubmit}
-          onClear={handleClearSearch}
+          onClear={onClearSearch}
         />
       )}
     </>
