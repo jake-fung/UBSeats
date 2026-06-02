@@ -3,14 +3,15 @@ import { Building } from '@/supabase/schema/types';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtils';
-import { getScreenWidth } from '@/utils/screenSizeUtils';
+import { getScreenHeight, getScreenWidth } from '@/utils/screenSizeUtils';
 
 const FIT_BOUNDS_PADDING = { top: 150, bottom: 100, left: 200, right: 200 } as const;
-const MOBILE_FIT_BOUNDS_PADDING = { top: 100, bottom: 100, left: 50, right: 50 } as const;
+const MOBILE_FIT_BOUNDS_PADDING = { top: 170, bottom: 100, left: 50, right: 50 } as const;
 const FIT_BOUNDS_MAX_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
 const BUILDING_DETAIL_ZOOM = 18;
 const SIDEBAR_PADDING_RIGHT = getScreenWidth() / 2;
+const SIDEBAR_PADDING_BOTTOM = getScreenHeight() / 2;
 
 interface SpotMapProps {
   buildings: Building[];
@@ -99,7 +100,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
         zoom: BUILDING_DETAIL_ZOOM,
         pitch: BUILDING_DETAIL_PITCH,
         essential: true,
-        padding: !isMobile && { right: SIDEBAR_PADDING_RIGHT },
+        padding: !isMobile ? { right: SIDEBAR_PADDING_RIGHT } : { bottom: SIDEBAR_PADDING_BOTTOM },
       });
     } else {
       map.current.flyTo({

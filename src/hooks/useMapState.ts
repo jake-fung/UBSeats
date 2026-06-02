@@ -8,6 +8,7 @@ export const useMapState = () => {
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const [showFilterBar, setShowFilterBar] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [loaderActive, setLoaderActive] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
 
@@ -39,6 +40,7 @@ export const useMapState = () => {
         title: 'No buildings found',
         description: 'Could not find any buildings. Please adjust your filters.',
         variant: 'default',
+        duration: 2000,
       });
     }
   }, [buildings.length, isBuildingsLoading, buildingsError, toast]);
@@ -65,8 +67,16 @@ export const useMapState = () => {
   const handleSearchSubmit = () => {
     if (buildings.length === 1) {
       setSelectedBuilding(buildings[0]);
+      setShowSearch(false);
       setIsMenuOpened(true);
     }
+  };
+
+  const handleSearchIconClicked = () => {
+    setShowSearch((prev) => !prev);
+    setShowFilterBar(!showSearch);
+    setSelectedBuilding(null);
+    setIsMenuOpened(false);
   };
 
   const handleFilterIconClicked = () => {
@@ -87,6 +97,7 @@ export const useMapState = () => {
     isMenuOpened,
     setIsMenuOpened,
     showFilterBar,
+    showSearch,
     loaderActive,
     buildings,
     isBuildingsLoading,
@@ -94,6 +105,7 @@ export const useMapState = () => {
     handleBuildingSelect,
     handleSearchChange,
     handleSearchSubmit,
+    handleSearchIconClicked,
     handleFilterIconClicked,
     handleTransitionEnd,
     mapLoaded,

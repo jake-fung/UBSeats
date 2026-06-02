@@ -15,6 +15,7 @@ const Index = () => {
     isMenuOpened,
     setIsMenuOpened,
     showFilterBar,
+    showSearch,
     loaderActive,
     buildings,
     isBuildingsLoading,
@@ -22,6 +23,7 @@ const Index = () => {
     handleBuildingSelect,
     handleSearchChange,
     handleSearchSubmit,
+    handleSearchIconClicked,
     handleFilterIconClicked,
     handleTransitionEnd,
     mapLoaded,
@@ -56,15 +58,17 @@ const Index = () => {
             <Header
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
+              onSearchIconClicked={handleSearchIconClicked}
               onFilterIconClicked={handleFilterIconClicked}
               isMobile={isMobile}
               desktopShift={desktopShift}
+              showSearch={showSearch}
               customWrapperCss={desktopShift ? 'md:left-[5vw] md:w-[201px]' : ''}
             />
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              mobileCustomWrapperCss={mobileMenuOpened ? 'opacity-0' : ''}
+              mobileCustomWrapperCss={mobileMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
               desktopCustomWrapperCss={desktopShift ? 'left-[5vw] w-[0px]' : ''}
               isOpen={showFilterBar}
             />

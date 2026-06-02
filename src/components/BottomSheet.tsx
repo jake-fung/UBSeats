@@ -1,11 +1,13 @@
 import { Building, Room } from '@/supabase/schema/types';
-import { MapPin, X } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RoomCard } from '@/components/RoomCard';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/HoursPill';
 import { LibraryCard } from '@/components/LibraryCard';
+import { DragHandle } from '@/components/DragHandle';
+import { useSheetDrag } from '@/hooks/useSheetDrag';
 
 interface RoomSectionProps {
   rooms: Room[];
@@ -38,6 +40,8 @@ export const BottomSheet = ({ building, isOpen, onClose }: BottomSheetProps) => 
   const [scrolled, setScrolled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const { heightClass, style, isDragging, dragHandleProps } = useSheetDrag({ isOpen, onClose });
+
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -66,29 +70,22 @@ export const BottomSheet = ({ building, isOpen, onClose }: BottomSheetProps) => 
   return (
     <section
       className={cn(
-        'fixed bottom-0 left-0 z-20 w-full overflow-hidden rounded-t-3xl bg-white/80 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
-        isOpen ? 'h-[90vh] translate-y-0' : 'translate-y-full',
+        'fixed bottom-0 left-0 z-20 w-full rounded-t-3xl bg-white/80 shadow-2xl shadow-gray-600 backdrop-blur-sm',
+        isDragging ? 'transition-none' : 'transition-[transform,height] duration-300 ease-out',
+        isOpen ? 'translate-y-0' : 'translate-y-full',
+        heightClass,
       )}
+      style={isOpen ? style : undefined}
     >
-      {/* Drag handle
-      <div className="z-10 flex justify-center pb-1 pt-3">
-        <div className="h-1 w-10 rounded-full bg-gray-300" />
-      </div> */}
+      <DragHandle
+        className={cn('absolute right-1/2 translate-x-1/2', isOpen ? '-translate-y-6' : '-translate-y-0')}
+        {...dragHandleProps}
+      />
 
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute right-4 top-4 z-50 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200"
-        aria-label="Close"
-      >
-        <X className="h-4 w-4" />
-      </button>
-
-      {/* Scrollable content */}
       <div className="no-scrollbar h-full overflow-y-auto px-6 pb-8" ref={contentRef}>
         <div
           className={cn(
-            'sticky top-0 z-10 -mx-6 px-6 pb-2 pt-4 transition-all duration-200',
+            'sticky top-0 z-10 -mx-6 rounded-t-3xl px-6 pb-2 pt-4 transition-all duration-200',
             scrolled && 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
           )}
         >
