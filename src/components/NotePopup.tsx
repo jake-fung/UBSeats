@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Note } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 
@@ -10,7 +11,7 @@ interface NotePopupProps {
 export const NotePopup = ({ note, isVisible, onClose }: NotePopupProps) => {
   if (!note) return null;
 
-  return (
+  return createPortal(
     <div
       className={cn(
         'fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md transition-opacity duration-200',
@@ -42,6 +43,7 @@ export const NotePopup = ({ note, isVisible, onClose }: NotePopupProps) => {
 
         <p className="mt-6 text-sm text-white/60">Click anywhere to close</p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

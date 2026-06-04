@@ -35,10 +35,14 @@ export interface Room {
   building_uuid: string;
   library_id?: string | null;
   name: string;
-  capacity: number;
+  capacity: number | null;
   link: string;
   categoryIds?: string[];
   notes?: Note[];
+  // Populated only for café rooms (categoryIds includes 'cafe'); mirrors how a
+  // Library carries its own image/hours so cafés can render a dedicated card.
+  image?: string;
+  hours?: DayHours[];
 }
 
 export interface DayHours {

@@ -32,6 +32,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     { data: librariesData, error: librariesError },
     { data: libHoursData, error: libHoursError },
     { data: libImagesData, error: libImagesError },
+    { data: cafeHoursData, error: cafeHoursError },
+    { data: cafeImagesData, error: cafeImagesError },
   ] = await Promise.all([
     supabase.from('buildings').select('*'),
     supabase.from('building_images').select('*'),
@@ -43,6 +45,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     supabase.from('libraries').select('*'),
     supabase.from('library_hours').select('*'),
     supabase.from('library_images').select('*'),
+    supabase.from('cafe_hours').select('*'),
+    supabase.from('cafe_images').select('*'),
   ]);
 
   if (buildingError) throw buildingError;
@@ -55,6 +59,8 @@ export async function fetchBuildings(): Promise<Building[]> {
   if (librariesError) throw librariesError;
   if (libHoursError) throw libHoursError;
   if (libImagesError) throw libImagesError;
+  if (cafeHoursError) throw cafeHoursError;
+  if (cafeImagesError) throw cafeImagesError;
 
   const imageMap = new Map<string, string>();
   imagesData.forEach((img) => {
@@ -86,10 +92,29 @@ export async function fetchBuildings(): Promise<Building[]> {
     notesMap.set(r.room_uuid, list);
   });
 
+  // Café hours/images are keyed by the café's room uuid (a café is a single
+  // building_rooms row tagged 'cafe'), mirroring the library_hours/library_images maps below.
+  const cafeHoursMap = new Map<string, DayHours[]>();
+  cafeHoursData.forEach((h) => {
+    if (!h.room_uuid) return;
+    const list = cafeHoursMap.get(h.room_uuid) ?? [];
+    list.push({ dayOfWeek: h.day_of_week, opensAt: h.opens_at, closesAt: h.closes_at });
+    cafeHoursMap.set(h.room_uuid, list);
+  });
+
+  const cafeImagesMap = new Map<string, string>();
+  cafeImagesData.forEach((img) => {
+    if (img.room_uuid && img.image_url) {
+      cafeImagesMap.set(img.room_uuid, img.image_url);
+    }
+  });
+
   const roomsMap = new Map<string, Room[]>();
   const libRoomsMap = new Map<string, Room[]>();
   roomsData.forEach((r) => {
     if (!r.building_uuid) return;
+    const categoryIds = categoriesMap.get(r.uuid) ?? [];
+    const isCafe = categoryIds.includes('cafe');
     const room: Room = {
       uuid: r.uuid,
       building_uuid: r.building_uuid,
@@ -97,8 +122,10 @@ export async function fetchBuildings(): Promise<Building[]> {
       name: r.room_name,
       capacity: r.capacity,
       link: r.link,
-      categoryIds: categoriesMap.get(r.uuid) ?? [],
+      categoryIds,
       notes: notesMap.get(r.uuid) ?? [],
+      image: isCafe ? cafeImagesMap.get(r.uuid) : undefined,
+      hours: isCafe ? cafeHoursMap.get(r.uuid) : undefined,
     };
     if (r.library_id) {
       const list = libRoomsMap.get(r.library_id) ?? [];

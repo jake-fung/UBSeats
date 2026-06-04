@@ -1,11 +1,12 @@
 import { Building, Room } from '@/supabase/schema/types';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coffee, MapPin } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RoomCard } from '@/components/RoomCard';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/HoursPill';
 import { LibraryCard } from '@/components/LibraryCard';
+import { CafeCard } from '@/components/CafeCard';
 
 export interface BuildingDetailProps {
   building?: Building;
@@ -57,6 +58,16 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
   }, [onClose]);
   const status = useMemo(() => (building ? getBuildingStatus(building.hours) : null), [building]);
 
+  // Café rooms get their own section; everything else stays under "Spaces".
+  const cafeRooms = useMemo(
+    () => (building?.rooms ?? []).filter((r) => r.categoryIds?.includes('cafe')),
+    [building],
+  );
+  const otherRooms = useMemo(
+    () => (building?.rooms ?? []).filter((r) => !r.categoryIds?.includes('cafe')),
+    [building],
+  );
+
   return (
     <section
       className={cn(
@@ -99,8 +110,19 @@ export const BuildingDetail = ({ building, isOpen, onClose, onToggle }: Building
           </div>
         )}
         {building?.library && building.library.rooms.length > 0 && <LibraryCard library={building.library} />}
-        <div className="mt-4 flex flex-col gap-3">
-          <RoomSection rooms={building?.rooms ?? []} heading="Spaces" />
+        {cafeRooms.length > 0 && (
+          <div className="my-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Coffee className="h-5 w-5 flex-shrink-0 text-[#E67E22]" />
+              <h3 className="text-lg font-semibold text-gray-900">Cafés ({cafeRooms.length})</h3>
+            </div>
+            {cafeRooms.map((cafe) => (
+              <CafeCard key={cafe.uuid} cafe={cafe} />
+            ))}
+          </div>
+        )}
+        <div className="my-4 flex flex-col gap-3">
+          <RoomSection rooms={otherRooms} heading="Spaces" />
         </div>
       </div>
     </section>
