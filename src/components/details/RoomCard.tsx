@@ -1,11 +1,11 @@
 import { Room } from '@/supabase/schema/types';
 import { useMemo } from 'react';
 import { getBuildingStatus } from '@/utils/hoursUtils';
-import { HoursPill } from '@/components/HoursPill';
-import { NoteTags } from '@/components/NoteTags';
-import { CategoryIcon } from '@/components/CategoryIcon';
-import { CapacityRow } from '@/components/detail/CapacityRow';
-import { ViewSpaceButton } from '@/components/detail/ViewSpaceButton';
+import { HoursPill } from '@/components/details/HoursPill';
+import { NoteTags } from '@/components/details/NoteTags';
+import { CategoryIcon } from '@/components/details/CategoryIcon';
+import { CapacityRow } from '@/components/details/CapacityRow';
+import { ViewSpaceButton } from '@/components/details/ViewSpaceButton';
 
 interface RoomCardProps {
   room: Room;

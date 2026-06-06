@@ -1,6 +1,6 @@
 import { Note } from '@/supabase/schema/types';
 import { useState } from 'react';
-import { NotePopup } from '@/components/NotePopup';
+import { NotePopup } from '@/components/details/NotePopup';
 
 export interface NoteTagsProps {
   notes?: Note[];

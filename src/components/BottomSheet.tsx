@@ -3,7 +3,7 @@ import { Building } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { DragHandle } from '@/components/DragHandle';
 import { useSheetDrag } from '@/hooks/useSheetDrag';
-import { BuildingDetailContent } from '@/components/detail/BuildingDetailContent';
+import { BuildingDetailContent } from '@/components/details/BuildingDetailContent';
 
 export interface BottomSheetProps {
   building?: Building;

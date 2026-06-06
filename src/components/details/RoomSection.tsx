@@ -1,5 +1,5 @@
 import { Room } from '@/supabase/schema/types';
-import { RoomCard } from '@/components/RoomCard';
+import { RoomCard } from '@/components/details/RoomCard';
 
 interface RoomSectionProps {
   rooms: Room[];

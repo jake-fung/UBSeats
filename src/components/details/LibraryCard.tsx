@@ -1,10 +1,10 @@
 import { Library } from '@/supabase/schema/types';
 import { getBuildingStatus } from '@/utils/hoursUtils';
-import { HoursPill } from '@/components/HoursPill';
+import { HoursPill } from '@/components/details/HoursPill';
 import { BookOpen, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/utils/cnUtils';
-import { RoomCard } from './RoomCard';
+import { RoomCard } from '@/components/details/RoomCard';
 
 interface LibraryCardProps {
   library: Library;
