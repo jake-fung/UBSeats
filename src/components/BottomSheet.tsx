@@ -1,34 +1,9 @@
-import { Building, Room } from '@/supabase/schema/types';
-import { MapPin } from 'lucide-react';
+import { useRef } from 'react';
+import { Building } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { RoomCard } from '@/components/RoomCard';
-import { getBuildingStatus } from '@/utils/hoursUtils';
-import { HoursPill } from '@/components/HoursPill';
-import { LibraryCard } from '@/components/LibraryCard';
 import { DragHandle } from '@/components/DragHandle';
 import { useSheetDrag } from '@/hooks/useSheetDrag';
-
-interface RoomSectionProps {
-  rooms: Room[];
-  heading: string;
-}
-
-const RoomSection = ({ rooms, heading }: RoomSectionProps) => {
-  if (rooms.length === 0) return null;
-  return (
-    <>
-      <div className="flex items-center">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {heading} ({rooms.length})
-        </h3>
-      </div>
-      {rooms.map((room) => (
-        <RoomCard key={room.uuid} room={room} />
-      ))}
-    </>
-  );
-};
+import { BuildingDetailContent } from '@/components/detail/BuildingDetailContent';
 
 export interface BottomSheetProps {
   building?: Building;
@@ -37,35 +12,12 @@ export interface BottomSheetProps {
 }
 
 export const BottomSheet = ({ building, isOpen, onClose }: BottomSheetProps) => {
-  const [scrolled, setScrolled] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const { heightClass, style, isDragging, dragHandleProps } = useSheetDrag({ isOpen, onClose });
-
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-    const handleScroll = () => setScrolled(el.scrollTop > 10);
-    el.addEventListener('scroll', handleScroll);
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen && contentRef.current) {
-      contentRef.current.scrollTop = 0;
-      setScrolled(false);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  const status = useMemo(() => (building ? getBuildingStatus(building.hours) : null), [building]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { heightClass, style, isDragging, scrollLocked, dragHandleProps, bodyDragProps } = useSheetDrag({
+    isOpen,
+    onClose,
+    scrollRef,
+  });
 
   return (
     <section
@@ -82,38 +34,15 @@ export const BottomSheet = ({ building, isOpen, onClose }: BottomSheetProps) => 
         {...dragHandleProps}
       />
 
-      <div className="no-scrollbar h-full overflow-y-auto px-6 pb-8" ref={contentRef}>
-        <div
-          className={cn(
-            'sticky top-0 z-10 -mx-6 rounded-t-3xl px-6 pb-2 pt-4 transition-all duration-200',
-            scrolled && 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
-          )}
-        >
-          <div className="mb-2 flex flex-wrap gap-2">
-            <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
-              {building?.code}
-            </span>
-          </div>
-          <h2 className="mb-1 text-2xl font-bold text-gray-900">{building?.name}</h2>
-          <div className="mb-2 flex items-center text-sm text-gray-600">
-            <MapPin className="mr-1 h-4 w-4 flex-shrink-0" />
-            <span>{building?.primaryAddress}</span>
-          </div>
-          {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
-        </div>
-
-        {building?.image && (
-          <div className="relative mt-2 rounded-xl bg-gray-900">
-            <img src={building.image} alt={building.name} className="h-full w-full rounded-xl object-cover" />
-          </div>
-        )}
-
-        {building?.library && building.library.rooms.length > 0 && <LibraryCard library={building.library} />}
-
-        <div className="mt-4 flex flex-col gap-3">
-          <RoomSection rooms={building?.rooms ?? []} heading="Spaces" />
-        </div>
-      </div>
+      <BuildingDetailContent
+        building={building}
+        isOpen={isOpen}
+        onClose={onClose}
+        variant="sheet"
+        scrollRef={scrollRef}
+        scrollLocked={scrollLocked}
+        bodyDragProps={bodyDragProps}
+      />
     </section>
   );
 };

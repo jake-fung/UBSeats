@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchAmenities, fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
+import { fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
 import { Filter, Room } from '@/supabase/schema/types';
 import { filterBuildingsBySearch } from '@/hooks/useSearch';
 
@@ -8,13 +8,6 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
-  });
-};
-
-export const useAmenities = () => {
-  return useQuery({
-    queryKey: ['amenities'],
-    queryFn: fetchAmenities,
   });
 };
 

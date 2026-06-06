@@ -7,20 +7,8 @@ export interface Category {
   color: string;
 }
 
-export interface Amenity {
-  id: string;
-  name: string;
-  icon: string;
-}
-
 export interface Filter {
   category?: CategoryType;
-  rating?: number;
-  noise?: number;
-  wifi?: number;
-  seating?: number;
-  amenities?: string[];
-  open?: boolean;
 }
 
 export interface Note {
@@ -39,8 +27,6 @@ export interface Room {
   link: string;
   categoryIds?: string[];
   notes?: Note[];
-  // Populated only for café rooms (categoryIds includes 'cafe'); mirrors how a
-  // Library carries its own image/hours so cafés can render a dedicated card.
   image?: string;
   hours?: DayHours[];
 }
@@ -70,5 +56,5 @@ export interface Building {
   image: string | undefined;
   rooms: Room[];
   hours: DayHours[];
-  library: Library;
+  library: Library | null;
 }

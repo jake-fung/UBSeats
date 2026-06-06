@@ -1,11 +1,58 @@
 import { supabase } from '@/supabase/client';
-import { Amenity, Building, Category, DayHours, Library, Note, Room } from '@/supabase/schema/types';
+import { Building, Category, DayHours, Library, Note, Room } from '@/supabase/schema/types';
+import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
 
-export async function fetchCategories(): Promise<Category[]> {
-  const { data, error } = await supabase.from('categories').select('*');
-  if (error) throw error;
+type Tables = Database['public']['Tables'];
 
+/**
+ * Fetch every row of a table, throwing on error. Rows are typed from the generated
+ * schema. The `unknown` hop is the standard escape hatch for accessing a table via a
+ * generic parameter (supabase-js only narrows `select('*')` for string-literal names).
+ */
+async function selectAll<T extends keyof Tables>(table: T): Promise<Tables[T]['Row'][]> {
+  const { data, error } = await supabase.from(table).select('*');
+  if (error) throw error;
+  return (data ?? []) as unknown as Tables[T]['Row'][];
+}
+
+/**
+ * Group `*_hours` rows into a `Map<key, DayHours[]>`. Shared by building, library,
+ * and café hours, which differ only in the column that holds the owning id.
+ */
+function buildHoursMap<T extends { day_of_week: number; opens_at: string | null; closes_at: string | null }>(
+  rows: T[],
+  keyOf: (row: T) => string | null,
+): Map<string, DayHours[]> {
+  const map = new Map<string, DayHours[]>();
+  rows.forEach((row) => {
+    const key = keyOf(row);
+    if (!key) return;
+    const list = map.get(key) ?? [];
+    list.push({ dayOfWeek: row.day_of_week, opensAt: row.opens_at, closesAt: row.closes_at });
+    map.set(key, list);
+  });
+  return map;
+}
+
+/**
+ * Group `*_images` rows into a `Map<key, image_url>`. Shared by building, library,
+ * and café images (last write wins, mirroring the original per-entity logic).
+ */
+function buildImageMap<T extends { image_url: string | null }>(
+  rows: T[],
+  keyOf: (row: T) => string | null,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  rows.forEach((row) => {
+    const key = keyOf(row);
+    if (key && row.image_url) map.set(key, row.image_url);
+  });
+  return map;
+}
+
+export async function fetchCategories(): Promise<Category[]> {
+  const data = await selectAll('categories');
   return data.map((item) => ({
     id: validateCategoryType(item.id) || 'library',
     name: item.name,
@@ -14,60 +61,42 @@ export async function fetchCategories(): Promise<Category[]> {
   }));
 }
 
-export async function fetchAmenities(): Promise<Amenity[]> {
-  const { data, error } = await supabase.from('amenities').select('*');
-  if (error) throw error;
-  return data;
-}
-
 export async function fetchBuildings(): Promise<Building[]> {
   const [
-    { data: buildingData, error: buildingError },
-    { data: imagesData, error: imagesError },
-    { data: roomsData, error: roomsError },
-    { data: categoriesData, error: categoriesError },
-    { data: roomNotesData, error: roomNotesError },
-    { data: noteDefsData, error: noteDefsError },
-    { data: hoursData, error: hoursError },
-    { data: librariesData, error: librariesError },
-    { data: libHoursData, error: libHoursError },
-    { data: libImagesData, error: libImagesError },
-    { data: cafeHoursData, error: cafeHoursError },
-    { data: cafeImagesData, error: cafeImagesError },
+    buildingData,
+    imagesData,
+    roomsData,
+    categoriesData,
+    roomNotesData,
+    noteDefsData,
+    hoursData,
+    librariesData,
+    libHoursData,
+    libImagesData,
+    roomHoursData,
+    roomImagesData,
   ] = await Promise.all([
-    supabase.from('buildings').select('*'),
-    supabase.from('building_images').select('*'),
-    supabase.from('building_rooms').select('*'),
-    supabase.from('room_categories').select('*'),
-    supabase.from('room_notes').select('*'),
-    supabase.from('notes').select('*'),
-    supabase.from('building_hours').select('*'),
-    supabase.from('libraries').select('*'),
-    supabase.from('library_hours').select('*'),
-    supabase.from('library_images').select('*'),
-    supabase.from('cafe_hours').select('*'),
-    supabase.from('cafe_images').select('*'),
+    selectAll('buildings'),
+    selectAll('building_images'),
+    selectAll('building_rooms'),
+    selectAll('room_categories'),
+    selectAll('room_notes'),
+    selectAll('notes'),
+    selectAll('building_hours'),
+    selectAll('libraries'),
+    selectAll('library_hours'),
+    selectAll('library_images'),
+    selectAll('room_hours'),
+    selectAll('room_images'),
   ]);
 
-  if (buildingError) throw buildingError;
-  if (imagesError) throw imagesError;
-  if (roomsError) throw roomsError;
-  if (categoriesError) throw categoriesError;
-  if (roomNotesError) throw roomNotesError;
-  if (noteDefsError) throw noteDefsError;
-  if (hoursError) throw hoursError;
-  if (librariesError) throw librariesError;
-  if (libHoursError) throw libHoursError;
-  if (libImagesError) throw libImagesError;
-  if (cafeHoursError) throw cafeHoursError;
-  if (cafeImagesError) throw cafeImagesError;
+  const imageMap = buildImageMap(imagesData, (img) => img.building_uuid);
+  const libImagesMap = buildImageMap(libImagesData, (img) => img.library_id);
+  const roomImagesMap = buildImageMap(roomImagesData, (img) => img.room_uuid);
 
-  const imageMap = new Map<string, string>();
-  imagesData.forEach((img) => {
-    if (img.building_uuid && img.image_url) {
-      imageMap.set(img.building_uuid, img.image_url);
-    }
-  });
+  const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
+  const libHoursMap = buildHoursMap(libHoursData, (h) => h.library_id);
+  const roomHoursMap = buildHoursMap(roomHoursData, (h) => h.room_uuid);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -92,29 +121,11 @@ export async function fetchBuildings(): Promise<Building[]> {
     notesMap.set(r.room_uuid, list);
   });
 
-  // Café hours/images are keyed by the café's room uuid (a café is a single
-  // building_rooms row tagged 'cafe'), mirroring the library_hours/library_images maps below.
-  const cafeHoursMap = new Map<string, DayHours[]>();
-  cafeHoursData.forEach((h) => {
-    if (!h.room_uuid) return;
-    const list = cafeHoursMap.get(h.room_uuid) ?? [];
-    list.push({ dayOfWeek: h.day_of_week, opensAt: h.opens_at, closesAt: h.closes_at });
-    cafeHoursMap.set(h.room_uuid, list);
-  });
-
-  const cafeImagesMap = new Map<string, string>();
-  cafeImagesData.forEach((img) => {
-    if (img.room_uuid && img.image_url) {
-      cafeImagesMap.set(img.room_uuid, img.image_url);
-    }
-  });
-
   const roomsMap = new Map<string, Room[]>();
   const libRoomsMap = new Map<string, Room[]>();
   roomsData.forEach((r) => {
     if (!r.building_uuid) return;
     const categoryIds = categoriesMap.get(r.uuid) ?? [];
-    const isCafe = categoryIds.includes('cafe');
     const room: Room = {
       uuid: r.uuid,
       building_uuid: r.building_uuid,
@@ -124,8 +135,8 @@ export async function fetchBuildings(): Promise<Building[]> {
       link: r.link,
       categoryIds,
       notes: notesMap.get(r.uuid) ?? [],
-      image: isCafe ? cafeImagesMap.get(r.uuid) : undefined,
-      hours: isCafe ? cafeHoursMap.get(r.uuid) : undefined,
+      image: roomImagesMap.get(r.uuid),
+      hours: roomHoursMap.get(r.uuid),
     };
     if (r.library_id) {
       const list = libRoomsMap.get(r.library_id) ?? [];
@@ -137,29 +148,6 @@ export async function fetchBuildings(): Promise<Building[]> {
       list.push(room);
       list.sort((a, b) => a.name.localeCompare(b.name));
       roomsMap.set(r.building_uuid, list);
-    }
-  });
-
-  const hoursMap = new Map<string, DayHours[]>();
-  hoursData.forEach((h) => {
-    if (!h.building_uuid) return;
-    const list = hoursMap.get(h.building_uuid) ?? [];
-    list.push({ dayOfWeek: h.day_of_week, opensAt: h.opens_at, closesAt: h.closes_at });
-    hoursMap.set(h.building_uuid, list);
-  });
-
-  const libHoursMap = new Map<string, DayHours[]>();
-  libHoursData.forEach((h) => {
-    if (!h.library_id) return;
-    const list = libHoursMap.get(h.library_id) ?? [];
-    list.push({ dayOfWeek: h.day_of_week, opensAt: h.opens_at, closesAt: h.closes_at });
-    libHoursMap.set(h.library_id, list);
-  });
-
-  const libImagesMap = new Map<string, string>();
-  libImagesData.forEach((img) => {
-    if (img.library_id && img.image_url) {
-      libImagesMap.set(img.library_id, img.image_url);
     }
   });
 

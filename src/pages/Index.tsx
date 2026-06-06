@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import SpotMap from '@/components/SpotMap';
-import { BuildingDetail } from '@/components/BuildingDetail';
+import { SidePanel } from '@/components/SidePanel';
 import { BottomSheet } from '@/components/BottomSheet';
 
 import { useMapState } from '@/hooks/useMapState';
@@ -33,8 +33,6 @@ const Index = () => {
   } = useMapState();
 
   const isMobile = useIsMobile();
-
-  console.log(buildings);
 
   const building = selectedBuilding ?? undefined;
   const desktopShift = !isMobile && isMenuOpened;
@@ -97,7 +95,7 @@ const Index = () => {
           {isMobile ? (
             <BottomSheet building={building} isOpen={isMenuOpened} onClose={() => setIsMenuOpened(false)} />
           ) : (
-            <BuildingDetail
+            <SidePanel
               building={building}
               isOpen={isMenuOpened}
               onClose={() => setIsMenuOpened(false)}
