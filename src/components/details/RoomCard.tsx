@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { NoteTags } from '@/components/details/NoteTags';
-import { CategoryIcon } from '@/components/details/CategoryIcon';
+import { CategoryTags } from '@/components/details/CategoryTags';
 import { CapacityRow } from '@/components/details/CapacityRow';
 import { ViewSpaceButton } from '@/components/details/ViewSpaceButton';
 
@@ -15,12 +15,12 @@ export const RoomCard = ({ room }: RoomCardProps) => {
   const status = useMemo(() => getBuildingStatus(room.hours ?? []), [room.hours]);
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl">
+    <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg">
       {room.image && <img className="h-80 w-full object-cover" src={room.image} alt={room.name} />}
       <div className="flex justify-between bg-white/70 px-5 py-4">
         <div>
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <CategoryIcon categoryIds={room.categoryIds} />
+          <CategoryTags categoryIds={room.categoryIds} />
+          <div className="my-1 flex flex-wrap items-center gap-2">
             <h4 className="text-base font-semibold text-gray-900">{room.name}</h4>
             <NoteTags notes={room.notes} />
           </div>

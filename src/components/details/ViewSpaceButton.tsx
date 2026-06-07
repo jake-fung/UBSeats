@@ -13,7 +13,7 @@ export const ViewSpaceButton = ({ link }: ViewSpaceButtonProps) => {
         e.stopPropagation();
         window.open(link, '_blank');
       }}
-      className="my-2 ml-4 flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:scale-105 hover:shadow-md active:bg-blue-800"
+      className="my-auto ml-4 flex min-w-[140px] items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:scale-105 hover:shadow-md active:bg-blue-800"
     >
       View Space
       <ExternalLink className="ml-2 h-4 w-4" />
