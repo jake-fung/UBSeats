@@ -1,6 +1,8 @@
 import { Note } from '@/supabase/schema/types';
 import { useState } from 'react';
 import { NotePopup } from '@/components/details/NotePopup';
+import { InfoIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface NoteTagsProps {
   notes?: Note[];
@@ -25,17 +27,23 @@ export const NoteTags = ({ notes }: NoteTagsProps) => {
   return (
     <>
       {notes.map((note) => (
-        <span
-          key={note.id}
-          className="inline-flex cursor-pointer items-center justify-between gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white transition-transform hover:-translate-y-0.5 hover:scale-105 hover:shadow-md active:scale-100"
-          style={{ backgroundColor: note.color ?? '#6B7280' }}
-          onClick={(e) => {
-            e.stopPropagation();
-            openNote(note);
-          }}
-        >
-          {note.name}
-        </span>
+        <Tooltip key={note.id} delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label={note.name}
+              className="inline-flex cursor-pointer items-center justify-center rounded-full p-0.5 transition-transform"
+              style={{ color: note.color ?? '#6B7280' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openNote(note);
+              }}
+            >
+              <InfoIcon className="h-4 w-4 flex-shrink-0" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{note.name}</TooltipContent>
+        </Tooltip>
       ))}
 
       <NotePopup note={activeNote} isVisible={isNoteVisible} onClose={closeNote} />

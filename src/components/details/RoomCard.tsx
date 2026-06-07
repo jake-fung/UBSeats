@@ -20,7 +20,7 @@ export const RoomCard = ({ room }: RoomCardProps) => {
       <div className="flex justify-between bg-white/70 px-5 py-4">
         <div>
           <CategoryTags categoryIds={room.categoryIds} />
-          <div className="my-1 flex flex-wrap items-center gap-2">
+          <div className="my-1 flex flex-wrap items-center gap-1">
             <h4 className="text-base font-semibold text-gray-900">{room.name}</h4>
             <NoteTags notes={room.notes} />
           </div>
