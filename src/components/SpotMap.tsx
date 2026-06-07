@@ -18,7 +18,6 @@ interface SpotMapProps {
   onBuildingSelect: (building: Building) => void;
   selectedBuilding?: Building;
   isMenuOpened: boolean;
-  showFilterBar: boolean;
   mapLoaded: boolean;
   setMapLoaded: (loaded: boolean) => void;
   isMobile: boolean;
@@ -29,7 +28,6 @@ const SpotMap: React.FC<SpotMapProps> = ({
   onBuildingSelect,
   selectedBuilding,
   isMenuOpened,
-  showFilterBar,
   mapLoaded,
   setMapLoaded,
   isMobile,
@@ -76,11 +74,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
       const bounds = new mapboxgl.LngLatBounds();
       validBuildings.forEach((b) => bounds.extend([b.lng, b.lat]));
       map.current.fitBounds(bounds, {
-        padding: isMobile
-          ? MOBILE_FIT_BOUNDS_PADDING
-          : showFilterBar
-            ? { ...FIT_BOUNDS_PADDING, top: 300 }
-            : FIT_BOUNDS_PADDING,
+        padding: isMobile ? MOBILE_FIT_BOUNDS_PADDING : FIT_BOUNDS_PADDING,
         maxZoom: FIT_BOUNDS_MAX_ZOOM,
       });
     }
@@ -88,7 +82,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
     return () => {
       markers.current = clearMarkers(markers.current);
     };
-  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, showFilterBar, setMapLoaded, isMobile]);
+  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, setMapLoaded, isMobile]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current || !selectedBuilding) return;

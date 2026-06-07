@@ -1,4 +1,4 @@
-import { FilterIcon, MapPin, Search, X } from 'lucide-react';
+import { MapPin, Search, X } from 'lucide-react';
 
 import { cn } from '@/utils/cnUtils';
 import SearchBar from './SearchBar';
@@ -9,7 +9,6 @@ interface HeaderProps {
   onSearchSubmit?: () => void;
   onSearchIconClicked?: () => void;
   onClearSearch?: () => void;
-  onFilterIconClicked?: () => void;
   isMobile?: boolean;
   isMenuOpened?: boolean;
   desktopShift?: boolean;
@@ -23,7 +22,6 @@ const Header = ({
   onSearchSubmit,
   onSearchIconClicked,
   onClearSearch,
-  onFilterIconClicked,
   isMobile,
   isMenuOpened,
   desktopShift = false,
@@ -45,7 +43,7 @@ const Header = ({
     <>
       <header
         className={cn(
-          'fixed left-[5vw] top-3 z-10 h-[66px] w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:left-[10vw] md:top-5 md:w-[80vw] md:px-8 md:py-3',
+          'fixed left-[5vw] top-5 z-10 h-[66px] w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:left-[10vw] md:w-[80vw] md:px-8 md:py-3',
           customWrapperCss,
         )}
       >
@@ -86,7 +84,7 @@ const Header = ({
                 </button>
               )}
 
-              {!isMobile && (
+              {/* {!isMobile && (
                 <button
                   onClick={onFilterIconClicked}
                   className="h-6 w-6 text-gray-700 transition-colors hover:text-primary"
@@ -94,7 +92,7 @@ const Header = ({
                 >
                   <FilterIcon />
                 </button>
-              )}
+              )} */}
             </nav>
           )}
         </div>

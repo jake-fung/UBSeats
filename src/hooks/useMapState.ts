@@ -8,7 +8,6 @@ export const useMapState = () => {
   const [activeFilters, setActiveFilters] = useState<Filter>({});
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
-  const [showFilterBar, setShowFilterBar] = useState(false);
   const [loaderActive, setLoaderActive] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
 
@@ -19,8 +18,7 @@ export const useMapState = () => {
       setSelectedBuilding(null);
       setIsMenuOpened(false);
     },
-    onToggle: (isOpen) => {
-      setShowFilterBar(isOpen);
+    onToggle: () => {
       setSelectedBuilding(null);
       setIsMenuOpened(false);
     },
@@ -76,13 +74,6 @@ export const useMapState = () => {
   const handleBuildingSelect = (building: Building) => {
     setSelectedBuilding(building);
     setIsMenuOpened(true);
-    setShowFilterBar(false);
-  };
-
-  const handleFilterIconClicked = () => {
-    setShowFilterBar((prev) => !prev);
-    setSelectedBuilding(null);
-    setIsMenuOpened(false);
   };
 
   const handleTransitionEnd = () => {
@@ -96,7 +87,6 @@ export const useMapState = () => {
     selectedBuilding,
     isMenuOpened,
     setIsMenuOpened,
-    showFilterBar,
     showSearch: search.showSearch,
     searchQuery: search.searchQuery,
     loaderActive,
@@ -108,7 +98,6 @@ export const useMapState = () => {
     handleClearSearch: search.handleClearSearch,
     handleSearchSubmit: search.handleSearchSubmit,
     handleSearchIconClicked: search.handleSearchIconClicked,
-    handleFilterIconClicked,
     handleTransitionEnd,
     mapLoaded,
     setMapLoaded,

@@ -14,7 +14,6 @@ const Index = () => {
     selectedBuilding,
     isMenuOpened,
     setIsMenuOpened,
-    showFilterBar,
     showSearch,
     searchQuery,
     loaderActive,
@@ -26,7 +25,6 @@ const Index = () => {
     handleClearSearch,
     handleSearchSubmit,
     handleSearchIconClicked,
-    handleFilterIconClicked,
     handleTransitionEnd,
     mapLoaded,
     setMapLoaded,
@@ -61,7 +59,6 @@ const Index = () => {
               onSearchSubmit={handleSearchSubmit}
               onSearchIconClicked={handleSearchIconClicked}
               onClearSearch={handleClearSearch}
-              onFilterIconClicked={handleFilterIconClicked}
               isMobile={isMobile}
               isMenuOpened={isMenuOpened}
               desktopShift={desktopShift}
@@ -71,25 +68,20 @@ const Index = () => {
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              mobileCustomWrapperCss={mobileMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
-              desktopCustomWrapperCss={desktopShift ? 'left-[5vw] w-[0px]' : ''}
-              isOpen={showFilterBar}
+              customWrapperCss={mobileMenuOpened || isMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
             />
           </header>
 
           <main>
-            <section id="map">
-              <SpotMap
-                buildings={buildings}
-                onBuildingSelect={handleBuildingSelect}
-                selectedBuilding={building}
-                isMenuOpened={isMenuOpened}
-                showFilterBar={showFilterBar}
-                mapLoaded={mapLoaded}
-                setMapLoaded={setMapLoaded}
-                isMobile={isMobile}
-              />
-            </section>
+            <SpotMap
+              buildings={buildings}
+              onBuildingSelect={handleBuildingSelect}
+              selectedBuilding={building}
+              isMenuOpened={isMenuOpened}
+              mapLoaded={mapLoaded}
+              setMapLoaded={setMapLoaded}
+              isMobile={isMobile}
+            />
           </main>
 
           {isMobile ? (
