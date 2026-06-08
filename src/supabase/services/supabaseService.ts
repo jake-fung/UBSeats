@@ -167,11 +167,11 @@ export async function fetchBuildings(): Promise<Building[]> {
   return buildingData
     .map((b) => ({
       uuid: b.uuid,
-      name: b.NAME,
-      primaryAddress: b.PRIMARY_ADDRESS,
-      code: b.BLDG_CODE,
-      lat: b.LAT,
-      lng: b.LONG,
+      name: b.name,
+      primaryAddress: b.primary_address,
+      code: b.bldg_code,
+      lat: b.lat,
+      lng: b.lng,
       image: imageMap.get(b.uuid),
       rooms: roomsMap.get(b.uuid) ?? [],
       hours: hoursMap.get(b.uuid) ?? [],

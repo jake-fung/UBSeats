@@ -128,30 +128,30 @@ export type Database = {
       };
       buildings: {
         Row: {
-          BLDG_CODE: string | null;
-          BLDG_USAGE: string | null;
-          LAT: number | null;
-          LONG: number | null;
-          NAME: string | null;
-          PRIMARY_ADDRESS: string | null;
+          bldg_code: string;
+          bldg_usage: string | null;
+          lat: number;
+          lng: number;
+          name: string;
+          primary_address: string | null;
           uuid: string;
         };
         Insert: {
-          BLDG_CODE?: string | null;
-          BLDG_USAGE?: string | null;
-          LAT?: number | null;
-          LONG?: number | null;
-          NAME?: string | null;
-          PRIMARY_ADDRESS?: string | null;
+          bldg_code: string;
+          bldg_usage?: string | null;
+          lat: number;
+          lng: number;
+          name: string;
+          primary_address?: string | null;
           uuid?: string;
         };
         Update: {
-          BLDG_CODE?: string | null;
-          BLDG_USAGE?: string | null;
-          LAT?: number | null;
-          LONG?: number | null;
-          NAME?: string | null;
-          PRIMARY_ADDRESS?: string | null;
+          bldg_code?: string;
+          bldg_usage?: string | null;
+          lat?: number;
+          lng?: number;
+          name?: string;
+          primary_address?: string | null;
           uuid?: string;
         };
         Relationships: [];
@@ -337,45 +337,6 @@ export type Database = {
           description?: string | null;
           id?: string;
           name?: string;
-        };
-        Relationships: [];
-      };
-      POI_test: {
-        Row: {
-          ADD_ID: string | null;
-          CONTACT: string | null;
-          HOURS: string | null;
-          LAT: number | null;
-          LONG: number | null;
-          PHOTOURL: string | null;
-          PLACENAME: string | null;
-          POI_ID: string;
-          SERVICE_TYPE: string | null;
-          URL: string | null;
-        };
-        Insert: {
-          ADD_ID?: string | null;
-          CONTACT?: string | null;
-          HOURS?: string | null;
-          LAT?: number | null;
-          LONG?: number | null;
-          PHOTOURL?: string | null;
-          PLACENAME?: string | null;
-          POI_ID: string;
-          SERVICE_TYPE?: string | null;
-          URL?: string | null;
-        };
-        Update: {
-          ADD_ID?: string | null;
-          CONTACT?: string | null;
-          HOURS?: string | null;
-          LAT?: number | null;
-          LONG?: number | null;
-          PHOTOURL?: string | null;
-          PLACENAME?: string | null;
-          POI_ID?: string;
-          SERVICE_TYPE?: string | null;
-          URL?: string | null;
         };
         Relationships: [];
       };
