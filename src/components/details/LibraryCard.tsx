@@ -20,9 +20,7 @@ export const LibraryCard = ({ library }: LibraryCardProps) => {
       className="mt-4 cursor-pointer overflow-hidden rounded-2xl bg-white/70 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
     >
       <div>
-        {library.image && (
-          <img src={library.image} alt={library.name} className="aspect-square w-full object-cover" loading="lazy" />
-        )}
+        {library.image && <img src={library.image} alt={library.name} className="w-full object-cover" loading="lazy" />}
       </div>
       <div className="bg-white/70 px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
