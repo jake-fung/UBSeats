@@ -63,7 +63,9 @@ const Index = () => {
               isMenuOpened={isMenuOpened}
               desktopShift={desktopShift}
               showSearch={showSearch}
-              customWrapperCss={desktopShift ? 'left-[5vw] w-[201px]' : mobileMenuOpened ? 'w-[180px]' : ''}
+              customWrapperCss={
+                desktopShift ? 'left-[5vw] w-[201px]' : mobileMenuOpened ? 'w-[180px]' : 'md:left-[10vw] md:w-[80vw]'
+              }
             />
             <FilterBar
               onFilterChange={handleFilterChange}

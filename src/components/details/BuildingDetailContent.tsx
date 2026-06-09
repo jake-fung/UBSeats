@@ -26,7 +26,7 @@ const VARIANTS: Record<Variant, { scroll: string; header: string; scrolled: stri
   },
   sheet: {
     scroll: 'px-6 pb-8',
-    header: 'pt-4',
+    header: 'rounded-t-3xl pt-4',
     scrolled: 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
   },
 };
