@@ -26,7 +26,7 @@ const VARIANTS: Record<Variant, { scroll: string; header: string; scrolled: stri
   },
   sheet: {
     scroll: 'px-6 pb-8',
-    header: 'rounded-t-3xl pt-4',
+    header: 'pt-4',
     scrolled: 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
   },
 };
@@ -95,7 +95,12 @@ export const BuildingDetailContent = ({
 
       {building?.image && (
         <div className="relative mt-2 rounded-xl bg-gray-900">
-          <img src={building.image} alt={building.name} className="h-full w-full rounded-xl object-cover" />
+          <img
+            src={building.image}
+            alt={building.name}
+            className="h-full w-full rounded-xl object-cover"
+            loading="lazy"
+          />
         </div>
       )}
 

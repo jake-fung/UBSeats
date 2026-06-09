@@ -107,7 +107,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
   }, [isMenuOpened, mapLoaded, selectedBuilding, isMobile]);
 
   return (
-    <div className="z-0 h-screen w-screen overflow-hidden">
+    <div className="z-0 h-[calc(100vh+36px)] w-screen">
       <div ref={mapContainer} className="h-full w-full" />
     </div>
   );

@@ -30,7 +30,7 @@ export const NotePopup = ({ note, isVisible, onClose }: NotePopupProps) => {
         }}
       >
         <div
-          className="mb-6 rounded-full px-5 py-2 text-lg font-semibold text-white shadow-lg"
+          className="mb-6 rounded-full px-5 py-2 text-center text-xl font-semibold text-white shadow-lg"
           style={{ backgroundColor: note.color ?? '#6B7280' }}
         >
           {note.name}

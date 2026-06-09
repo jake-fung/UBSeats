@@ -9,9 +9,9 @@ const ICON_MAP: Record<Exclude<CategoryType, 'library'>, LucideIcon> = {
 };
 
 const LABEL_MAP: Record<Exclude<CategoryType, 'library'>, string> = {
-  cafe: 'Cafe',
-  quiet: 'Silent Study Space',
-  bookable: 'Bookable Study Space',
+  cafe: 'Café',
+  quiet: 'Silent Study',
+  bookable: 'Bookable',
 };
 
 interface CategoryIconProps {

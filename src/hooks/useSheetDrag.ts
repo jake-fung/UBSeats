@@ -10,7 +10,7 @@ import type { DragHandleProps } from '@/components/DragHandle';
 
 /** Open positions the sheet can rest at, as fractions of the viewport height. */
 const HALF_VH = 0.5; // mirrors the `h-[50vh]` class returned below
-const FULL_VH = 0.85; // mirrors the `h-[85vh]` class returned below
+const FULL_VH = 1; // mirrors the `h-[95vh]` class returned below
 
 /** Drag distances (as a fraction of the viewport) needed to cross between detents. */
 const SNAP = {
@@ -124,7 +124,8 @@ export const useSheetDrag = ({ isOpen, onClose, scrollRef }: UseSheetDragOptions
   const onDragEnd = (offset: number) => {
     const vh = window.innerHeight;
     if (detent === 'half') {
-      if (offset < -vh * SNAP.expand) setDetent('full'); // pulled up → expand
+      if (offset < -vh * SNAP.expand)
+        setDetent('full'); // pulled up → expand
       else if (offset > vh * SNAP.dismiss) onClose(); // pulled down far → dismiss
     } else if (offset > vh * SNAP.collapse) {
       setDetent('half'); // pulled down from full → collapse one notch
@@ -188,7 +189,7 @@ export const useSheetDrag = ({ isOpen, onClose, scrollRef }: UseSheetDragOptions
   };
 
   return {
-    heightClass: isOpen && detent === 'full' ? 'h-[85vh]' : 'h-[50vh]',
+    heightClass: isOpen && detent === 'full' ? 'h-[100vh] rounded-none' : 'h-[50vh]',
     style: isDragging ? computeDragStyle(detent, dragOffset, window.innerHeight) : undefined,
     isDragging,
     scrollLocked: detent !== 'full',

@@ -63,7 +63,7 @@ const Index = () => {
               isMenuOpened={isMenuOpened}
               desktopShift={desktopShift}
               showSearch={showSearch}
-              customWrapperCss={desktopShift ? 'md:left-[5vw] md:w-[201px]' : ''}
+              customWrapperCss={desktopShift ? 'left-[5vw] w-[201px]' : mobileMenuOpened ? 'w-[180px]' : ''}
             />
             <FilterBar
               onFilterChange={handleFilterChange}
@@ -72,7 +72,7 @@ const Index = () => {
             />
           </header>
 
-          <main>
+          <main className="h-screen overflow-hidden">
             <SpotMap
               buildings={buildings}
               onBuildingSelect={handleBuildingSelect}

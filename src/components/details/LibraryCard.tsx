@@ -19,7 +19,11 @@ export const LibraryCard = ({ library }: LibraryCardProps) => {
       onClick={() => setExpanded(!expanded)}
       className="mt-4 cursor-pointer overflow-hidden rounded-2xl bg-white/70 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
     >
-      <div>{library.image && <img className="object-cover" src={library.image} alt={library.name} />}</div>
+      <div>
+        {library.image && (
+          <img src={library.image} alt={library.name} className="aspect-square w-full object-cover" loading="lazy" />
+        )}
+      </div>
       <div className="bg-white/70 px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -35,7 +39,7 @@ export const LibraryCard = ({ library }: LibraryCardProps) => {
         {status && <HoursPill status={status} hours={library.hours} />}
         <div
           className={cn(
-            'flex flex-col gap-2 overflow-hidden transition-all duration-300 ease-in-out',
+            'flex flex-col gap-2 transition-all duration-300 ease-in-out',
             expanded ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0',
           )}
         >

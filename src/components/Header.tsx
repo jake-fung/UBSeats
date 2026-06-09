@@ -29,6 +29,8 @@ const Header = ({
   customWrapperCss,
 }: HeaderProps) => {
   const shouldShowSearch = showSearch && !isMenuOpened;
+  const mobileMenuOpened = !!(isMobile && isMenuOpened);
+  const collapseNav = desktopShift || mobileMenuOpened;
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,7 +45,7 @@ const Header = ({
     <>
       <header
         className={cn(
-          'fixed left-[5vw] top-5 z-10 h-[66px] w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:left-[10vw] md:w-[80vw] md:px-8 md:py-3',
+          'fixed left-[5vw] top-5 z-10 h-[66px] w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:px-8 md:py-3',
           customWrapperCss,
         )}
       >
@@ -53,7 +55,7 @@ const Header = ({
             <div className="text-xl font-semibold tracking-tight text-gray-900">UBSeats</div>
           </div>
 
-          {!desktopShift && (
+          {!collapseNav && (
             <nav className="flex items-center md:space-x-8">
               {!isMobile && (
                 <form className="relative" onSubmit={handleSearchSubmit}>
@@ -83,16 +85,6 @@ const Header = ({
                   <Search />
                 </button>
               )}
-
-              {/* {!isMobile && (
-                <button
-                  onClick={onFilterIconClicked}
-                  className="h-6 w-6 text-gray-700 transition-colors hover:text-primary"
-                  aria-label="Toggle filter bar"
-                >
-                  <FilterIcon />
-                </button>
-              )} */}
             </nav>
           )}
         </div>
@@ -101,6 +93,7 @@ const Header = ({
       {isMobile && (
         <SearchBar
           searchQuery={searchQuery}
+          collapseNav={collapseNav}
           showSearch={shouldShowSearch}
           onInputChange={handleInputChange}
           onSubmit={handleSearchSubmit}
