@@ -156,38 +156,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      room_hours: {
-        Row: {
-          closes_at: string | null;
-          day_of_week: number;
-          id: string;
-          opens_at: string | null;
-          room_uuid: string;
-        };
-        Insert: {
-          closes_at?: string | null;
-          day_of_week: number;
-          id?: string;
-          opens_at?: string | null;
-          room_uuid: string;
-        };
-        Update: {
-          closes_at?: string | null;
-          day_of_week?: number;
-          id?: string;
-          opens_at?: string | null;
-          room_uuid?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'cafe_hours_room_uuid_fkey';
-            columns: ['room_uuid'];
-            isOneToOne: false;
-            referencedRelation: 'building_rooms';
-            referencedColumns: ['uuid'];
-          },
-        ];
-      };
       room_images: {
         Row: {
           id: string;

@@ -1,7 +1,4 @@
 import { Room } from '@/supabase/schema/types';
-import { useMemo } from 'react';
-import { getBuildingStatus } from '@/utils/hoursUtils';
-import { HoursPill } from '@/components/details/HoursPill';
 import { NoteTags } from '@/components/details/NoteTags';
 import { CategoryTags } from '@/components/details/CategoryTags';
 import { CapacityRow } from '@/components/details/CapacityRow';
@@ -12,8 +9,6 @@ interface RoomCardProps {
 }
 
 export const RoomCard = ({ room }: RoomCardProps) => {
-  const status = useMemo(() => getBuildingStatus(room.hours ?? []), [room.hours]);
-
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl bg-white/70 shadow-lg sm:flex-row">
       {room.image && (
@@ -25,18 +20,13 @@ export const RoomCard = ({ room }: RoomCardProps) => {
         />
       )}
       <div className="flex flex-1 items-center justify-between px-5 py-4">
-        <div>
+        <div className="flex flex-col">
           <div className="flex items-center gap-1">
             <CategoryTags categoryIds={room.categoryIds} />
             <NoteTags notes={room.notes} />
           </div>
-          <div className="my-1 flex flex-wrap items-center">
-            <h4 className="text-base font-semibold text-gray-900">{room.name}</h4>
-          </div>
-          <div className="flex items-center gap-2">
-            {status && room.hours && <HoursPill status={status} hours={room.hours} />}
-            <CapacityRow capacity={room.capacity} />
-          </div>
+          <h4 className="my-1 text-base font-semibold text-gray-900">{room.name}</h4>
+          <CapacityRow capacity={room.capacity} />
         </div>
         <ViewSpaceButton link={room.link} />
       </div>

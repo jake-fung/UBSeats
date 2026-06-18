@@ -73,7 +73,6 @@ export async function fetchBuildings(): Promise<Building[]> {
     librariesData,
     libHoursData,
     libImagesData,
-    roomHoursData,
     roomImagesData,
   ] = await Promise.all([
     selectAll('buildings'),
@@ -86,7 +85,6 @@ export async function fetchBuildings(): Promise<Building[]> {
     selectAll('libraries'),
     selectAll('library_hours'),
     selectAll('library_images'),
-    selectAll('room_hours'),
     selectAll('room_images'),
   ]);
 
@@ -96,7 +94,6 @@ export async function fetchBuildings(): Promise<Building[]> {
 
   const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
   const libHoursMap = buildHoursMap(libHoursData, (h) => h.library_id);
-  const roomHoursMap = buildHoursMap(roomHoursData, (h) => h.room_uuid);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -136,7 +133,6 @@ export async function fetchBuildings(): Promise<Building[]> {
       categoryIds,
       notes: notesMap.get(r.uuid) ?? [],
       image: roomImagesMap.get(r.uuid),
-      hours: roomHoursMap.get(r.uuid),
     };
     if (r.library_id) {
       const list = libRoomsMap.get(r.library_id) ?? [];
