@@ -11,7 +11,7 @@ function parseTime(time: string): number {
   return h * 60 + m;
 }
 
-function isSpotNowOpen(opensMinutes: number, closesMinutes: number, currentMinutes: number): boolean {
+export function isSpotNowOpen(opensMinutes: number, closesMinutes: number, currentMinutes: number): boolean {
   if (opensMinutes < closesMinutes) {
     return currentMinutes >= opensMinutes && currentMinutes < closesMinutes;
   } else {
@@ -54,4 +54,50 @@ export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
     closesAt: isOpen ? formatTime(todayHours.closesAt) : null,
     opensAt: isOpen ? null : formatTime(todayHours.opensAt),
   };
+}
+
+export type BlockStatus = 'available' | 'unavailable' | 'closed';
+
+export interface TimeSlot {
+  start: string; // ISO 8601
+  end: string; // ISO 8601
+  available: boolean;
+}
+
+export interface DayBlock {
+  start: Date;
+  end: Date;
+  status: BlockStatus;
+}
+
+const BLOCK_MINUTES = 15;
+const BLOCKS_PER_DAY = (24 * 60) / BLOCK_MINUTES;
+
+export function computeDayBlocks(hours: DayHours[], slots: TimeSlot[] | undefined, now: Date): DayBlock[] {
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayHours = hours.find((h) => h.dayOfWeek === now.getDay());
+  const opensMinutes = todayHours?.opensAt ? parseTime(todayHours.opensAt) : null;
+  const closesMinutes = todayHours?.closesAt ? parseTime(todayHours.closesAt) : null;
+
+  return Array.from({ length: BLOCKS_PER_DAY }, (_, i) => {
+    const blockMinutes = i * BLOCK_MINUTES;
+    const start = new Date(dayStart.getTime() + blockMinutes * 60_000);
+    const end = new Date(start.getTime() + BLOCK_MINUTES * 60_000);
+
+    const isOpen =
+      opensMinutes !== null && closesMinutes !== null && isSpotNowOpen(opensMinutes, closesMinutes, blockMinutes);
+
+    if (!isOpen) {
+      return { start, end, status: 'closed' as const };
+    }
+
+    const isBooked = (slots ?? []).some(
+      (slot) =>
+        slot.available === false &&
+        start.getTime() < new Date(slot.end).getTime() &&
+        end.getTime() > new Date(slot.start).getTime(),
+    );
+
+    return { start, end, status: isBooked ? ('unavailable' as const) : ('available' as const) };
+  });
 }
