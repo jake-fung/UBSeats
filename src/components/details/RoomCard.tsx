@@ -52,7 +52,7 @@ export const RoomCard = ({ room, hours }: RoomCardProps) => {
             expanded ? 'mt-3 max-h-[9999px] opacity-100' : 'max-h-0 opacity-0',
           )}
         >
-          <RoomTimetable hours={hours} />
+          <RoomTimetable hours={hours} expanded={expanded} />
         </div>
       </div>
     </div>

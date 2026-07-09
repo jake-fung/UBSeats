@@ -6,6 +6,7 @@ import { cn } from '@/utils/cnUtils';
 export interface RoomTimetableProps {
   hours: DayHours[];
   slots?: TimeSlot[];
+  expanded: boolean;
 }
 
 const STATUS_CLASSES: Record<BlockStatus, string> = {
@@ -26,18 +27,22 @@ function blockTime(date: Date): string {
   return formatTime(`${hh}:${mm}`);
 }
 
-export const RoomTimetable = ({ hours, slots }: RoomTimetableProps) => {
+export const RoomTimetable = ({ hours, slots, expanded }: RoomTimetableProps) => {
   const now = useMemo(() => new Date(), []);
   const blocks = useMemo(() => computeDayBlocks(hours, slots, now), [hours, slots, now]);
   const currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
   const currentBlockRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!expanded) return;
     currentBlockRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' });
-  }, []);
+  }, [expanded]);
 
   return (
-    <div className="no-scrollbar flex gap-px overflow-x-auto rounded-md bg-gray-100 p-1">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="no-scrollbar flex gap-px overflow-x-auto rounded-md bg-gray-100 p-1"
+    >
       {blocks.map((block, i) => (
         <div
           key={block.start.toISOString()}
