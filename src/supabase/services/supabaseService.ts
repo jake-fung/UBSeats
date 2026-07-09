@@ -1,5 +1,5 @@
 import { supabase } from '@/supabase/client';
-import { Building, Category, DayHours, Library, Note, Room } from '@/supabase/schema/types';
+import { Building, Category, DayHours, Library, Note, Room, RoomAvailability } from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
 
@@ -174,4 +174,22 @@ export async function fetchBuildings(): Promise<Building[]> {
       library: librariesMap.get(b.uuid) ?? null,
     }))
     .filter((b) => (b.rooms && b.rooms.length > 0) || (b.library && b.library.rooms.length > 0));
+}
+
+const STALE_AFTER_MS = 30 * 60 * 1000;
+
+export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailability>> {
+  const rows = await selectAll('room_availability');
+  const now = Date.now();
+  const map = new Map<string, RoomAvailability>();
+  rows.forEach((row) => {
+    if (now - new Date(row.checked_at).getTime() > STALE_AFTER_MS) return;
+    map.set(row.room_uuid, {
+      isAvailableNow: row.is_available_now,
+      availableUntil: row.available_until,
+      nextAvailableAt: row.next_available_at,
+      checkedAt: row.checked_at,
+    });
+  });
+  return map;
 }
