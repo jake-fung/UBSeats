@@ -3,12 +3,16 @@ import { NoteTags } from '@/components/details/NoteTags';
 import { CategoryTags } from '@/components/details/CategoryTags';
 import { CapacityRow } from '@/components/details/CapacityRow';
 import { ViewSpaceButton } from '@/components/details/ViewSpaceButton';
+import { AvailabilityBadge } from '@/components/details/AvailabilityBadge';
+import { useRoomAvailability } from '@/hooks/useRoomAvailability';
 
 interface RoomCardProps {
   room: Room;
 }
 
 export const RoomCard = ({ room }: RoomCardProps) => {
+  const availability = useRoomAvailability(room.uuid);
+
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl bg-white/70 shadow-lg sm:flex-row">
       {room.image && (
@@ -25,7 +29,10 @@ export const RoomCard = ({ room }: RoomCardProps) => {
             <CategoryTags categoryIds={room.categoryIds} />
             <NoteTags notes={room.notes} />
           </div>
-          <h4 className="my-1 text-base font-semibold text-gray-900">{room.name}</h4>
+          <div className="my-1 flex items-center gap-2">
+            <h4 className="text-base font-semibold text-gray-900">{room.name}</h4>
+            <AvailabilityBadge availability={availability} />
+          </div>
           <CapacityRow capacity={room.capacity} />
         </div>
         <ViewSpaceButton link={room.link} />

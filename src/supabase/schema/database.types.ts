@@ -156,6 +156,38 @@ export type Database = {
         };
         Relationships: [];
       };
+      room_availability: {
+        Row: {
+          available_until: string | null;
+          checked_at: string;
+          is_available_now: boolean;
+          next_available_at: string | null;
+          room_uuid: string;
+        };
+        Insert: {
+          available_until?: string | null;
+          checked_at?: string;
+          is_available_now: boolean;
+          next_available_at?: string | null;
+          room_uuid: string;
+        };
+        Update: {
+          available_until?: string | null;
+          checked_at?: string;
+          is_available_now?: boolean;
+          next_available_at?: string | null;
+          room_uuid?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'room_availability_room_uuid_fkey';
+            columns: ['room_uuid'];
+            isOneToOne: true;
+            referencedRelation: 'building_rooms';
+            referencedColumns: ['uuid'];
+          },
+        ];
+      };
       room_images: {
         Row: {
           id: string;

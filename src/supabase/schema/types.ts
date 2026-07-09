@@ -31,6 +31,13 @@ export interface Room {
   hours?: DayHours[];
 }
 
+export interface RoomAvailability {
+  isAvailableNow: boolean;
+  availableUntil: string | null;
+  nextAvailableAt: string | null;
+  checkedAt: string;
+}
+
 export interface DayHours {
   dayOfWeek: number;
   opensAt: string | null;
