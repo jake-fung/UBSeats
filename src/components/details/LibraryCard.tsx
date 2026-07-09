@@ -42,7 +42,7 @@ export const LibraryCard = ({ library }: LibraryCardProps) => {
           )}
         >
           {library.rooms.map((room) => (
-            <RoomCard key={room.uuid} room={room} />
+            <RoomCard key={room.uuid} room={room} hours={library.hours} />
           ))}
         </div>
       </div>
