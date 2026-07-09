@@ -163,6 +163,7 @@ export type Database = {
           is_available_now: boolean;
           next_available_at: string | null;
           room_uuid: string;
+          slots?: string[];
         };
         Insert: {
           available_until?: string | null;
@@ -170,6 +171,7 @@ export type Database = {
           is_available_now: boolean;
           next_available_at?: string | null;
           room_uuid: string;
+          slots?: string[];
         };
         Update: {
           available_until?: string | null;
@@ -177,6 +179,7 @@ export type Database = {
           is_available_now?: boolean;
           next_available_at?: string | null;
           room_uuid?: string;
+          slots?: string[];
         };
         Relationships: [
           {

@@ -36,6 +36,7 @@ export interface RoomAvailability {
   availableUntil: string | null;
   nextAvailableAt: string | null;
   checkedAt: string;
+  slots: string[];
 }
 
 export interface DayHours {

@@ -189,6 +189,7 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
       availableUntil: row.available_until,
       nextAvailableAt: row.next_available_at,
       checkedAt: row.checked_at,
+      slots: row.slots ?? [],
     });
   });
   return map;
