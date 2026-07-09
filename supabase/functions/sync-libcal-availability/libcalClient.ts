@@ -19,6 +19,11 @@ interface LibcalGridResponse {
   [key: string]: unknown;
 }
 
+// `lid`/`gid` are static per space (see fetchLidAndGid below), so successful lookups
+// are cached for the lifetime of the module instance, keyed by `host:spaceId`. This
+// avoids re-fetching and re-scraping the space page HTML on every sync call.
+const lidGidCache = new Map<string, { lid: string; gid: string }>();
+
 /**
  * LibCal's `/spaces/availability/grid` endpoint requires a `lid` (location id) and
  * `gid` (group id) alongside the `eid` (space/item id) — omitting either yields a
@@ -29,6 +34,12 @@ interface LibcalGridResponse {
  * config object (e.g. `locationId: 1791,` / `groupId: 3208,`).
  */
 async function fetchLidAndGid(host: string, spaceId: string): Promise<{ lid: string; gid: string }> {
+  const cacheKey = `${host}:${spaceId}`;
+  const cached = lidGidCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const pageUrl = `https://${host}/space/${spaceId}`;
   const response = await fetch(pageUrl, {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -46,7 +57,9 @@ async function fetchLidAndGid(host: string, spaceId: string): Promise<{ lid: str
     throw new Error(`Could not find locationId/groupId in LibCal space page ${pageUrl}`);
   }
 
-  return { lid, gid };
+  const result = { lid, gid };
+  lidGidCache.set(cacheKey, result);
+  return result;
 }
 
 /**
@@ -107,6 +120,31 @@ function libcalTimestampToISOString(timestamp: string): string {
 }
 
 /**
+ * Returns the `[start, end)` calendar-day pair (both "YYYY-MM-DD") to request from the
+ * grid endpoint: `start` is `date`'s calendar day in `timeZone`, `end` is the following
+ * calendar day. `date` is an instant (e.g. "now"), so its UTC calendar date can differ
+ * from its Vancouver-local one — UTC midnight is ~5pm PDT / 4pm PST, so naively using
+ * `date.toISOString()` queries tomorrow while the venue is still mid-business-day for
+ * any call made in the evening.
+ *
+ * `end` is derived from `start`'s date *components* plus one, not by adding 24h to the
+ * instant: on the fall-back DST day (25 real hours long), adding 24h to an early-morning
+ * instant can land back on the same local calendar date instead of the next one. Doing
+ * the +1 on the (year, month, day) triple via `Date.UTC` instead sidesteps DST entirely,
+ * since UTC has no DST and `Date.UTC` rolls over day/month/year overflow correctly.
+ */
+function vancouverDateRange(date: Date, timeZone: string): { start: string; end: string } {
+  // The "en-CA" locale formats dates as YYYY-MM-DD, so this gives the local calendar
+  // date directly without hand-assembling it from formatToParts.
+  const start = new Intl.DateTimeFormat("en-CA", { timeZone }).format(date);
+
+  const [year, month, day] = start.split("-").map(Number);
+  const end = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+
+  return { start, end };
+}
+
+/**
  * Maps LibCal's raw per-slot entries into this codebase's normalized Slot shape.
  *
  * The grid endpoint returns availability for every item in the room's group, not just
@@ -131,8 +169,7 @@ function toSlots(entries: RawLibcalSlot[], itemId: number): Slot[] {
 export async function fetchLibcalSlots(host: string, spaceId: string, date: Date): Promise<Slot[]> {
   const { lid, gid } = await fetchLidAndGid(host, spaceId);
 
-  const start = date.toISOString().slice(0, 10); // YYYY-MM-DD
-  const end = new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const { start, end } = vancouverDateRange(date, LIBCAL_TIME_ZONE);
 
   const body = new URLSearchParams({
     lid,
