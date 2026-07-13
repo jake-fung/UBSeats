@@ -1,18 +1,15 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { DayHours } from '@/supabase/schema/types';
+import { useMemo, useRef } from 'react';
 import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
 import { cn } from '@/utils/cnUtils';
 
 export interface RoomTimetableProps {
-  hours: DayHours[];
   slots?: TimeSlot[];
-  expanded: boolean;
 }
 
 const STATUS_CLASSES: Record<BlockStatus, string> = {
   available: 'bg-green-400',
   unavailable: 'bg-red-400',
-  closed: 'bg-gray-200',
+  closed: 'bg-gray-300',
 };
 
 const STATUS_LABELS: Record<BlockStatus, string> = {
@@ -27,30 +24,43 @@ function blockTime(date: Date): string {
   return formatTime(`${hh}:${mm}`);
 }
 
-export const RoomTimetable = ({ hours, slots, expanded }: RoomTimetableProps) => {
+export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
   const now = useMemo(() => new Date(), []);
-  const blocks = useMemo(() => computeDayBlocks(hours, slots, now), [hours, slots, now]);
+  const blocks = useMemo(() => computeDayBlocks(slots, now), [slots, now]);
+  console.log(blocks)
   const currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
   const currentBlockRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!expanded) return;
-    currentBlockRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' });
-  }, [expanded]);
+  const nowOffsetPercent = ((now.getHours() * 60 + now.getMinutes()) / (24 * 60)) * 100;
 
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="no-scrollbar flex gap-px overflow-x-auto rounded-md bg-gray-100 p-1"
-    >
-      {blocks.map((block, i) => (
+    <div className="no-scrollbar mt-2 overflow-x-scroll p-1">
+      <div className="relative w-fit">
         <div
-          key={block.start.toISOString()}
-          ref={i === currentIndex ? currentBlockRef : undefined}
-          title={`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}
-          className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
+          className="absolute top-0 bottom-0 z-10 w-0.5 -translate-x-1/2 bg-red-500"
+          style={{ left: `${nowOffsetPercent}%` }}
+          title={`Now · ${blockTime(now)}`}
         />
-      ))}
+        <div className="flex gap-px">
+          {blocks.map((block, i) => (
+            <div
+              key={block.start.toISOString()}
+              ref={i === currentIndex ? currentBlockRef : undefined}
+              title={`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}
+              className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
+            />
+          ))}
+        </div>
+        <div className="flex gap-px">
+          {blocks.map((block, i) => (
+            <div
+              key={`label-${block.start.toISOString()}`}
+              className="w-3 shrink-0 whitespace-nowrap text-[9px] leading-tight text-gray-500"
+            >
+              {i % 4 === 0 ? blockTime(block.start) : ''}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

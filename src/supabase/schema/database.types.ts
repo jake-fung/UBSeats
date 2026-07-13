@@ -1,3 +1,5 @@
+import { TimeSlot } from "@/utils/hoursUtils";
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
@@ -163,7 +165,7 @@ export type Database = {
           is_available_now: boolean;
           next_available_at: string | null;
           room_uuid: string;
-          slots?: string[];
+          slots?: TimeSlot[];
         };
         Insert: {
           available_until?: string | null;

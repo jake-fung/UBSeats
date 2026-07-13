@@ -73,19 +73,15 @@ export interface DayBlock {
 const BLOCK_MINUTES = 15;
 const BLOCKS_PER_DAY = (24 * 60) / BLOCK_MINUTES;
 
-export function computeDayBlocks(hours: DayHours[], slots: TimeSlot[] | undefined, now: Date): DayBlock[] {
+export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayBlock[] {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayHours = hours.find((h) => h.dayOfWeek === now.getDay());
-  const opensMinutes = todayHours?.opensAt ? parseTime(todayHours.opensAt) : null;
-  const closesMinutes = todayHours?.closesAt ? parseTime(todayHours.closesAt) : null;
 
   return Array.from({ length: BLOCKS_PER_DAY }, (_, i) => {
     const blockMinutes = i * BLOCK_MINUTES;
     const start = new Date(dayStart.getTime() + blockMinutes * 60_000);
     const end = new Date(start.getTime() + BLOCK_MINUTES * 60_000);
 
-    const isOpen =
-      opensMinutes !== null && closesMinutes !== null && isSpotNowOpen(opensMinutes, closesMinutes, blockMinutes);
+    const isOpen = slots?.some((slot) => slot.start === start.toISOString() && slot.end === end.toISOString());
 
     if (!isOpen) {
       return { start, end, status: 'closed' as const };

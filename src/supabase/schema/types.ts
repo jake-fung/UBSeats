@@ -1,3 +1,5 @@
+import { TimeSlot } from "@/utils/hoursUtils";
+
 export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable';
 
 export interface Category {
@@ -36,7 +38,7 @@ export interface RoomAvailability {
   availableUntil: string | null;
   nextAvailableAt: string | null;
   checkedAt: string;
-  slots: string[];
+  slots: TimeSlot[];
 }
 
 export interface DayHours {
