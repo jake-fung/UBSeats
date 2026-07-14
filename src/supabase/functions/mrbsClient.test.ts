@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows, assertRejects } from "jsr:@std/assert";
-import { extractRoomCode, parseMrbsPage, fetchMrbsSlots } from "./mrbsClient.ts";
+import { extractRoomCode, parseMrbsPage, fetchMrbsSlots, resetMrbsCache } from "./mrbsClient.ts";
 
 const FIXTURE_HTML = `
 <table class="dwm_main" id="day_main" data-resolution="1800">
@@ -125,6 +125,19 @@ Deno.test("fetchMrbsSlots throws when no MRBS room matches the given name", asyn
       Error,
       'Could not find MRBS room matching "ANGU – Room 999"',
     );
+  } finally {
+    restore();
+  }
+});
+
+Deno.test("resetMrbsCache clears cached pages so the next call re-fetches", async () => {
+  const { calls, restore } = stubFetch(FIXTURE_HTML);
+  try {
+    const date = new Date("2026-07-14T20:00:00.000Z");
+    await fetchMrbsSlots("https://example.test/site-d/", "ANGU – Room 001", date);
+    resetMrbsCache();
+    await fetchMrbsSlots("https://example.test/site-d/", "ANGU – Room 001", date);
+    assertEquals(calls.length, 2);
   } finally {
     restore();
   }

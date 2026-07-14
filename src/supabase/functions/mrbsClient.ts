@@ -124,6 +124,10 @@ const MRBS_TIME_ZONE = 'America/Vancouver';
 
 const pageCache = new Map<string, MrbsPage>();
 
+export function resetMrbsCache(): void {
+  pageCache.clear();
+}
+
 /** Mirrors the "en-CA formats as YYYY-MM-DD" trick already used in libcalClient.ts. */
 function vancouverDateParts(date: Date, timeZone: string): { year: string; month: string; day: string } {
   const [year, month, day] = new Intl.DateTimeFormat('en-CA', { timeZone }).format(date).split('-');
