@@ -107,7 +107,7 @@ export const BuildingDetailContent = ({
       {building?.library && building.library.rooms.length > 0 && <LibraryCard library={building.library} />}
 
       <div className="my-4 flex flex-col gap-3">
-        <RoomSection rooms={building?.rooms || []} heading="Spaces" hours={building?.hours ?? []} />
+        <RoomSection rooms={building?.rooms || []} heading="Spaces" />
       </div>
     </div>
   );

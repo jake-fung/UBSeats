@@ -76,6 +76,7 @@ const BLOCKS_PER_DAY = (24 * 60) / BLOCK_MINUTES;
 export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayBlock[] {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+
   return Array.from({ length: BLOCKS_PER_DAY }, (_, i) => {
     const blockMinutes = i * BLOCK_MINUTES;
     const start = new Date(dayStart.getTime() + blockMinutes * 60_000);

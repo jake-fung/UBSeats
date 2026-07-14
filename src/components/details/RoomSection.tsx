@@ -1,14 +1,13 @@
-import { DayHours, Room } from '@/supabase/schema/types';
+import { Room } from '@/supabase/schema/types';
 import { RoomCard } from '@/components/details/RoomCard';
 
 interface RoomSectionProps {
   rooms: Room[];
   heading: string;
-  hours: DayHours[];
 }
 
 /** A titled list of RoomCards; renders nothing when there are no rooms. */
-export const RoomSection = ({ rooms, heading, hours }: RoomSectionProps) => {
+export const RoomSection = ({ rooms, heading }: RoomSectionProps) => {
   if (rooms.length === 0) return null;
   return (
     <>
@@ -18,7 +17,7 @@ export const RoomSection = ({ rooms, heading, hours }: RoomSectionProps) => {
         </h3>
       </div>
       {rooms.map((room) => (
-        <RoomCard key={room.uuid} room={room} hours={hours} />
+        <RoomCard key={room.uuid} room={room} />
       ))}
     </>
   );

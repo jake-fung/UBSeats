@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
 import { cn } from '@/utils/cnUtils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface RoomTimetableProps {
   slots?: TimeSlot[];
@@ -27,36 +28,43 @@ function blockTime(date: Date): string {
 export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
   const now = useMemo(() => new Date(), []);
   const blocks = useMemo(() => computeDayBlocks(slots, now), [slots, now]);
-  console.log(blocks)
-  const currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
+  const visibleBlocks = useMemo(() => {
+    const filtered = blocks.filter((block) => block.end > now);
+    if (filtered.every((block) => block.status === 'closed')) {
+      return [];
+    }
+    return filtered;
+  }, [blocks, now]);
   const currentBlockRef = useRef<HTMLDivElement>(null);
-  const nowOffsetPercent = ((now.getHours() * 60 + now.getMinutes()) / (24 * 60)) * 100;
+
+  if (visibleBlocks.length === 0) {
+    return null;
+  }
 
   return (
     <div className="no-scrollbar mt-2 overflow-x-scroll p-1">
       <div className="relative w-fit">
-        <div
-          className="absolute top-0 bottom-0 z-10 w-0.5 -translate-x-1/2 bg-red-500"
-          style={{ left: `${nowOffsetPercent}%` }}
-          title={`Now · ${blockTime(now)}`}
-        />
+
         <div className="flex gap-px">
-          {blocks.map((block, i) => (
-            <div
-              key={block.start.toISOString()}
-              ref={i === currentIndex ? currentBlockRef : undefined}
-              title={`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}
-              className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
-            />
+          {visibleBlocks.map((block, i) => (
+            <Tooltip key={block.start.toISOString()} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <div
+                  ref={i === 0 ? currentBlockRef : undefined}
+                  className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
+                />
+              </TooltipTrigger>
+              <TooltipContent>{`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</TooltipContent>
+            </Tooltip>
           ))}
         </div>
         <div className="flex gap-px">
-          {blocks.map((block, i) => (
+          {visibleBlocks.map((block) => (
             <div
               key={`label-${block.start.toISOString()}`}
               className="w-3 shrink-0 whitespace-nowrap text-[9px] leading-tight text-gray-500"
             >
-              {i % 4 === 0 ? blockTime(block.start) : ''}
+              {block.start.getMinutes() === 0 ? blockTime(block.start) : ''}
             </div>
           ))}
         </div>
