@@ -118,3 +118,43 @@ export function parseMrbsPage(html: string): MrbsPage {
 
   return { rooms, slotsByRoomId };
 }
+
+const REQUEST_TIMEOUT_MS = 10_000;
+const MRBS_TIME_ZONE = 'America/Vancouver';
+
+const pageCache = new Map<string, MrbsPage>();
+
+/** Mirrors the "en-CA formats as YYYY-MM-DD" trick already used in libcalClient.ts. */
+function vancouverDateParts(date: Date, timeZone: string): { year: string; month: string; day: string } {
+  const [year, month, day] = new Intl.DateTimeFormat('en-CA', { timeZone }).format(date).split('-');
+  return { year, month, day };
+}
+
+async function fetchMrbsPage(baseUrl: string, date: Date): Promise<MrbsPage> {
+  const { year, month, day } = vancouverDateParts(date, MRBS_TIME_ZONE);
+  const cacheKey = `${baseUrl}:${year}-${month}-${day}`;
+  const cached = pageCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const url = `${baseUrl}index.php?view=day&year=${year}&month=${month}&day=${day}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+  if (!response.ok) {
+    throw new Error(`MRBS request failed for ${url}: ${response.status}`);
+  }
+
+  const page = parseMrbsPage(await response.text());
+  pageCache.set(cacheKey, page);
+  return page;
+}
+
+export async function fetchMrbsSlots(baseUrl: string, roomName: string, date: Date): Promise<Slot[]> {
+  const page = await fetchMrbsPage(baseUrl, date);
+  const code = extractRoomCode(roomName);
+  const room = page.rooms.find((r) => r.code === code);
+  if (!room) {
+    throw new Error(`Could not find MRBS room matching "${roomName}" (code "${code}") at ${baseUrl}`);
+  }
+  return page.slotsByRoomId.get(room.roomId) ?? [];
+}

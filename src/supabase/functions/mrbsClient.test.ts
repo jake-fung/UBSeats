@@ -1,5 +1,5 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert";
-import { extractRoomCode, parseMrbsPage } from "./mrbsClient.ts";
+import { assertEquals, assertThrows, assertRejects } from "jsr:@std/assert";
+import { extractRoomCode, parseMrbsPage, fetchMrbsSlots } from "./mrbsClient.ts";
 
 const FIXTURE_HTML = `
 <table class="dwm_main" id="day_main" data-resolution="1800">
@@ -68,4 +68,64 @@ Deno.test("parseMrbsPage reconstructs slots across a rowspan-ed booking", () => 
 
 Deno.test("parseMrbsPage throws when the day table is missing", () => {
   assertThrows(() => parseMrbsPage("<html><body>not a booking page</body></html>"), Error, "day_main");
+});
+
+function stubFetch(html: string): { calls: string[]; restore: () => void } {
+  const calls: string[] = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = ((input: string | URL | Request) => {
+    calls.push(String(input));
+    return Promise.resolve(new Response(html, { status: 200 }));
+  }) as typeof fetch;
+  return {
+    calls,
+    restore: () => {
+      globalThis.fetch = original;
+    },
+  };
+}
+
+Deno.test("fetchMrbsSlots requests the Vancouver-local day view and resolves by room code", async () => {
+  const { calls, restore } = stubFetch(FIXTURE_HTML);
+  try {
+    const slots = await fetchMrbsSlots(
+      "https://example.test/site-a/",
+      "ANGU – Room 001",
+      new Date("2026-07-14T20:00:00.000Z"),
+    );
+    assertEquals(calls, ["https://example.test/site-a/index.php?view=day&year=2026&month=07&day=14"]);
+    assertEquals(slots[0], {
+      start: "2026-07-14T14:00:00.000Z",
+      end: "2026-07-14T14:30:00.000Z",
+      available: true,
+    });
+  } finally {
+    restore();
+  }
+});
+
+Deno.test("fetchMrbsSlots caches the fetched page per site and date", async () => {
+  const { calls, restore } = stubFetch(FIXTURE_HTML);
+  try {
+    const date = new Date("2026-07-14T20:00:00.000Z");
+    await fetchMrbsSlots("https://example.test/site-b/", "ANGU – Room 001", date);
+    await fetchMrbsSlots("https://example.test/site-b/", "ANGU – Room 002", date);
+    assertEquals(calls.length, 1);
+  } finally {
+    restore();
+  }
+});
+
+Deno.test("fetchMrbsSlots throws when no MRBS room matches the given name", async () => {
+  const { restore } = stubFetch(FIXTURE_HTML);
+  try {
+    await assertRejects(
+      () =>
+        fetchMrbsSlots("https://example.test/site-c/", "ANGU – Room 999", new Date("2026-07-14T20:00:00.000Z")),
+      Error,
+      'Could not find MRBS room matching "ANGU – Room 999"',
+    );
+  } finally {
+    restore();
+  }
 });
