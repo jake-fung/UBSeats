@@ -82,7 +82,9 @@ export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayB
     const start = new Date(dayStart.getTime() + blockMinutes * 60_000);
     const end = new Date(start.getTime() + BLOCK_MINUTES * 60_000);
 
-    const isOpen = slots?.some((slot) => slot.start === start.toISOString() && slot.end === end.toISOString());
+    const isOpen = slots?.some(
+      (slot) => start.getTime() < new Date(slot.end).getTime() && end.getTime() > new Date(slot.start).getTime(),
+    );
 
     if (!isOpen) {
       return { start, end, status: 'closed' as const };

@@ -44,7 +44,6 @@ export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
   return (
     <div className="no-scrollbar mt-2 overflow-x-scroll p-1">
       <div className="relative w-fit">
-
         <div className="flex gap-px">
           {visibleBlocks.map((block, i) => (
             <Tooltip key={block.start.toISOString()} delayDuration={0}>
