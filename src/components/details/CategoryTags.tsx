@@ -1,4 +1,4 @@
-import { CalendarFold, Coffee, LucideIcon, VolumeX } from 'lucide-react';
+import { CalendarFold, Coffee, LucideIcon, Presentation, VolumeX } from 'lucide-react';
 import { CategoryType } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 
@@ -6,12 +6,14 @@ const ICON_MAP: Record<Exclude<CategoryType, 'library'>, LucideIcon> = {
   cafe: Coffee,
   quiet: VolumeX,
   bookable: CalendarFold,
+  classroom: Presentation,
 };
 
 const LABEL_MAP: Record<Exclude<CategoryType, 'library'>, string> = {
   cafe: 'Café',
   quiet: 'Silent Study',
   bookable: 'Bookable',
+  classroom: 'Classroom',
 };
 
 interface CategoryIconProps {

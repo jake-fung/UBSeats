@@ -1,6 +1,6 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { classifyRooms, processInBatches } from './roomSync.ts';
-import { resetMrbsCache } from './mrbsClient.ts';
+import { classifyRooms, processInBatches } from '../roomSync.ts';
+import { resetMrbsCache } from '../mrbsClient.ts';
 
 Deno.serve(async () => {
   resetMrbsCache();
