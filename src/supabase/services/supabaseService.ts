@@ -2,6 +2,8 @@ import { supabase } from '@/supabase/client';
 import { Building, Category, DayHours, Library, Note, Room, RoomAvailability } from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
+import { bookingsToSlots, classroomWindowCoversDate, BookingInterval } from '@/utils/hoursUtils';
+import { parseAvailability } from '@/supabase/functions/sync-libcal-availability/parseAvailability';
 
 type Tables = Database['public']['Tables'];
 
@@ -178,12 +180,86 @@ export async function fetchBuildings(): Promise<Building[]> {
 
 const STALE_AFTER_MS = 30 * 60 * 1000;
 
-export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailability>> {
-  const rows = await selectAll('room_availability');
-  const now = Date.now();
+const BOOKINGS_PAGE_SIZE = 1000;
+
+/** Today's classroom bookings, paginated past PostgREST's 1000-row cap. */
+async function selectClassroomBookingsForDay(dayStart: Date, dayEnd: Date): Promise<Tables['classroom_bookings']['Row'][]> {
+  const rows: Tables['classroom_bookings']['Row'][] = [];
+  for (let from = 0; ; from += BOOKINGS_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('classroom_bookings')
+      .select('*')
+      .lt('starts_at', dayEnd.toISOString())
+      .gt('ends_at', dayStart.toISOString())
+      .order('starts_at')
+      .order('id')
+      .range(from, from + BOOKINGS_PAGE_SIZE - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < BOOKINGS_PAGE_SIZE) break;
+  }
+  return rows;
+}
+
+/**
+ * Availability for classroom-tagged rooms, derived by inverting today's
+ * schedule bookings. Returns an empty map when there is no scrape whose
+ * current+next-week window still covers today (stale data must not render
+ * as a fully free day).
+ */
+export async function fetchClassroomAvailability(now: Date): Promise<Map<string, RoomAvailability>> {
+  const { data: latest, error: latestError } = await supabase
+    .from('classroom_bookings')
+    .select('scraped_at')
+    .order('scraped_at', { ascending: false })
+    .limit(1);
+  if (latestError) throw latestError;
+  if (!latest?.length || !classroomWindowCoversDate(latest[0].scraped_at, now)) return new Map();
+
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+  const [tagsResult, bookings] = await Promise.all([
+    supabase.from('room_categories').select('room_uuid').eq('categories_id', 'classroom'),
+    selectClassroomBookingsForDay(dayStart, dayEnd),
+  ]);
+  if (tagsResult.error) throw tagsResult.error;
+
+  const bookingsByRoom = new Map<string, BookingInterval[]>();
+  bookings.forEach((b) => {
+    const list = bookingsByRoom.get(b.room_uuid) ?? [];
+    list.push({ startsAt: b.starts_at, endsAt: b.ends_at });
+    bookingsByRoom.set(b.room_uuid, list);
+  });
+
   const map = new Map<string, RoomAvailability>();
+  (tagsResult.data ?? []).forEach(({ room_uuid }) => {
+    if (!room_uuid) return;
+    const slots = bookingsToSlots(bookingsByRoom.get(room_uuid) ?? [], now);
+    const summary = parseAvailability(slots, now);
+    map.set(room_uuid, {
+      isAvailableNow: summary.isAvailableNow,
+      availableUntil: summary.availableUntil,
+      nextAvailableAt: summary.nextAvailableAt,
+      checkedAt: latest[0].scraped_at,
+      slots,
+    });
+  });
+  return map;
+}
+
+export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailability>> {
+  const now = new Date();
+  // Classroom schedule data degrades gracefully: any failure (including the
+  // table not existing before the migration lands) yields an empty base map.
+  const map = await fetchClassroomAvailability(now).catch((err) => {
+    console.error('classroom availability unavailable:', err);
+    return new Map<string, RoomAvailability>();
+  });
+
+  const rows = await selectAll('room_availability');
   rows.forEach((row) => {
-    if (now - new Date(row.checked_at).getTime() > STALE_AFTER_MS) return;
+    if (now.getTime() - new Date(row.checked_at).getTime() > STALE_AFTER_MS) return;
     map.set(row.room_uuid, {
       isAvailableNow: row.is_available_now,
       availableUntil: row.available_until,

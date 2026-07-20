@@ -93,6 +93,7 @@ export type Database = {
           library_id: string | null;
           link: string | null;
           room_name: string | null;
+          source_key: string | null;
           uuid: string;
         };
         Insert: {
@@ -101,6 +102,7 @@ export type Database = {
           library_id?: string | null;
           link?: string | null;
           room_name?: string | null;
+          source_key?: string | null;
           uuid?: string;
         };
         Update: {
@@ -109,6 +111,7 @@ export type Database = {
           library_id?: string | null;
           link?: string | null;
           room_name?: string | null;
+          source_key?: string | null;
           uuid?: string;
         };
         Relationships: [
@@ -157,6 +160,41 @@ export type Database = {
           uuid?: string;
         };
         Relationships: [];
+      };
+      classroom_bookings: {
+        Row: {
+          id: string;
+          room_uuid: string;
+          starts_at: string;
+          ends_at: string;
+          title: string | null;
+          scraped_at: string;
+        };
+        Insert: {
+          id?: string;
+          room_uuid: string;
+          starts_at: string;
+          ends_at: string;
+          title?: string | null;
+          scraped_at?: string;
+        };
+        Update: {
+          id?: string;
+          room_uuid?: string;
+          starts_at?: string;
+          ends_at?: string;
+          title?: string | null;
+          scraped_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'classroom_bookings_room_uuid_fkey';
+            columns: ['room_uuid'];
+            isOneToOne: false;
+            referencedRelation: 'building_rooms';
+            referencedColumns: ['uuid'];
+          },
+        ];
       };
       room_availability: {
         Row: {

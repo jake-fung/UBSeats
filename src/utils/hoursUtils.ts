@@ -100,3 +100,57 @@ export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayB
     return { start, end, status: isBooked ? ('unavailable' as const) : ('available' as const) };
   });
 }
+
+export interface BookingInterval {
+  startsAt: string; // ISO 8601
+  endsAt: string; // ISO 8601
+}
+
+const CLASSROOM_DAY_START_HOUR = 7;
+const CLASSROOM_DAY_END_HOUR = 22;
+
+/**
+ * Invert a classroom's bookings for `date` into the TimeSlot[] shape that
+ * computeDayBlocks consumes: available gaps + unavailable bookings inside
+ * 07:00–22:00 local; no slots outside the window, so those blocks read closed.
+ */
+export function bookingsToSlots(bookings: BookingInterval[], date: Date): TimeSlot[] {
+  const windowStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLASSROOM_DAY_START_HOUR).getTime();
+  const windowEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLASSROOM_DAY_END_HOUR).getTime();
+
+  const merged: { start: number; end: number }[] = [];
+  bookings
+    .map((b) => ({
+      start: Math.max(new Date(b.startsAt).getTime(), windowStart),
+      end: Math.min(new Date(b.endsAt).getTime(), windowEnd),
+    }))
+    .filter((b) => b.start < b.end)
+    .sort((a, b) => a.start - b.start)
+    .forEach((b) => {
+      const last = merged[merged.length - 1];
+      if (last && b.start <= last.end) last.end = Math.max(last.end, b.end);
+      else merged.push({ ...b });
+    });
+
+  const slots: TimeSlot[] = [];
+  let cursor = windowStart;
+  for (const b of merged) {
+    if (cursor < b.start) slots.push({ start: new Date(cursor).toISOString(), end: new Date(b.start).toISOString(), available: true });
+    slots.push({ start: new Date(b.start).toISOString(), end: new Date(b.end).toISOString(), available: false });
+    cursor = b.end;
+  }
+  if (cursor < windowEnd) slots.push({ start: new Date(cursor).toISOString(), end: new Date(windowEnd).toISOString(), available: true });
+  return slots;
+}
+
+/**
+ * A scrape covers its Monday-based week plus the next week. When `date` falls
+ * past that window the data says nothing about today — rendering it would show
+ * every classroom as free, so callers must drop stale data entirely.
+ */
+export function classroomWindowCoversDate(lastScrapedAt: string, date: Date): boolean {
+  const scraped = new Date(lastScrapedAt);
+  const monday = new Date(scraped.getFullYear(), scraped.getMonth(), scraped.getDate() - ((scraped.getDay() + 6) % 7));
+  const windowEndExclusive = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 14);
+  return date < windowEndExclusive;
+}
