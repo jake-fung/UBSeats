@@ -7,6 +7,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { useMapState } from '@/hooks/useMapState';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
+import About from '@/components/About';
 
 const Index = () => {
   const {
@@ -97,14 +98,7 @@ const Index = () => {
             />
           )}
 
-          <footer
-            className={cn(
-              'fixed bottom-0 w-full justify-center text-center transition-all',
-              desktopShift && 'left-[10vw] w-[30vw]',
-            )}
-          >
-            <div className="text-sm text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</div>
-          </footer>
+          <About />
         </>
       )}
     </div>
