@@ -30,3 +30,25 @@ test('every mapped code is a real UBSeats bldg_code format', () => {
     assert.match(code, /^[A-Z0-9]{2,5}$/);
   }
 });
+
+test('commits to the longest matching prefix instead of falling through', () => {
+  // Bare compound names whose longest match has no room remainder must resolve
+  // to null, not fall through to a shorter prefix and misattribute the
+  // remainder as a room number.
+  assert.equal(resolveLocation('Buchanan Tower'), null);
+  assert.equal(resolveLocation('Mathematics Annex'), null);
+  assert.equal(resolveLocation('Auditorium Annex'), null);
+  assert.equal(resolveLocation('Civil and Mechanical Eng. Labs'), null);
+
+  // With-room cases on the same compound names must still resolve correctly.
+  assert.deepEqual(resolveLocation('Buchanan Tower-2245'), { bldgCode: 'BUTO', roomNumber: '2245' });
+  assert.deepEqual(resolveLocation('Mathematics Annex-1102'), { bldgCode: 'MATX', roomNumber: '1102' });
+  assert.deepEqual(resolveLocation('Buchanan-A101'), { bldgCode: 'BUCH', roomNumber: 'A101' });
+});
+
+test('maps the remaining corrected codes to UBSeats bldg_code values', () => {
+  assert.equal(resolveLocation('Koerner Pavilion-100')?.bldgCode, 'KPAV');
+  assert.equal(resolveLocation('Detwiller Pavilion-100')?.bldgCode, 'DPAV');
+  assert.equal(resolveLocation('Auditorium-100')?.bldgCode, 'AUDI');
+  assert.equal(resolveLocation('Auditorium Annex'), null);
+});

@@ -6,7 +6,7 @@
     "scrape": "TZ=America/Vancouver tsx src/index.ts",
     "capture": "TZ=America/Vancouver tsx src/index.ts --capture --headed",
     "test": "TZ=America/Vancouver node --import tsx --test src/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "TZ=America/Vancouver tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

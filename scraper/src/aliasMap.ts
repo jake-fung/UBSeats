@@ -88,11 +88,16 @@ export function resolveLocation(scientiaName: string): ResolvedLocation | null {
   const trimmed = scientiaName.trim();
   for (const name of NAMES_BY_LENGTH) {
     if (!trimmed.startsWith(name)) continue;
+    // Commit to the first (longest, since NAMES_BY_LENGTH is sorted descending)
+    // matching prefix. Do not fall through to shorter names even if this one
+    // leaves no room remainder — that would misattribute the tail of a longer
+    // compound building name (e.g. "Tower" in "Buchanan Tower") as a room number
+    // under a shorter, unrelated building match (e.g. "Buchanan").
     const rest = trimmed
       .slice(name.length)
       .replace(/^[\s–—-]+/, '')
       .trim();
-    if (rest) return { bldgCode: SCIENTIA_BUILDING_TO_CODE[name], roomNumber: rest.toUpperCase() };
+    return rest ? { bldgCode: SCIENTIA_BUILDING_TO_CODE[name], roomNumber: rest.toUpperCase() } : null;
   }
   return null;
 }
