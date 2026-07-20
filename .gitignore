@@ -10,3 +10,5 @@ CLAUDE.md
 .understand-anything
 .idea
 .superpowers
+scraper/.auth
+scraper/out
