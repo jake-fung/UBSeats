@@ -163,28 +163,28 @@ export type Database = {
       };
       classroom_bookings: {
         Row: {
+          ends_at: string;
           id: string;
           room_uuid: string;
-          starts_at: string;
-          ends_at: string;
-          title: string | null;
           scraped_at: string;
+          starts_at: string;
+          title: string | null;
         };
         Insert: {
+          ends_at: string;
           id?: string;
           room_uuid: string;
-          starts_at: string;
-          ends_at: string;
-          title?: string | null;
           scraped_at?: string;
+          starts_at: string;
+          title?: string | null;
         };
         Update: {
+          ends_at?: string;
           id?: string;
           room_uuid?: string;
-          starts_at?: string;
-          ends_at?: string;
-          title?: string | null;
           scraped_at?: string;
+          starts_at?: string;
+          title?: string | null;
         };
         Relationships: [
           {
