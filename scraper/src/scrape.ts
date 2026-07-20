@@ -21,11 +21,12 @@ async function mustFind(page: Page, selector: string): Promise<Locator> {
   const locator = page.locator(selector);
   try {
     await locator.first().waitFor({ state: 'attached', timeout: 15_000 });
-  } catch {
+  } catch (err) {
     const ids = await page.$$eval('[id]', (els) => els.slice(0, 60).map((e) => e.id));
     throw new Error(
       `Selector ${selector} not found on ${page.url()}. Page ids: ${ids.join(', ')}. ` +
         `Scientia's page structure (or the academic-year URL) has likely changed.`,
+      { cause: err },
     );
   }
   return locator;
@@ -81,10 +82,10 @@ async function selectWeek(page: Page, shortcutValue: 't' | 'n', weekStart: Date)
 export async function fetchGridPages(opts: { headed: boolean }): Promise<{ pages: WeekPage[]; formHtml: string }> {
   mkdirSync(AUTH_DIR, { recursive: true });
   const browser = await chromium.launch({ headless: !opts.headed });
-  const context = await browser.newContext(existsSync(STATE_PATH) ? { storageState: STATE_PATH } : {});
-  const page = await context.newPage();
 
   try {
+    const context = await browser.newContext(existsSync(STATE_PATH) ? { storageState: STATE_PATH } : {});
+    const page = await context.newPage();
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
     await ensurePastGate(page, opts.headed);
     await context.storageState({ path: STATE_PATH });
