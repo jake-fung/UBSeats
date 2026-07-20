@@ -1,6 +1,7 @@
 import { chromium, type Locator, type Page } from 'playwright';
 import { existsSync, mkdirSync } from 'node:fs';
 import { BASE_URL } from './config';
+import { mondayOf } from './transform';
 
 export interface WeekPage {
   weekStart: Date; // local Monday 00:00 of the week the page covers
@@ -10,12 +11,6 @@ export interface WeekPage {
 const AUTH_DIR = '.auth';
 const STATE_PATH = `${AUTH_DIR}/state.json`;
 const CWL_TIMEOUT_MS = 5 * 60_000;
-
-export function mondayOf(date: Date): Date {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d;
-}
 
 async function mustFind(page: Page, selector: string): Promise<Locator> {
   const locator = page.locator(selector);
