@@ -29,11 +29,11 @@ export const RoomCard = ({ room }: RoomCardProps) => {
             </div>
             <CapacityRow capacity={room.capacity} />
           </div>
-          <ViewSpaceButton link={room.link} />
+          {availability && (
+            <RoomTimetable slots={availability.slots} />
+          )}
+          <ViewSpaceButton link={room.link} bookable={room.categoryIds?.includes('bookable')} />
         </div>
-        {availability && (
-          <RoomTimetable slots={availability.slots} />
-        )}
       </div>
     </div>
   );
