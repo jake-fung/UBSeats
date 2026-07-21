@@ -12,3 +12,4 @@ CLAUDE.md
 .superpowers
 scraper/.auth
 scraper/out
+scraper/fixtures
