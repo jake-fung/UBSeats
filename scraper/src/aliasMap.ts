@@ -1,103 +1,27 @@
-// Scientia "location by zone" building display name -> UBSeats buildings.bldg_code.
-export const SCIENTIA_BUILDING_TO_CODE: Record<string, string> = {
-  'Allard Hall': 'ALRD',
-  'Anthropology and Sociology': 'ANSO',
-  'Aquatic Ecosystems Resrch Lab': 'AERL',
-  'Asian Centre': 'ACEN',
-  'Auditorium': 'AUDI',
-  'Auditorium Annex': 'AUDX',
-  'B.C. Binnings Studio': 'BINN',
-  'Biological Sciences': 'BIOL',
-  'Buchanan': 'BUCH',
-  'Buchanan Tower': 'BUTO',
-  'Centre for Brain Health': 'CBH',
-  'Chan Ctr Performing Arts': 'CHAN',
-  'Chemical and Biological Eng': 'CHBE',
-  'Chemistry': 'CHEM',
-  'CIRS': 'CIRS',
-  'Civil and Mechanical Eng.': 'CEME',
-  'Civil and Mechanical Eng. Labs': 'CEML',
-  'CK Choi': 'CHOI',
-  'Coal and Mineral Processing': 'MINL',
-  'David Lam Building': 'DLAM',
-  'Detwiller Pavilion': 'DPAV',
-  'Dorothy Somerset Studio': 'DSOM',
-  'Douglas Kenny': 'KENN',
-  'Earth and Ocean Sciences': 'EOS',
-  'Earth Sciences': 'ESB',
-  'Food, Nutrition and Health': 'FNH',
-  'Forest Sciences Centre': 'FSC',
-  'Frank Forward': 'FORW',
-  'Fred Kaiser': 'KAIS',
-  'Frederic Wood Theatre': 'FRWO',
-  'Friedman': 'FRDM',
-  'Greenhouse(Horticultural Bldg)': 'HORT',
-  'Geography': 'GEOG',
-  'Hebb': 'HEBB',
-  'Hennings': 'HENN',
-  'Henry Angus': 'ANGU',
-  'ICCS': 'ICCS',
-  'Hugh Dempster Pavilion': 'DMP',
-  'Iona': 'IONA',
-  'Irving K. Barber Learning Ctr': 'IBLC',
-  'Koerner Pavilion': 'KPAV',
-  'Landscape Architecture Annex': 'LAX',
-  'Lasserre': 'LASR',
-  'Leonard S Klinck': 'LSK',
-  'Life Sciences Centre': 'LSC',
-  'Liu Institute': 'LIU',
-  'Lower Mall Research Station': 'LMRS',
-  'Macdonald': 'MCDN',
-  'MacLeod Building': 'MCLD',
-  'MacMillan': 'MCML',
-  'Mathematics': 'MATH',
-  'Mathematics Annex': 'MATX',
-  'Medical Block C': 'MEDC',
-  'Memorial Gymnasium': 'MGYM',
-  'Michael Smith Laboratories': 'MSL',
-  'Music': 'MUSC',
-  'Neville Scarfe': 'SCRF',
-  'Orchard Commons': 'ORCH',
-  'Osborne Centre': 'OSB2',
-  'Pharmaceutical Sciences': 'PHRM',
-  'Ponderosa Annex E': 'PONE',
-  'Ponderosa Commons North': 'PCN',
-  'Ponderosa Commons East Audain Art': 'PCE',
-  'Ritsumeikan-UBC House': 'RITS',
-  'School Populatn & Publc Hlth': 'SPPH',
-  'Sing Tao School of Journalism': 'STAO',
-  'Theatre-Film Production Building': 'TFPB',
-  'Totem Field Studios': 'TFS',
-  'Leon & Thea Koerner University Centre': 'UCEN',
-  'UBC Life Building': 'LIFE',
-  'Wayne & William White Engineering Design Centre': 'EDC',
-  'Wesbrook': 'WESB',
-  'West Mall Swing Space': 'SWNG',
-  'Woodward IRC': 'IRC',
-};
-
-// Longest name first so 'Mathematics Annex' wins over 'Mathematics'.
-const NAMES_BY_LENGTH = Object.keys(SCIENTIA_BUILDING_TO_CODE).sort((a, b) => b.length - a.length);
-
 export interface ResolvedLocation {
   bldgCode: string;
   roomNumber: string;
 }
 
-export function resolveLocation(scientiaName: string): ResolvedLocation | null {
-  const trimmed = scientiaName.trim();
-  for (const name of NAMES_BY_LENGTH) {
-    if (!trimmed.startsWith(name)) continue;
-    // Commit to the first (longest, since NAMES_BY_LENGTH is sorted descending)
-    // matching prefix. Do not fall through to shorter names even if this one
-    // leaves no room remainder — that would misattribute the tail of a longer
-    // compound building name (e.g. "Tower" in "Buchanan Tower") as a room number
-    // under a shorter, unrelated building match (e.g. "Buchanan").
-    const rest = trimmed
-      .slice(name.length)
-      .replace(/^[\s–—-]+/, '')
-      .trim();
-    return rest ? { bldgCode: SCIENTIA_BUILDING_TO_CODE[name], roomNumber: rest.toUpperCase() } : null;
-  }
-  return null;
+/**
+ * Resolve a Scientia "List Timetable" Location cell into a building code + room.
+ *
+ * The report's Location column already uses UBC building CODES (not full names),
+ * e.g. "ALRD B101", "BIOL 1000", "IBLC 182" — the first whitespace-separated
+ * token is the bldg_code and the remainder is the room number. (Confirmed: the
+ * codes it emits are already the ones UBSeats uses, e.g. IBLC not IKB, MCML not
+ * MCLM, so no name-alias map is needed.)
+ *
+ * Returns null for anything that isn't in "<CODE> <room>" shape, so malformed
+ * cells are collected as unmatched rather than silently mis-parsed. The building
+ * code itself is validated against the live buildings table later, at write time
+ * (planRoomSync throws on an unknown code).
+ */
+export function resolveLocation(location: string): ResolvedLocation | null {
+  const match = location.trim().match(/^([A-Za-z0-9]{2,6})\s+(\S.*)$/);
+  if (!match) return null;
+  const bldgCode = match[1].toUpperCase();
+  const roomNumber = match[2].replace(/\s+/g, '').toUpperCase();
+  if (!roomNumber) return null;
+  return { bldgCode, roomNumber };
 }

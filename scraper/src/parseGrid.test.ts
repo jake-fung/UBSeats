@@ -4,60 +4,66 @@ import { existsSync, readFileSync } from 'node:fs';
 import { parseGrid } from './parseGrid';
 import { resolveLocation } from './aliasMap';
 
-const FIXTURES_PRESENT = existsSync('fixtures/grid-week-t.html') && existsSync('fixtures/grid-week-n.html');
+const HEADER =
+  '<tr class="columnTitles"><td>Name</td><td>Section ID</td><td>Type</td><td>Name of Department</td>' +
+  '<td>Weeks</td><td>Location</td><td>Staff</td><td>Module</td><td>Day</td><td>Start Time</td><td>End Time</td></tr>';
 
-const SYNTHETIC = `
-<html><body>
-<p><span class="labelone">Buchanan-A101</span></p>
-<p><span class="labeltwo">Monday</span></p>
-<table class="spreadsheet">
-  <tr><td>Activity</td><td>Description</td><td>Start</td><td>End</td><td>Weeks</td></tr>
-  <tr><td>PSYC_V 101-001</td><td>Intro Psychology</td><td>9:00</td><td>11:00</td><td>23</td></tr>
-  <tr><td>HIST_V 235-002</td><td></td><td>14:00</td><td>15:30</td><td>23</td></tr>
+const row = (name: string, loc: string, day: string, start: string, end: string) =>
+  `<tr><td>${name}</td><td></td><td>WRB-ACTIVE</td><td>WRB_UBC</td><td>49</td><td>${loc}</td>` +
+  `<td></td><td></td><td>${day}</td><td>${start}</td><td>${end}</td></tr>`;
+
+// Mirrors the real "List Timetable" shape: labelone day heading + spreadsheet
+// table with columnTitles, and the same booking repeated across day tables.
+const SYNTHETIC = `<html><body>
+<p><span class="labelone">Mon</span></p>
+<table class="spreadsheet">${HEADER}
+${row('PSYC 101 Mon, Wed (week(s): July 20, 2026) 9:00 - BUCH A101', 'BUCH A101', 'Mon,Wed', '9:00', '11:00')}
+${row('PSYC 101 Mon, Wed (week(s): July 20, 2026) 9:00 - BUCH A101', 'BUCH A101', 'Mon,Wed', '9:00', '11:00')}
+${row('MATH 200 (week(s): July 20, 2026) 14:00 - MATX 1102', 'MATX 1102', 'Mon', '14:00', '15:30')}
 </table>
-<p><span class="labeltwo">Tuesday</span></p>
-<table class="spreadsheet">
-  <tr><td>Activity</td><td>Description</td><td>Start</td><td>End</td><td>Weeks</td></tr>
-</table>
-<p><span class="labelone">Hennings 201</span></p>
-<p><span class="labeltwo">Friday</span></p>
-<table class="spreadsheet">
-  <tr><td>Activity</td><td>Description</td><td>Start</td><td>End</td><td>Weeks</td></tr>
-  <tr><td>PHYS_V 119-L01</td><td>Physics Lab</td><td>13:00</td><td>16:00</td><td>23</td></tr>
+<p><span class="labelone">Wed</span></p>
+<table class="spreadsheet">${HEADER}
+${row('PSYC 101 Mon, Wed (week(s): July 20, 2026) 9:00 - BUCH A101', 'BUCH A101', 'Mon,Wed', '9:00', '11:00')}
 </table>
 </body></html>`;
 
-test('parses bookings grouped by location and weekday', () => {
+test('parses column rows, takes the weekday from the labelone heading, and dedups repeats', () => {
   assert.deepEqual(parseGrid(SYNTHETIC), [
-    { locationName: 'Buchanan-A101', weekday: 'Monday', start: '9:00', end: '11:00', title: 'Intro Psychology' },
-    { locationName: 'Buchanan-A101', weekday: 'Monday', start: '14:00', end: '15:30', title: null },
-    { locationName: 'Hennings 201', weekday: 'Friday', start: '13:00', end: '16:00', title: 'Physics Lab' },
+    { locationName: 'BUCH A101', weekday: 'Monday', start: '9:00', end: '11:00', title: 'PSYC 101' },
+    { locationName: 'MATX 1102', weekday: 'Monday', start: '14:00', end: '15:30', title: 'MATH 200' },
+    { locationName: 'BUCH A101', weekday: 'Wednesday', start: '9:00', end: '11:00', title: 'PSYC 101' },
   ]);
 });
 
-test('returns an empty list for a page with no spreadsheet tables', () => {
-  assert.deepEqual(parseGrid('<html><body><p>nothing here</p></body></html>'), []);
+test('returns an empty list when tables have a header but no booking rows', () => {
+  const empty = `<html><body><p><span class="labelone">Mon</span></p><table class="spreadsheet">${HEADER}</table></body></html>`;
+  assert.deepEqual(parseGrid(empty), []);
 });
 
+test('throws when the column header is missing (report structure changed)', () => {
+  assert.throws(
+    () => parseGrid('<html><body><table class="spreadsheet"><tr><td>x</td><td>y</td></tr></table></body></html>'),
+    /column header/i,
+  );
+});
+
+const FIXTURES = ['grid-week-t.html', 'grid-week-n.html'].filter((f) => existsSync(`fixtures/${f}`));
+
 test(
-  'parses the captured Scientia fixtures (structural invariants)',
-  { skip: FIXTURES_PRESENT ? false : 'fixtures not captured yet — Task 2 live capture deferred' },
+  'parses the captured Scientia fixtures (real structure)',
+  { skip: FIXTURES.length === 0 ? 'no captured fixtures present' : false },
   () => {
-    for (const name of ['grid-week-t.html', 'grid-week-n.html']) {
-      const path = `fixtures/${name}`;
-      assert.ok(existsSync(path), `${path} missing — run Task 2's capture first`);
-      const bookings = parseGrid(readFileSync(path, 'utf8'));
-      assert.ok(bookings.length > 0, `${name}: parsed zero bookings — parser does not match the real format`);
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    for (const name of FIXTURES) {
+      const bookings = parseGrid(readFileSync(`fixtures/${name}`, 'utf8'));
+      assert.ok(bookings.length > 100, `${name}: only ${bookings.length} bookings parsed — parser likely off`);
       for (const b of bookings) {
         assert.match(b.start, /^\d{1,2}:\d{2}$/);
         assert.match(b.end, /^\d{1,2}:\d{2}$/);
-        assert.ok(
-          ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].includes(b.weekday),
-          `bad weekday: ${b.weekday}`,
-        );
+        assert.ok(DAYS.includes(b.weekday), `bad weekday: ${b.weekday}`);
       }
       const resolved = bookings.filter((b) => resolveLocation(b.locationName) !== null).length;
-      assert.ok(resolved > 0, `${name}: no location names resolved via the alias map`);
+      assert.ok(resolved >= bookings.length * 0.95, `${name}: only ${resolved}/${bookings.length} locations resolved`);
       console.log(`${name}: ${bookings.length} bookings, ${resolved} resolved locations`);
     }
   },
