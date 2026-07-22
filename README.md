@@ -14,8 +14,9 @@ UBSeats is a React + TypeScript web app that shows live seat and bookable room a
 
 - 🗺️ **Interactive map** — Mapbox GL JS map with markers for every campus building
 - 🕐 **Live hours** — open/closed status computed from real building hours data
-- 🔍 **Search & filter** — search by building name or filter by category (library, café, quiet study, bookable rooms)
-- 📋 **Room details** — capacity, amenities, booking links, and notes per room
+- 🟢 **Live room availability** — classrooms and library-booking rooms show real-time free/busy status and a slot timetable
+- 🔍 **Search & filter** — search by building name or filter by category (library, café, quiet study, bookable rooms, classrooms)
+- 📋 **Room details** — capacity, booking links, category tags, and notes per room
 - 📚 **Library support** — library sub-spaces are shown separately within each building
 - 📱 **Responsive** — works on both desktop and mobile
 
@@ -23,11 +24,11 @@ UBSeats is a React + TypeScript web app that shows live seat and bookable room a
 
 | Layer         | Technology                             |
 | ------------- | -------------------------------------- |
-| Frontend      | React 18, TypeScript, Vite             |
+| Frontend      | React 19, TypeScript, Vite             |
 | Map           | Mapbox GL JS                           |
-| Styling       | Tailwind CSS, shadcn/ui, Framer Motion |
+| Styling       | Tailwind CSS, shadcn/ui                |
 | Data fetching | TanStack Query v5                      |
-| Backend / DB  | Supabase (PostgreSQL)                  |
+| Backend / DB  | Supabase (PostgreSQL + Edge Functions) |
 | Deployment    | Vercel                                 |
 
 ## Getting Started
@@ -76,18 +77,26 @@ npm run lint      # Run ESLint
 
 ```
 src/
-├── components/        # UI components (BuildingDetail, FilterBar, Header, SpotMap, …)
-│   └── ui/            # shadcn/ui primitives
-├── hooks/             # Custom React hooks (useMapState, useBuildings, …)
-├── pages/             # Route-level pages (Index)
+├── components/
+│   ├── details/            # BuildingDetailContent, RoomCard, RoomTimetable, LibraryCard, …
+│   └── ui/                 # shadcn/ui primitives (skeleton, toast, toaster, tooltip)
+├── hooks/                  # useMapState, useBuildings, useRoomAvailability, …
+├── pages/                  # Route-level pages (Index)
 ├── supabase/
-│   ├── services/      # supabaseService.ts — all data fetching
-│   └── schema/        # TypeScript types (Building, Room, Library, …)
-└── utils/             # Helpers (hoursUtils, spotUtils, cnUtils)
+│   ├── functions/          # sync-libcal-availability — Deno Edge Function, syncs
+│   │                       #   LibCal/MRBS availability into `room_availability`
+│   ├── services/           # supabaseService.ts — all data fetching
+│   └── schema/             # TypeScript types (Building, Room, Library, …)
+└── utils/                  # hoursUtils, spotUtils, mapMarkerUtils, cnUtils, …
+
+scraper/                    # Standalone Playwright scraper for general classroom
+                             #   bookings (Scientia timetable) — see scraper/README.md
 ```
 
 ## Architecture Notes
 
 - **Single data fetch** — `fetchBuildings()` fires 9 parallel Supabase queries and assembles them client-side into a `Building[]` tree. All filtering is done client-side via `useMemo`.
-- **Central state** — `useMapState` owns filter state, selected building, and sidebar visibility. The `Index` page is a thin shell that delegates to this hook.
-- **Library rooms** — rooms with a `library_id` are separated from building rooms during assembly and rendered under a `LibraryCard` within `BuildingDetail`.
+- **Central state** — `useMapState` owns filter state, selected building, sidebar visibility, and the loading overlay. The `Index` page is a thin shell that delegates to this hook.
+- **Library rooms** — rooms with a `library_id` are separated from building rooms during assembly and rendered under a `LibraryCard` within `BuildingDetailContent`.
+- **Detail panel** — `BuildingDetailContent` renders inside `BottomSheet` (mobile, drag-to-dismiss) or `SidePanel` (desktop), chosen via `useIsMobile`.
+- **Live availability, two sources merged client-side** — `fetchRoomAvailability()` starts from classroom bookings (populated by the standalone `scraper/`) inverted into free/busy slots, then overlays fresher rows from `room_availability` (kept in sync by the `sync-libcal-availability` Edge Function for LibCal/MRBS-linked rooms). `useRoomAvailability` reads the merged map per room; `RoomCard` renders it via `RoomTimetable`.
