@@ -1,6 +1,6 @@
 import { TimeSlot } from "@/utils/hoursUtils";
 
-export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_now';
+export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_now' | 'favourites';
 
 export interface Category {
   id: CategoryType;
