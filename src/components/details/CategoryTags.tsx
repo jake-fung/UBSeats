@@ -2,14 +2,14 @@ import { CalendarFold, Coffee, LucideIcon, Presentation, VolumeX } from 'lucide-
 import { CategoryType } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 
-const ICON_MAP: Record<Exclude<CategoryType, 'library'>, LucideIcon> = {
+const ICON_MAP: Record<Exclude<CategoryType, 'library' | 'open_now'>, LucideIcon> = {
   cafe: Coffee,
   quiet: VolumeX,
   bookable: CalendarFold,
   classroom: Presentation,
 };
 
-const LABEL_MAP: Record<Exclude<CategoryType, 'library'>, string> = {
+const LABEL_MAP: Record<Exclude<CategoryType, 'library' | 'open_now'>, string> = {
   cafe: 'Café',
   quiet: 'Silent Study',
   bookable: 'Bookable',
@@ -22,8 +22,8 @@ interface CategoryIconProps {
 }
 
 const SingleCategoryTags = ({ categoryId, className }: CategoryIconProps) => {
-  const Icon = ICON_MAP[categoryId as Exclude<CategoryType, 'library'>];
-  const Label = LABEL_MAP[categoryId as Exclude<CategoryType, 'library'>];
+  const Icon = ICON_MAP[categoryId as Exclude<CategoryType, 'library' | 'open_now'>];
+  const Label = LABEL_MAP[categoryId as Exclude<CategoryType, 'library' | 'open_now'>];
   if (!Icon || !Label) return null;
   return (
     <span className="inline-flex items-center justify-between gap-1 rounded-full bg-primary/90 px-3 py-1 text-xs font-medium">
