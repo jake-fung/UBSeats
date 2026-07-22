@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
-import { Filter, Room } from '@/supabase/schema/types';
+import { Category, Filter, Room } from '@/supabase/schema/types';
 import { filterBuildingsBySearch } from '@/hooks/useSearch';
+import { isBuildingOpenNow } from '@/utils/hoursUtils';
+
+const OPEN_NOW_CATEGORY: Category = { id: 'open_now', name: 'Open now', icon: 'Clock', color: '#16A34A' };
 
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories,
+    queryFn: async () => [OPEN_NOW_CATEGORY, ...(await fetchCategories())],
   });
 };
 
@@ -25,7 +28,9 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
     let result = filterBuildingsBySearch([...buildings], searchQuery);
 
     if (filters) {
-      if (filters.category) {
+      if (filters.category === 'open_now') {
+        result = result.filter((building) => isBuildingOpenNow(building.hours, building.library?.hours));
+      } else if (filters.category) {
         const categoryQuery = filters.category.toLowerCase();
 
         const filteredRooms: Record<string, Room[]> = {}
@@ -65,4 +70,3 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
     error,
   };
 };
-

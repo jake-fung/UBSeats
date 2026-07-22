@@ -56,6 +56,17 @@ export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
   };
 }
 
+/**
+ * A building counts as open now if its own hours say so, or its library's do —
+ * BuildingDetailContent/LibraryCard already track those as separate statuses,
+ * and most buildings only carry hours through their library.
+ */
+export function isBuildingOpenNow(hours: DayHours[], libraryHours: DayHours[] | undefined): boolean {
+  if (getBuildingStatus(hours)?.isOpen) return true;
+  if (libraryHours && getBuildingStatus(libraryHours)?.isOpen) return true;
+  return false;
+}
+
 export type BlockStatus = 'available' | 'unavailable' | 'closed';
 
 export interface TimeSlot {
