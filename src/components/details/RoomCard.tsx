@@ -4,6 +4,7 @@ import { CategoryTags } from '@/components/details/CategoryTags';
 import { CapacityRow } from '@/components/details/CapacityRow';
 import { ViewSpaceButton } from '@/components/details/ViewSpaceButton';
 import { RoomTimetable } from '@/components/details/RoomTimetable';
+import { FavouriteButton } from '@/components/details/FavouriteButton';
 import { useRoomAvailability } from '@/hooks/useRoomAvailability';
 
 interface RoomCardProps {
@@ -15,21 +16,22 @@ export const RoomCard = ({ room }: RoomCardProps) => {
 
   return (
     <div className="flex cursor-pointer flex-col rounded-2xl bg-white/70 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl sm:flex-row">
-      <div className="flex w-full flex-1 flex-col justify-center px-5 py-4">
+      <div className="relative flex w-full flex-1 flex-col justify-center px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
               <CategoryTags categoryIds={room.categoryIds} />
               <NoteTags notes={room.notes} />
             </div>
-            <div className="my-1 flex items-center gap-2">
+            <div className="my-1 flex items-center gap-0.5">
               <h4 className="text-base font-semibold text-gray-900">{room.name}</h4>
+              <FavouriteButton roomUuid={room.uuid} roomName={room.name} />
             </div>
             <CapacityRow capacity={room.capacity} />
-            {availability && <RoomTimetable slots={availability.slots} />}
           </div>
           <ViewSpaceButton link={room.link} bookable={room.categoryIds?.includes('bookable')} />
         </div>
+        {availability && <RoomTimetable slots={availability.slots} />}
       </div>
     </div>
   );
