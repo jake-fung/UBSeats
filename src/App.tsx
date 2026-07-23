@@ -16,7 +16,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
         </Routes>
       </TooltipProvider>
-      <Analytics />
+      <Analytics mode={import.meta.env.MODE === 'production' ? 'production' : 'development'} />
     </BrowserRouter>
   </QueryClientProvider>
 );
