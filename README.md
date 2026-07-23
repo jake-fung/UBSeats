@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-🔗 [Live Demo → ubseats.vercel.app](https://ubseats.vercel.app/)
+🔗 [ubseats.vercel.app](https://ubseats.vercel.app/)
 
 ## Overview
 
@@ -129,4 +129,4 @@ This project is not affiliated with or endorsed by the University of British Col
 ## LICENSE
 
 The MIT License (MIT)
-see [LICENSE](LICENSE) for details.
+see [LICENSE](LICENSE.md) for details.
