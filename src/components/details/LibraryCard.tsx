@@ -25,7 +25,7 @@ export const LibraryCard = ({ library }: LibraryCardProps) => {
       <div className="bg-white/70 px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 flex-shrink-0 text-primary" />
+            <BookOpen className="h-4 w-4 shrink-0 text-primary" />
             <h4 className="text-base font-semibold text-gray-900">
               {library.name} ({library.rooms.length} Spaces)
             </h4>

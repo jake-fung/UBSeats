@@ -27,7 +27,7 @@ const SingleCategoryTags = ({ categoryId, className }: CategoryIconProps) => {
   if (!Icon || !Label) return null;
   return (
     <span className="inline-flex items-center justify-between gap-1 rounded-full bg-primary/90 px-3 py-1 text-xs font-medium">
-      <Icon className={cn('h-4 w-4 flex-shrink-0 text-white', className)} />
+      <Icon className={cn('h-4 w-4 shrink-0 text-white', className)} />
       <span className="text-white">{Label}</span>
     </span>
   );

@@ -87,7 +87,7 @@ export const BuildingDetailContent = ({
         </div>
         <h2 className="mb-1 text-2xl font-bold text-gray-900">{building?.name}</h2>
         <div className="mb-2 flex items-center text-sm text-gray-600">
-          <MapPin className="mr-1 h-4 w-4 flex-shrink-0" />
+          <MapPin className="mr-1 h-4 w-4 shrink-0" />
           <span>{building?.primaryAddress}</span>
         </div>
         {status && building?.hours && <HoursPill status={status} hours={building.hours} />}

@@ -14,7 +14,7 @@ export const SidePanel = ({ building, isOpen, onClose, onToggle }: SidePanelProp
   return (
     <section
       className={cn(
-        'fixed bottom-0 right-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
+        'fixed bottom-0 right-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-xs transition-transform duration-300',
         isOpen && 'translate-x-0',
       )}
     >
