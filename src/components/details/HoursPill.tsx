@@ -48,7 +48,7 @@ export const HoursPill = ({ status, hours }: HoursPillProps) => {
         <div
           className={cn(
             'my-1 grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
-            expanded && 'max-h-[200px] overflow-visible opacity-100',
+            expanded && 'max-h-50 overflow-visible opacity-100',
           )}
         >
           <div className="rounded-2xl bg-white/80 px-6 py-4 text-xs text-gray-700 shadow-lg backdrop-blur-lg">

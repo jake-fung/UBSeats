@@ -1,16 +1,22 @@
-import { InfoIcon, X } from 'lucide-react';
+import { InfoIcon, MessageSquareTextIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const TECH_STACK = ['React', 'TypeScript', 'Mapbox GL JS', 'Supabase', 'TanStack Query', 'Tailwind CSS'];
+const FEEDBACK_CATEGORIES = ['Report a bug', 'Feature request', 'Suggest a new study spot', 'Other'];
 
 const About = () => {
   const [aboutOpened, setAboutOpened] = useState(false);
+  const [feedbackOpened, setFeedbackOpened] = useState(false);
+  const [selectedFeedbackCategory, setSelectedFeedbackCategory] = useState<string>('');
 
   // Close on Escape while the modal is open.
   useEffect(() => {
-    if (!aboutOpened) return;
+    if (!aboutOpened && !feedbackOpened) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAboutOpened(false);
+      if (e.key === 'Escape') {
+        setAboutOpened(false);
+        setFeedbackOpened(false);
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -18,26 +24,91 @@ const About = () => {
 
   return (
     <>
-      <div className="fixed bottom-6 left-6 z-10">
+      <div className="fixed bottom-6 left-6 z-10 flex flex-row gap-3 rounded-full bg-white p-3 shadow-lg">
         <button
           aria-label="About UBSeats"
-          className="flex items-center gap-2 rounded-full bg-white p-3 text-gray-700 shadow-lg transition-all duration-200 hover:shadow-xl"
+          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
           onClick={() => setAboutOpened(true)}
         >
           <InfoIcon />
         </button>
+        <div className="w-px rounded-full bg-gray-700" />
+        <button
+          aria-label="Feedback"
+          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
+          onClick={() => setFeedbackOpened(true)}
+        >
+          <MessageSquareTextIcon />
+        </button>
       </div>
+
+      {feedbackOpened && (
+        <div
+          className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200"
+          onClick={() => setFeedbackOpened(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="feedback-title"
+        >
+          <div
+            className="animate-in fade-in zoom-in-95 w-[90vw] max-w-xl rounded-2xl bg-white p-6 shadow-xl duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-start justify-between">
+              <h2 id="feedback-title" className="text-xl font-semibold text-gray-900">
+                Feedback
+              </h2>
+              <button
+                aria-label="Close"
+                className="-mt-1 -mr-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                onClick={() => setFeedbackOpened(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm leading-relaxed text-gray-600">
+              Please provide feedback on how I can improve UBSeats. <br />
+            </p>
+            <div className="mt-3">
+              <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+                what is your suggestion?
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {FEEDBACK_CATEGORIES.map((category) => (
+                  <span
+                    key={category}
+                    className="rounded-full border border-gray-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+                  >
+                    {category}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4">
+              <form className="grid gap-2">
+                <textarea
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="Feedback..."
+                />
+                <button className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {aboutOpened && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200 animate-in fade-in"
+          className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200"
           onClick={() => setAboutOpened(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="about-title"
         >
           <div
-            className="w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
+            className="animate-in fade-in zoom-in-95 w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-start justify-between">
@@ -46,7 +117,7 @@ const About = () => {
               </h2>
               <button
                 aria-label="Close"
-                className="-mr-1 -mt-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                className="-mt-1 -mr-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                 onClick={() => setAboutOpened(false)}
               >
                 <X size={20} />
@@ -59,7 +130,7 @@ const About = () => {
             </p>
 
             <div className="mt-5">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Built with</h3>
+              <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">Built with</h3>
               <div className="flex flex-wrap gap-2">
                 {TECH_STACK.map((tech) => (
                   <span key={tech} className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
