@@ -4,6 +4,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/supabase/*": ["./supabase/*"],
       "@/*": ["./src/*"]
     },
     "noImplicitAny": false,

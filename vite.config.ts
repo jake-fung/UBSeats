@@ -24,8 +24,11 @@ export default defineConfig(() => ({
     tailwindcss(),
   ].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    // Order matters: `@/supabase/*` must be matched before the broader `@` alias,
+    // since the supabase folder lives at the repo root, not under src/.
+    alias: [
+      { find: /^@\/supabase\//, replacement: path.resolve(__dirname, "./supabase") + "/" },
+      { find: /^@\//, replacement: path.resolve(__dirname, "./src") + "/" },
+    ],
   },
 }));
