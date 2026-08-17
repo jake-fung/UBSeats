@@ -74,7 +74,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
       onClose();
       toast({
         title: 'Thanks for the feedback!',
-        description: 'It went straight to Jake.',
+        description: 'Your feedback is very important to us.',
         duration: 4000,
       });
     } catch (err) {
