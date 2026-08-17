@@ -19,11 +19,20 @@ create table if not exists public.feedback (
 
 alter table public.feedback enable row level security;
 
+drop policy if exists "anon can submit feedback" on public.feedback;
+
 create policy "anon can submit feedback"
   on public.feedback
   for insert
   to anon, authenticated
   with check (true);
+
+-- RLS only filters rows; it does not grant table-level privileges. Supabase's
+-- default privileges normally cover this, but only for objects created by the
+-- roles those defaults were configured for. Granting explicitly here removes
+-- any doubt so a differently-provisioned role can't hit
+-- `42501 permission denied for table feedback` despite a correct policy.
+grant insert on public.feedback to anon, authenticated;
 
 -- Newest-first dashboard reads.
 create index if not exists feedback_created_at_idx on public.feedback (created_at desc);

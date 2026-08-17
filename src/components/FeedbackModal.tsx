@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useCallback, useRef, useState, type FormEvent } from 'react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useToast } from '@/hooks/use-toast';
 import { submitFeedback } from '@/supabase/services/supabaseService';
@@ -45,8 +45,16 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const pressStartedOnBackdrop = useRef(false);
 
-  useEscapeKey(onClose);
+  // Dismissing mid-submit would unmount the modal and discard the typed
+  // message before the error path can keep it around, so both the backdrop
+  // click and Escape are gated on `!submitting` below.
+  const handleEscape = useCallback(() => {
+    if (!submitting) onClose();
+  }, [submitting, onClose]);
+
+  useEscapeKey(handleEscape);
 
   // Postgres CHECK constraints are the real validation boundary; this only spares
   // the user a round trip. `submitting` in the guard is the double-submit guard.
@@ -86,13 +94,18 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
   return (
     <div
       className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200"
-      onClick={onClose}
+      onMouseDown={(e) => {
+        pressStartedOnBackdrop.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (!submitting && pressStartedOnBackdrop.current && e.target === e.currentTarget) onClose();
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="feedback-title"
     >
       <div
-        className="animate-in fade-in zoom-in-95 w-[90vw] max-w-xl rounded-2xl bg-white p-6 shadow-xl duration-200"
+        className="animate-in fade-in zoom-in-95 max-h-[calc(100dvh-2rem)] w-[90vw] max-w-xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between">
@@ -100,6 +113,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
             Feedback
           </h2>
           <button
+            type="button"
             aria-label="Close"
             className="-mt-1 -mr-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
             onClick={onClose}
