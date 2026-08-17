@@ -1,5 +1,14 @@
 import { supabase } from '@/supabase/client';
-import { Building, Category, DayHours, Library, Note, Room, RoomAvailability } from '@/supabase/schema/types';
+import {
+  Building,
+  Category,
+  DayHours,
+  FeedbackInput,
+  Library,
+  Note,
+  Room,
+  RoomAvailability,
+} from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
 import { bookingsToSlots, classroomWindowCoversDate, BookingInterval } from '@/utils/hoursUtils';
@@ -269,4 +278,24 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
     });
   });
   return map;
+}
+
+/**
+ * Insert one feedback submission.
+ *
+ * The `feedback` table is write-only from the browser: RLS grants INSERT but no
+ * SELECT. That is why this must not chain `.select()` — the returning clause
+ * would come back empty and supabase-js would surface it as an error even though
+ * the write succeeded.
+ *
+ * Throws the PostgrestError on failure so the caller can keep the user's typed
+ * message on screen instead of silently discarding it.
+ */
+export async function submitFeedback(input: FeedbackInput): Promise<void> {
+  const { error } = await supabase.from('feedback').insert({
+    category: input.category,
+    device: input.device,
+    message: input.message,
+  });
+  if (error) throw error;
 }

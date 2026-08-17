@@ -196,6 +196,30 @@ export type Database = {
           },
         ];
       };
+      feedback: {
+        Row: {
+          category: string;
+          created_at: string;
+          device: string;
+          id: string;
+          message: string;
+        };
+        Insert: {
+          category: string;
+          created_at?: string;
+          device: string;
+          id?: string;
+          message: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          device?: string;
+          id?: string;
+          message?: string;
+        };
+        Relationships: [];
+      };
       room_availability: {
         Row: {
           available_until: string | null;

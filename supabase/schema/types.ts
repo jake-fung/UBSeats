@@ -2,6 +2,16 @@ import { TimeSlot } from "@/utils/hoursUtils";
 
 export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_now' | 'favourites';
 
+export type FeedbackCategory = 'bug' | 'feature' | 'spot' | 'other';
+
+export type FeedbackDevice = 'iphone' | 'android' | 'ipad' | 'desktop';
+
+export interface FeedbackInput {
+  category: FeedbackCategory;
+  device: FeedbackDevice;
+  message: string;
+}
+
 export interface Category {
   id: CategoryType;
   name: string;
