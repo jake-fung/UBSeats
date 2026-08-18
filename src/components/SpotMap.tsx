@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Building } from '@/supabase/schema/types';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -52,12 +52,22 @@ const SpotMap: React.FC<SpotMapProps> = ({
     };
   }, [setMapLoaded]);
 
+  const validBuildings = useMemo(
+    () => buildings.filter((b) => isFinite(b.lng) && isFinite(b.lat)),
+    [buildings],
+  );
+
+  const buildingsKey = validBuildings.map((b) => b.uuid).join('|');
+
+  const validBuildingsRef = useRef(validBuildings);
+  useEffect(() => {
+    validBuildingsRef.current = validBuildings;
+  }, [validBuildings]);
+
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
 
     markers.current = clearMarkers(markers.current);
-
-    const validBuildings = buildings.filter((b) => isFinite(b.lng) && isFinite(b.lat));
 
     validBuildings.forEach((building) => {
       const isSelected = selectedBuilding?.uuid === building.uuid;
@@ -70,19 +80,24 @@ const SpotMap: React.FC<SpotMapProps> = ({
       markers.current.push(marker);
     });
 
-    if (validBuildings.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      validBuildings.forEach((b) => bounds.extend([b.lng, b.lat]));
-      map.current.fitBounds(bounds, {
-        padding: isMobile ? MOBILE_FIT_BOUNDS_PADDING : FIT_BOUNDS_PADDING,
-        maxZoom: FIT_BOUNDS_MAX_ZOOM,
-      });
-    }
-
     return () => {
       markers.current = clearMarkers(markers.current);
     };
-  }, [buildings, selectedBuilding, mapLoaded, onBuildingSelect, setMapLoaded, isMobile]);
+  }, [validBuildings, selectedBuilding, mapLoaded, onBuildingSelect]);
+
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+
+    const toFit = validBuildingsRef.current;
+    if (toFit.length === 0) return;
+
+    const bounds = new mapboxgl.LngLatBounds();
+    toFit.forEach((b) => bounds.extend([b.lng, b.lat]));
+    map.current.fitBounds(bounds, {
+      padding: isMobile ? MOBILE_FIT_BOUNDS_PADDING : FIT_BOUNDS_PADDING,
+      maxZoom: FIT_BOUNDS_MAX_ZOOM,
+    });
+  }, [buildingsKey, mapLoaded, isMobile]);
 
   useEffect(() => {
     if (!mapLoaded || !map.current || !selectedBuilding) return;
