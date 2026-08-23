@@ -26,7 +26,7 @@ export function createBuildingMarkerElement(
 
   const label = document.createElement('div');
   label.className = cn(
-    'absolute top-full left-1/2 -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none',
+    'absolute left-1/2 top-full -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none',
     buildingCount > 10 && !isSelected && 'hidden',
   );
   label.textContent = building.name;

@@ -87,7 +87,6 @@ const BLOCKS_PER_DAY = (24 * 60) / BLOCK_MINUTES;
 export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayBlock[] {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-
   return Array.from({ length: BLOCKS_PER_DAY }, (_, i) => {
     const blockMinutes = i * BLOCK_MINUTES;
     const start = new Date(dayStart.getTime() + blockMinutes * 60_000);
@@ -146,11 +145,13 @@ export function bookingsToSlots(bookings: BookingInterval[], date: Date): TimeSl
   const slots: TimeSlot[] = [];
   let cursor = windowStart;
   for (const b of merged) {
-    if (cursor < b.start) slots.push({ start: new Date(cursor).toISOString(), end: new Date(b.start).toISOString(), available: true });
+    if (cursor < b.start)
+      slots.push({ start: new Date(cursor).toISOString(), end: new Date(b.start).toISOString(), available: true });
     slots.push({ start: new Date(b.start).toISOString(), end: new Date(b.end).toISOString(), available: false });
     cursor = b.end;
   }
-  if (cursor < windowEnd) slots.push({ start: new Date(cursor).toISOString(), end: new Date(windowEnd).toISOString(), available: true });
+  if (cursor < windowEnd)
+    slots.push({ start: new Date(cursor).toISOString(), end: new Date(windowEnd).toISOString(), available: true });
   return slots;
 }
 

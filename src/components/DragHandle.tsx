@@ -49,7 +49,7 @@ export const DragHandle = ({ onDragStart, onDragMove, onDragEnd, className }: Dr
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      className={cn('z-10 flex cursor-grab touch-none justify-center pb-2 pt-3 active:cursor-grabbing', className)}
+      className={cn('z-10 flex cursor-grab touch-none justify-center pt-3 pb-2 active:cursor-grabbing', className)}
     >
       <div className="h-1.5 w-36 rounded-full bg-gray-300" />
     </div>

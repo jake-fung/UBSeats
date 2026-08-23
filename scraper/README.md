@@ -76,12 +76,12 @@ session is saved back automatically.
 
 ## Troubleshooting
 
-| Symptom | Cause / fix |
-|---|---|
-| `Hit the UBC CWL/F5 gate` | Not on campus/VPN, or session expired. Get on the network; re-run with `--headed` to log in. |
-| `FAILED: N unmatched Scientia locations` | A Location cell didn't parse to `<CODE> <room>`. Add a mapping in `src/aliasMap.ts`, or list it in `UNMAPPABLE_LOCATIONS` in `src/config.ts` after review. The run exits 1 and writes nothing. |
-| Navigation fails / selectors missing | Likely the academic-year rollover. Bump `ACADEMIC_YEAR_SEGMENT` in `src/config.ts` (e.g. `sws_2025` → `sws_2026`). |
-| `SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set` | `scraper/.env` missing or incomplete (see Prerequisites). |
+| Symptom                                                  | Cause / fix                                                                                                                                                                                    |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Hit the UBC CWL/F5 gate`                                | Not on campus/VPN, or session expired. Get on the network; re-run with `--headed` to log in.                                                                                                   |
+| `FAILED: N unmatched Scientia locations`                 | A Location cell didn't parse to `<CODE> <room>`. Add a mapping in `src/aliasMap.ts`, or list it in `UNMAPPABLE_LOCATIONS` in `src/config.ts` after review. The run exits 1 and writes nothing. |
+| Navigation fails / selectors missing                     | Likely the academic-year rollover. Bump `ACADEMIC_YEAR_SEGMENT` in `src/config.ts` (e.g. `sws_2025` → `sws_2026`).                                                                             |
+| `SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set` | `scraper/.env` missing or incomplete (see Prerequisites).                                                                                                                                      |
 
 ## Other scripts
 

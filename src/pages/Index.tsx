@@ -7,7 +7,8 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { useMapState } from '@/hooks/useMapState';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
-import About from '@/components/About';
+import Utilities from '@/components/About';
+import Favourites from '@/components/Favourites';
 
 const Index = () => {
   const {
@@ -98,7 +99,8 @@ const Index = () => {
             />
           )}
 
-          <About />
+          <Utilities />
+          <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
         </>
       )}
     </div>

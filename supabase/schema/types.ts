@@ -1,6 +1,6 @@
-import { TimeSlot } from "@/utils/hoursUtils";
+import { TimeSlot } from '@/utils/hoursUtils';
 
-export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_now' | 'favourites';
+export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_buildings' | 'favourites' | 'now_available_rooms';
 
 export type FeedbackCategory = 'bug' | 'feature' | 'spot' | 'other';
 

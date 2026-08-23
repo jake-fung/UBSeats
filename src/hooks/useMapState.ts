@@ -8,7 +8,7 @@ export const useMapState = () => {
   const [activeFilters, setActiveFilters] = useState<Filter>({});
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
-  const [loaderActive, setLoaderActive] = useState(true);
+  const [loaderDismissed, setLoaderDismissed] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -36,13 +36,6 @@ export const useMapState = () => {
     isLoading: isBuildingsLoading,
     error: buildingsError,
   } = useBuildings(activeFilters, search.searchQuery);
-
-  // Sync loader visibility when isBuildingsLoading changes to true
-  useEffect(() => {
-    if (isBuildingsLoading || !mapLoaded) {
-      setLoaderActive(true);
-    }
-  }, [isBuildingsLoading, mapLoaded]);
 
   // Handle toast notifications for building loading errors
   useEffect(() => {
@@ -78,7 +71,7 @@ export const useMapState = () => {
 
   const handleTransitionEnd = () => {
     if (!isBuildingsLoading && mapLoaded) {
-      setLoaderActive(false);
+      setLoaderDismissed(true);
     }
   };
 
@@ -89,7 +82,7 @@ export const useMapState = () => {
     setIsMenuOpened,
     showSearch: search.showSearch,
     searchQuery: search.searchQuery,
-    loaderActive,
+    loaderActive: !loaderDismissed,
     buildings,
     isBuildingsLoading,
     handleFilterChange,

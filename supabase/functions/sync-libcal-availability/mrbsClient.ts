@@ -57,8 +57,7 @@ export function parseMrbsPage(html: string): MrbsPage {
   if (!headerMatch) {
     throw new Error('Could not find MRBS table header in page');
   }
-  const headerRegex =
-    /<th data-room="(\d+)"><a href="[^"]*"\s+title\s*=\s*"[^"]*">([^<]+)<span class="capacity">/g;
+  const headerRegex = /<th data-room="(\d+)"><a href="[^"]*"\s+title\s*=\s*"[^"]*">([^<]+)<span class="capacity">/g;
   const rooms: MrbsRoomColumn[] = [];
   for (const match of headerMatch[1].matchAll(headerRegex)) {
     rooms.push({ roomId: match[1], code: extractRoomCode(match[2]) });
@@ -73,9 +72,7 @@ export function parseMrbsPage(html: string): MrbsPage {
   }
   const rowHtmls = [...bodyMatch[1].matchAll(/<tr[^>]*>(.*?)<\/tr>/gs)].map((m) => m[1]);
   if (rowHtmls.length !== daySlots.length) {
-    throw new Error(
-      `MRBS row count (${rowHtmls.length}) does not match data-slots count (${daySlots.length})`,
-    );
+    throw new Error(`MRBS row count (${rowHtmls.length}) does not match data-slots count (${daySlots.length})`);
   }
 
   const slotsByRoomId = new Map<string, Slot[]>(rooms.map((r) => [r.roomId, []]));

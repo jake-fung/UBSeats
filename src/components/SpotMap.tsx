@@ -52,10 +52,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
     };
   }, [setMapLoaded]);
 
-  const validBuildings = useMemo(
-    () => buildings.filter((b) => isFinite(b.lng) && isFinite(b.lat)),
-    [buildings],
-  );
+  const validBuildings = useMemo(() => buildings.filter((b) => isFinite(b.lng) && isFinite(b.lat)), [buildings]);
 
   const buildingsKey = validBuildings.map((b) => b.uuid).join('|');
 

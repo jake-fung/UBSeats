@@ -5,7 +5,7 @@ import FeedbackModal from '@/components/FeedbackModal';
 
 const TECH_STACK = ['React', 'TypeScript', 'Mapbox GL JS', 'Supabase', 'TanStack Query', 'Tailwind CSS'];
 
-const About = () => {
+const Utilities = () => {
   const [aboutOpened, setAboutOpened] = useState(false);
   const [feedbackOpened, setFeedbackOpened] = useState(false);
 
@@ -37,14 +37,14 @@ const About = () => {
 
       {aboutOpened && (
         <div
-          className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200 animate-in fade-in"
           onClick={() => setAboutOpened(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="about-title"
         >
           <div
-            className="animate-in fade-in zoom-in-95 w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200"
+            className="w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-start justify-between">
@@ -112,4 +112,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default Utilities;

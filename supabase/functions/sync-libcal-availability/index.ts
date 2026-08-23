@@ -7,10 +7,7 @@ Deno.serve(async () => {
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
-  const { data, error } = await supabase
-    .from('building_rooms')
-    .select('uuid, link, room_name')
-    .not('link', 'is', null);
+  const { data, error } = await supabase.from('building_rooms').select('uuid, link, room_name').not('link', 'is', null);
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

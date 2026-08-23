@@ -93,7 +93,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
 
   return (
     <div
-      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200 animate-in fade-in"
       onMouseDown={(e) => {
         pressStartedOnBackdrop.current = e.target === e.currentTarget;
       }}
@@ -105,7 +105,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
       aria-labelledby="feedback-title"
     >
       <div
-        className="animate-in fade-in zoom-in-95 max-h-[calc(100dvh-2rem)] w-[90vw] max-w-xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200"
+        className="max-h-[calc(100dvh-2rem)] w-[90vw] max-w-xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between">

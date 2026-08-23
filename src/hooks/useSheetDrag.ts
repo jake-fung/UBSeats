@@ -90,16 +90,14 @@ export const useSheetDrag = ({ isOpen, onClose, scrollRef }: UseSheetDragOptions
   const startYRef = useRef(0);
   const startXRef = useRef(0);
   const modeRef = useRef<BodyMode>('idle');
-  const detentRef = useRef(detent); // mirror for the once-attached native touch listener below
-  detentRef.current = detent;
 
-  useEffect(() => {
-    if (!isOpen) {
-      setDragOffset(0);
-      setIsDragging(false);
-      setDetent('half'); // reopen at the half detent every time
-    }
-  }, [isOpen]);
+  // Every gesture path already lands on onDragEnd, which zeroes the offset and the
+  // dragging flag, so closing only has to walk the resting detent back to half.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) setDetent('half'); // reopen at the half detent every time
+  }
 
   // At `full`, `touch-action: pan-y` lets the browser claim a downward swipe as a scroll
   // before onBodyPointerMove can decide to drag — it fires pointercancel and the collapse
@@ -110,13 +108,13 @@ export const useSheetDrag = ({ isOpen, onClose, scrollRef }: UseSheetDragOptions
     const el = scrollRef.current;
     if (!el) return;
     const onTouchMove = (e: TouchEvent) => {
-      if (detentRef.current !== 'full' || el.scrollTop > 0) return; // native scroll owns it
+      if (detent !== 'full' || el.scrollTop > 0) return; // native scroll owns it
       if (e.touches[0].clientY - startYRef.current <= 0) return; // pulling up → let it scroll
       e.preventDefault(); // pulling down at the top → keep the pointer drag alive to collapse
     };
     el.addEventListener('touchmove', onTouchMove, { passive: false });
     return () => el.removeEventListener('touchmove', onTouchMove);
-  }, [scrollRef]);
+  }, [scrollRef, detent]);
 
   const onDragStart = () => setIsDragging(true);
   const onDragMove = (offset: number) => setDragOffset(offset);

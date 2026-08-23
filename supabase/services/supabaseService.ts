@@ -65,7 +65,7 @@ function buildImageMap<T extends { image_url: string | null }>(
 export async function fetchCategories(): Promise<Category[]> {
   const data = await selectAll('categories');
   return data.map((item) => ({
-    id: validateCategoryType(item.id) || 'library',
+    id: validateCategoryType(item.id)!,
     name: item.name,
     icon: item.icon,
     color: item.color,
@@ -192,7 +192,10 @@ const STALE_AFTER_MS = 30 * 60 * 1000;
 const BOOKINGS_PAGE_SIZE = 1000;
 
 /** Today's classroom bookings, paginated past PostgREST's 1000-row cap. */
-async function selectClassroomBookingsForDay(dayStart: Date, dayEnd: Date): Promise<Tables['classroom_bookings']['Row'][]> {
+async function selectClassroomBookingsForDay(
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<Tables['classroom_bookings']['Row'][]> {
   const rows: Tables['classroom_bookings']['Row'][] = [];
   for (let from = 0; ; from += BOOKINGS_PAGE_SIZE) {
     const { data, error } = await supabase

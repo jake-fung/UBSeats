@@ -61,7 +61,7 @@ export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
           {visibleBlocks.map((block) => (
             <div
               key={`label-${block.start.toISOString()}`}
-              className="w-3 shrink-0 whitespace-nowrap text-[9px] leading-tight text-gray-500"
+              className="w-3 shrink-0 text-[9px] leading-tight whitespace-nowrap text-gray-500"
             >
               {block.start.getMinutes() === 0 ? blockTime(block.start) : ''}
             </div>
