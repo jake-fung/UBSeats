@@ -65,7 +65,7 @@ every 90s and picks up the new rows automatically.
 
 - Watch the `LIVE:` line for the counts.
 - `select count(*), max(scraped_at) from classroom_bookings;`
-- Or just open <https://ubseats.vercel.app/>.
+- Or just open <https://ubseats.ca/>.
 
 ## Auth model
 

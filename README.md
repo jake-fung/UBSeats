@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-🔗 [ubseats.vercel.app](https://ubseats.vercel.app/)
+🔗 [ubseats.ca](https://ubseats.ca/)
 
 ## Overview
 

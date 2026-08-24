@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ubseats.vercel.app/sitemap.xml
+Sitemap: https://ubseats.ca/sitemap.xml
