@@ -16,7 +16,20 @@ export function parseAvailability(slots: Slot[], now: Date): AvailabilityResult 
 
   const current = sorted.find((s) => new Date(s.start).getTime() <= nowMs && nowMs < new Date(s.end).getTime());
 
-  if (!current || current.available) {
+  // No slot covers `now`, so the room is outside its operating window — closed, not free.
+  // bookingsToSlots emits nothing outside 07:00–22:00, and a LibCal/MRBS grid stops at the
+  // room's bookable hours, so a missing slot is the closed signal for both sources. An empty
+  // slot list lands here too, which reads as "no grid is held for this room".
+  if (!current) {
+    const nextOpen = sorted.find((s) => s.available && new Date(s.start).getTime() >= nowMs);
+    return {
+      isAvailableNow: false,
+      availableUntil: null,
+      nextAvailableAt: nextOpen ? nextOpen.start : null,
+    };
+  }
+
+  if (current.available) {
     const nextBooked = sorted.find((s) => !s.available && new Date(s.start).getTime() >= nowMs);
     return {
       isAvailableNow: true,
