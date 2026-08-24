@@ -272,12 +272,18 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
   const rows = await selectAll('room_availability');
   rows.forEach((row) => {
     if (now.getTime() - new Date(row.checked_at).getTime() > STALE_AFTER_MS) return;
+    // Derive against the current clock instead of trusting row.is_available_now, which the
+    // Edge Function computed at sync time and can lag by up to STALE_AFTER_MS. This is the
+    // same derivation fetchClassroomAvailability performs, so bookable rooms and classrooms
+    // share one definition of "available now" and cannot drift apart again.
+    const slots = row.slots ?? [];
+    const summary = parseAvailability(slots, now);
     map.set(row.room_uuid, {
-      isAvailableNow: row.is_available_now,
-      availableUntil: row.available_until,
-      nextAvailableAt: row.next_available_at,
+      isAvailableNow: summary.isAvailableNow,
+      availableUntil: summary.availableUntil,
+      nextAvailableAt: summary.nextAvailableAt,
       checkedAt: row.checked_at,
-      slots: row.slots ?? [],
+      slots,
     });
   });
   return map;
