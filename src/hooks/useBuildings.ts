@@ -43,19 +43,27 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
   const filteredBuildings = useMemo(() => {
     const result = filterBuildingsBySearch([...buildings], searchQuery);
 
-    switch (filters?.category) {
-      case undefined:
-        return result;
+    if (!filters?.category) {
+      return result;
+    }
+
+    switch (filters.category) {
       case 'open_buildings':
         return result.filter((building) => isBuildingOpenNow(building.hours, building.library?.hours));
       case 'now_available_rooms':
         return filterBuildingsByRoom(result, (room) => availability?.get(room.uuid)?.isAvailableNow === true);
       case 'favourites':
         return filterBuildingsByRoom(result, (room) => favourites.has(room.uuid));
-      default: {
+      case 'library':
+      case 'cafe':
+      case 'quiet':
+      case 'bookable':
+      case 'classroom': {
         const categoryQuery = filters.category.toLowerCase();
         return filterBuildingsByRoom(result, (room) => room.categoryIds?.includes(categoryQuery) === true);
       }
+      default:
+        return result;
     }
   }, [buildings, filters, searchQuery, favourites, availability]);
 
