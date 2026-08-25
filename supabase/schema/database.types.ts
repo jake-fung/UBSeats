@@ -90,6 +90,7 @@ export type Database = {
         Row: {
           building_uuid: string;
           capacity: number | null;
+          library_id: string | null;
           venue_id: string | null;
           link: string | null;
           room_name: string | null;
@@ -99,6 +100,7 @@ export type Database = {
         Insert: {
           building_uuid?: string;
           capacity?: number | null;
+          library_id?: string | null;
           venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
@@ -108,6 +110,7 @@ export type Database = {
         Update: {
           building_uuid?: string;
           capacity?: number | null;
+          library_id?: string | null;
           venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
@@ -478,7 +481,40 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      libraries: {
+        Row: {
+          building_uuid: string | null;
+          id: string | null;
+          name: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'venues_building_uuid_fkey';
+            columns: ['building_uuid'];
+            isOneToOne: false;
+            referencedRelation: 'buildings';
+            referencedColumns: ['uuid'];
+          },
+        ];
+      };
+      library_hours: {
+        Row: {
+          closes_at: string | null;
+          day_of_week: number | null;
+          id: string | null;
+          library_id: string | null;
+          opens_at: string | null;
+        };
+        Relationships: [];
+      };
+      library_images: {
+        Row: {
+          id: string | null;
+          image_url: string | null;
+          library_id: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;

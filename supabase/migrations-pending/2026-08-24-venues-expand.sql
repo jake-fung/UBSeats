@@ -1,3 +1,6 @@
+-- APPLIED TO PRODUCTION 2026-08-24 as migration `venues_generalization_expand`.
+-- Kept as a record; do not re-run (the renames are not idempotent).
+--
 -- 2026-08-24 — EXPAND phase: generalize libraries into venues (library | cafe),
 -- while keeping the pre-existing library-shaped API intact so the currently
 -- deployed `main` build keeps working against the same database.
