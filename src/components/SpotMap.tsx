@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtils';
 import { getScreenHeight, getScreenWidth } from '@/utils/screenSizeUtils';
 
-const FIT_BOUNDS_PADDING = { top: 150, bottom: 100, left: 200, right: 200 } as const;
+const FIT_BOUNDS_PADDING = { top: 200, bottom: 150, left: 200, right: 200 } as const;
 const MOBILE_FIT_BOUNDS_PADDING = { top: 170, bottom: 100, left: 50, right: 50 } as const;
 const FIT_BOUNDS_MAX_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
