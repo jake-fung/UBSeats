@@ -28,8 +28,8 @@ async function selectAll<T extends keyof Tables>(table: T): Promise<Tables[T]['R
 }
 
 /**
- * Group `*_hours` rows into a `Map<key, DayHours[]>`. Shared by building, library,
- * and café hours, which differ only in the column that holds the owning id.
+ * Group `*_hours` rows into a `Map<key, DayHours[]>`. Shared by building and venue
+ * hours, which differ only in the column that holds the owning id.
  */
 function buildHoursMap<T extends { day_of_week: number; opens_at: string | null; closes_at: string | null }>(
   rows: T[],
@@ -47,8 +47,8 @@ function buildHoursMap<T extends { day_of_week: number; opens_at: string | null;
 }
 
 /**
- * Group `*_images` rows into a `Map<key, image_url>`. Shared by building, library,
- * and café images (last write wins, mirroring the original per-entity logic).
+ * Group `*_images` rows into a `Map<key, image_url>`. Shared by building and venue
+ * images (last write wins, mirroring the original per-entity logic).
  */
 function buildImageMap<T extends { image_url: string | null }>(
   rows: T[],
