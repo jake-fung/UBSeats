@@ -33,14 +33,13 @@ export interface Note {
 export interface Room {
   uuid: string;
   building_uuid: string;
-  library_id?: string | null;
+  venue_id?: string | null;
   name: string;
   capacity: number | null;
   link: string;
   categoryIds?: string[];
   notes?: Note[];
   image?: string;
-  hours?: DayHours[];
 }
 
 export interface RoomAvailability {
@@ -57,10 +56,14 @@ export interface DayHours {
   closesAt: string | null;
 }
 
-export interface Library {
+export type VenueKind = 'library' | 'cafe';
+
+/** A named place inside a building with its own hours and photo: a library or a café. */
+export interface Venue {
   id: string;
   buildingUuid: string;
   name: string;
+  kind: VenueKind;
   hours: DayHours[];
   rooms: Room[];
   image: string | undefined;
@@ -76,5 +79,5 @@ export interface Building {
   image: string | undefined;
   rooms: Room[];
   hours: DayHours[];
-  library: Library | null;
+  venues: Venue[];
 }
