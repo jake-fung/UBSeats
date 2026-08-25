@@ -4,7 +4,6 @@ import { Building } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
-import { LibraryCard } from '@/components/details/LibraryCard';
 import { RoomSection } from '@/components/details/RoomSection';
 import { useScrolled } from '@/hooks/useScrolled';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
@@ -13,7 +12,7 @@ import type { BodyDragProps } from '@/hooks/useSheetDrag';
 /**
  * The two hosts differ only in a few cosmetic classes (corner rounding, top
  * padding, and the shadow/background applied once scrolled). Everything else —
- * the scroll container, sticky header, image, library, cafés, and spaces — is
+ * the scroll container, sticky header, image, venues, cafés, and spaces — is
  * identical, so it lives here as the single source of truth.
  */
 type Variant = 'panel' | 'sheet';
@@ -104,10 +103,8 @@ export const BuildingDetailContent = ({
         </div>
       )}
 
-      {building?.library && building.library.rooms.length > 0 && <LibraryCard library={building.library} />}
-
       <div className="my-4 flex flex-col gap-3">
-        <RoomSection rooms={building?.rooms || []} heading="Spaces" />
+        <RoomSection rooms={building?.rooms ?? []} venues={building?.venues ?? []} heading="Spaces" />
       </div>
     </div>
   );

@@ -18,8 +18,8 @@ export function createBuildingMarkerElement(
   const countBadge = document.createElement('div');
   countBadge.className =
     'absolute top-0 right-0 text-xs font-medium text-white bg-primary rounded-r-sm w-5 h-full flex items-center justify-center';
-  const libraryRoomsCount = building.library?.rooms?.length ?? 0;
-  countBadge.textContent = (building.rooms.length + libraryRoomsCount).toString();
+  const venueRoomsCount = building.venues.reduce((n, v) => n + v.rooms.length, 0);
+  countBadge.textContent = (building.rooms.length + venueRoomsCount).toString();
 
   pill.appendChild(countBadge);
   wrapper.appendChild(pill);

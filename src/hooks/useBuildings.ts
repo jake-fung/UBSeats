@@ -7,9 +7,18 @@ import { isBuildingOpenNow } from '@/utils/hoursUtils';
 import { useFavourites } from '@/hooks/useFavourites';
 import { useRoomAvailabilityMap } from '@/hooks/useRoomAvailability';
 
-const AVAILABLE_ROOMS_CATEGORIES: Category = { id: 'now_available_rooms', name: 'Now Available Rooms', icon: 'CheckCircle', color: '#16A34A' };
-const OPEN_BUILDINGS_CATEGORIES: Category = { id: 'open_buildings', name: 'Open Buildings', icon: 'Building2', color: '#3B82F6' };
-
+const AVAILABLE_ROOMS_CATEGORIES: Category = {
+  id: 'now_available_rooms',
+  name: 'Now Available Rooms',
+  icon: 'CheckCircle',
+  color: '#16A34A',
+};
+const OPEN_BUILDINGS_CATEGORIES: Category = {
+  id: 'open_buildings',
+  name: 'Open Buildings',
+  icon: 'Building2',
+  color: '#3B82F6',
+};
 
 export const useCategories = () => {
   return useQuery({
@@ -23,9 +32,13 @@ const filterBuildingsByRoom = (buildings: Building[], keepRoom: (room: Room) => 
     .map((building) => ({
       ...building,
       rooms: building.rooms.filter(keepRoom),
-      library: building.library ? { ...building.library, rooms: building.library.rooms.filter(keepRoom) } : null,
+      // Drop a venue whose rooms were all filtered out, so filtering by `library`
+      // does not leave an empty café card sitting in the list.
+      venues: building.venues
+        .map((venue) => ({ ...venue, rooms: venue.rooms.filter(keepRoom) }))
+        .filter((venue) => venue.rooms.length > 0),
     }))
-    .filter((building) => building.rooms.length > 0 || (building.library?.rooms.length ?? 0) > 0);
+    .filter((building) => building.rooms.length > 0 || building.venues.length > 0);
 
 export const useBuildings = (filters?: Filter, searchQuery?: string) => {
   const { favourites } = useFavourites();
@@ -49,7 +62,12 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
 
     switch (filters.category) {
       case 'open_buildings':
-        return result.filter((building) => isBuildingOpenNow(building.hours, building.library?.hours));
+        return result.filter((building) =>
+          isBuildingOpenNow(
+            building.hours,
+            building.venues.map((v) => v.hours),
+          ),
+        );
       case 'now_available_rooms':
         return filterBuildingsByRoom(result, (room) => availability?.get(room.uuid)?.isAvailableNow === true);
       case 'favourites':
