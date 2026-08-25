@@ -16,12 +16,20 @@ interface VenueCardProps {
  * One card for any venue. A venue with several spaces (a library) collapses them
  * behind a chevron; a venue with a single space (every café today) renders flat and
  * hosts that room's controls directly, so its name is not shown twice.
+ *
+ * The flat/expandable choice is keyed on `kind`, NOT on room count. A café's venue
+ * name is backfilled from its room's name, so showing both would duplicate it — that
+ * is the whole reason flat mode exists. A library's venue and room names are genuinely
+ * different, so a library always stays expandable even when it holds a single room
+ * (X̱wi7x̱wa Library does today) or when a filter leaves only one room matching.
  */
 export const VenueCard = ({ venue }: VenueCardProps) => {
   const status = useMemo(() => getBuildingStatus(venue.hours), [venue.hours]);
   const [expanded, setExpanded] = useState(false);
 
-  const flat = venue.rooms.length <= 1;
+  // A café with a second room would silently lose it in flat mode, so fall back to
+  // the expandable layout rather than hiding data if the one-room assumption ever breaks.
+  const flat = venue.kind === 'cafe' && venue.rooms.length === 1;
   const Icon = VENUE_ICONS[venue.kind];
 
   if (venue.rooms.length === 0) return null;
@@ -34,7 +42,11 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
     return (
       <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg">
         {photo}
-        <div className="bg-white/70 px-5 pt-4">{status && <HoursPill status={status} hours={venue.hours} />}</div>
+        {status && (
+          <div className="bg-white/70 px-5 pt-4">
+            <HoursPill status={status} hours={venue.hours} />
+          </div>
+        )}
         <RoomDetails room={venue.rooms[0]} venue={venue} />
       </div>
     );

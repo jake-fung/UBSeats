@@ -28,6 +28,7 @@ alter index public.library_hours_pkey             rename to venue_hours_pkey;
 alter index public.library_hours_library_id_idx   rename to venue_hours_venue_id_idx;
 alter index public.library_images_pkey            rename to venue_images_pkey;
 alter index public.idx_library_images_library_id  rename to idx_venue_images_venue_id;
+alter index public.idx_building_rooms_library_id  rename to idx_building_rooms_venue_id;
 
 -- 4. Add the kind discriminator --------------------------------------------
 alter table public.venues add column kind text not null default 'library';
@@ -66,6 +67,12 @@ join public.venues v          on v.id = br.venue_id and v.kind = 'cafe';
 -- 7. Tidy the last cafe-era name -------------------------------------------
 alter policy "Allow public read on cafe_images" on public.room_images
   rename to "Allow public read on room_images";
+
+-- The three renamed tables carry their policies across the rename, but the policy
+-- NAMES still say "library". Cosmetic, but a later migration that renames by expected
+-- name would error, so tidy them here.
+alter policy "Allow public read on library_images" on public.venue_images
+  rename to "Allow public read on venue_images";
 
 commit;
 
