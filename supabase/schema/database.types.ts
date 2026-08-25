@@ -90,7 +90,7 @@ export type Database = {
         Row: {
           building_uuid: string;
           capacity: number | null;
-          library_id: string | null;
+          venue_id: string | null;
           link: string | null;
           room_name: string | null;
           source_key: string | null;
@@ -99,7 +99,7 @@ export type Database = {
         Insert: {
           building_uuid?: string;
           capacity?: number | null;
-          library_id?: string | null;
+          venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
           source_key?: string | null;
@@ -108,7 +108,7 @@ export type Database = {
         Update: {
           building_uuid?: string;
           capacity?: number | null;
-          library_id?: string | null;
+          venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
           source_key?: string | null;
@@ -123,10 +123,10 @@ export type Database = {
             referencedColumns: ['uuid'];
           },
           {
-            foreignKeyName: 'building_rooms_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'building_rooms_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];
@@ -302,25 +302,28 @@ export type Database = {
         };
         Relationships: [];
       };
-      libraries: {
+      venues: {
         Row: {
           building_uuid: string;
           id: string;
+          kind: string;
           name: string;
         };
         Insert: {
           building_uuid: string;
           id?: string;
+          kind: string;
           name: string;
         };
         Update: {
           building_uuid?: string;
           id?: string;
+          kind?: string;
           name?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'libraries_building_uuid_fkey';
+            foreignKeyName: 'venues_building_uuid_fkey';
             columns: ['building_uuid'];
             isOneToOne: false;
             referencedRelation: 'buildings';
@@ -328,60 +331,60 @@ export type Database = {
           },
         ];
       };
-      library_hours: {
+      venue_hours: {
         Row: {
           closes_at: string | null;
           day_of_week: number;
           id: string;
-          library_id: string;
+          venue_id: string;
           opens_at: string | null;
         };
         Insert: {
           closes_at?: string | null;
           day_of_week: number;
           id?: string;
-          library_id: string;
+          venue_id: string;
           opens_at?: string | null;
         };
         Update: {
           closes_at?: string | null;
           day_of_week?: number;
           id?: string;
-          library_id?: string;
+          venue_id?: string;
           opens_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'library_hours_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'venue_hours_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];
       };
-      library_images: {
+      venue_images: {
         Row: {
           id: string;
           image_url: string;
-          library_id: string;
+          venue_id: string;
         };
         Insert: {
           id?: string;
           image_url: string;
-          library_id: string;
+          venue_id: string;
         };
         Update: {
           id?: string;
           image_url?: string;
-          library_id?: string;
+          venue_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'library_images_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'venue_images_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];

@@ -4,10 +4,10 @@ import {
   Category,
   DayHours,
   FeedbackInput,
-  Library,
   Note,
   Room,
   RoomAvailability,
+  Venue,
 } from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
@@ -81,9 +81,9 @@ export async function fetchBuildings(): Promise<Building[]> {
     roomNotesData,
     noteDefsData,
     hoursData,
-    librariesData,
-    libHoursData,
-    libImagesData,
+    venuesData,
+    venueHoursData,
+    venueImagesData,
     roomImagesData,
   ] = await Promise.all([
     selectAll('buildings'),
@@ -93,18 +93,18 @@ export async function fetchBuildings(): Promise<Building[]> {
     selectAll('room_notes'),
     selectAll('notes'),
     selectAll('building_hours'),
-    selectAll('libraries'),
-    selectAll('library_hours'),
-    selectAll('library_images'),
+    selectAll('venues'),
+    selectAll('venue_hours'),
+    selectAll('venue_images'),
     selectAll('room_images'),
   ]);
 
   const imageMap = buildImageMap(imagesData, (img) => img.building_uuid);
-  const libImagesMap = buildImageMap(libImagesData, (img) => img.library_id);
+  const venueImagesMap = buildImageMap(venueImagesData, (img) => img.venue_id);
   const roomImagesMap = buildImageMap(roomImagesData, (img) => img.room_uuid);
 
   const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
-  const libHoursMap = buildHoursMap(libHoursData, (h) => h.library_id);
+  const venueHoursMap = buildHoursMap(venueHoursData, (h) => h.venue_id);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -130,14 +130,14 @@ export async function fetchBuildings(): Promise<Building[]> {
   });
 
   const roomsMap = new Map<string, Room[]>();
-  const libRoomsMap = new Map<string, Room[]>();
+  const venueRoomsMap = new Map<string, Room[]>();
   roomsData.forEach((r) => {
     if (!r.building_uuid) return;
     const categoryIds = categoriesMap.get(r.uuid) ?? [];
     const room: Room = {
       uuid: r.uuid,
       building_uuid: r.building_uuid,
-      library_id: r.library_id ?? null,
+      venue_id: r.venue_id ?? null,
       name: r.room_name,
       capacity: r.capacity,
       link: r.link,
@@ -145,11 +145,11 @@ export async function fetchBuildings(): Promise<Building[]> {
       notes: notesMap.get(r.uuid) ?? [],
       image: roomImagesMap.get(r.uuid),
     };
-    if (r.library_id) {
-      const list = libRoomsMap.get(r.library_id) ?? [];
+    if (r.venue_id) {
+      const list = venueRoomsMap.get(r.venue_id) ?? [];
       list.push(room);
       list.sort((a, b) => a.name.localeCompare(b.name));
-      libRoomsMap.set(r.library_id, list);
+      venueRoomsMap.set(r.venue_id, list);
     } else {
       const list = roomsMap.get(r.building_uuid) ?? [];
       list.push(room);
@@ -158,17 +158,21 @@ export async function fetchBuildings(): Promise<Building[]> {
     }
   });
 
-  const librariesMap = new Map<string, Library>();
-  librariesData.forEach((lib) => {
-    if (!lib.building_uuid) return;
-    librariesMap.set(lib.building_uuid, {
-      id: lib.id,
-      buildingUuid: lib.building_uuid,
-      name: lib.name,
-      hours: libHoursMap.get(lib.id) ?? [],
-      rooms: libRoomsMap.get(lib.id) ?? [],
-      image: libImagesMap.get(lib.id),
+  const venuesMap = new Map<string, Venue[]>();
+  venuesData.forEach((v) => {
+    if (!v.building_uuid) return;
+    const list = venuesMap.get(v.building_uuid) ?? [];
+    list.push({
+      id: v.id,
+      buildingUuid: v.building_uuid,
+      name: v.name,
+      kind: v.kind === 'cafe' ? 'cafe' : 'library',
+      hours: venueHoursMap.get(v.id) ?? [],
+      rooms: venueRoomsMap.get(v.id) ?? [],
+      image: venueImagesMap.get(v.id),
     });
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    venuesMap.set(v.building_uuid, list);
   });
 
   return buildingData
@@ -182,9 +186,9 @@ export async function fetchBuildings(): Promise<Building[]> {
       image: imageMap.get(b.uuid),
       rooms: roomsMap.get(b.uuid) ?? [],
       hours: hoursMap.get(b.uuid) ?? [],
-      library: librariesMap.get(b.uuid) ?? null,
+      venues: venuesMap.get(b.uuid) ?? [],
     }))
-    .filter((b) => (b.rooms && b.rooms.length > 0) || (b.library && b.library.rooms.length > 0));
+    .filter((b) => b.rooms.length > 0 || b.venues.some((v) => v.rooms.length > 0));
 }
 
 const STALE_AFTER_MS = 30 * 60 * 1000;
