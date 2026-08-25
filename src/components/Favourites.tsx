@@ -17,7 +17,7 @@ const Favourites = ({ onFilterChange, activeFilters }: FavouritesProps) => {
   };
   return (
     <>
-      <div className={`fixed bottom-6 left-34 z-10 flex flex-row gap-3 rounded-full p-3 shadow-lg ${isActive ? 'bg-primary text-white' : 'bg-white'}`}>
+      <div className={`fixed bottom-6 left-34 z-10 flex flex-row gap-3 rounded-full p-3 shadow-lg text-gray-700 ${isActive ? 'bg-primary text-white' : 'bg-white'}`}>
         <button className="rounded" onClick={handleFavouriteClick}>
           <Heart />
         </button>
