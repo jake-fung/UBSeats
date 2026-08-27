@@ -8,6 +8,7 @@ import { getScreenHeight, getScreenWidth } from '@/utils/screenSizeUtils';
 const FIT_BOUNDS_PADDING = { top: 200, bottom: 150, left: 200, right: 200 } as const;
 const MOBILE_FIT_BOUNDS_PADDING = { top: 170, bottom: 100, left: 50, right: 50 } as const;
 const FIT_BOUNDS_MAX_ZOOM = 16;
+const LABEL_MIN_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
 const BUILDING_DETAIL_ZOOM = 18;
 const SIDEBAR_PADDING_RIGHT = getScreenWidth() / 2;
@@ -68,7 +69,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
 
     validBuildings.forEach((building) => {
       const isSelected = selectedBuilding?.uuid === building.uuid;
-      const el = createBuildingMarkerElement(building, isSelected, validBuildings.length);
+      const el = createBuildingMarkerElement(building, isSelected);
 
       const marker = new mapboxgl.Marker(el).setLngLat([building.lng, building.lat]).addTo(map.current!);
 
@@ -85,6 +86,28 @@ const SpotMap: React.FC<SpotMapProps> = ({
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
 
+    const mapInstance = map.current;
+    const container = mapInstance.getContainer();
+    let labelsVisible: boolean | null = null;
+
+    const syncLabelVisibility = () => {
+      const next = mapInstance.getZoom() >= LABEL_MIN_ZOOM;
+      if (next === labelsVisible) return;
+      labelsVisible = next;
+      container.classList.toggle('labels-visible', next);
+    };
+
+    syncLabelVisibility();
+    mapInstance.on('zoom', syncLabelVisibility);
+
+    return () => {
+      mapInstance.off('zoom', syncLabelVisibility);
+    };
+  }, [mapLoaded]);
+
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+
     const toFit = validBuildingsRef.current;
     if (toFit.length === 0) return;
 
@@ -94,6 +117,10 @@ const SpotMap: React.FC<SpotMapProps> = ({
       padding: isMobile ? MOBILE_FIT_BOUNDS_PADDING : FIT_BOUNDS_PADDING,
       maxZoom: FIT_BOUNDS_MAX_ZOOM,
     });
+    map.current.setMaxBounds([
+      [bounds.getWest() - 0.04, bounds.getSouth() - 0.04],
+      [bounds.getEast() + 0.04, bounds.getNorth() + 0.04],
+    ] as [mapboxgl.LngLatLike, mapboxgl.LngLatLike]);
   }, [buildingsKey, mapLoaded, isMobile]);
 
   useEffect(() => {

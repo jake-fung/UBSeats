@@ -4,7 +4,6 @@ interface CapacityRowProps {
   capacity: number | null;
 }
 
-/** "Capacity: N" row; renders nothing when capacity is unknown. */
 export const CapacityRow = ({ capacity }: CapacityRowProps) => {
   if (capacity == null) return null;
   return (

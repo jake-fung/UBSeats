@@ -5,16 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 import { submitFeedback } from '@/supabase/services/supabaseService';
 import type { FeedbackCategory, FeedbackDevice } from '@/supabase/schema/types';
 
-/** Mirrors the `char_length(message) between 1 and 2000` CHECK on `public.feedback`. */
 const MESSAGE_MAX_LENGTH = 2000;
 
-/**
- * Chips store slugs and render labels. Rewording a label must never change what
- * lands in the database — the CHECK constraint is pinned to these slugs.
- */
 const FEEDBACK_CATEGORIES: { value: FeedbackCategory; label: string }[] = [
   { value: 'bug', label: 'Report a bug' },
-  { value: 'feature', label: 'Feature request' },
+  { value: 'feature', label: 'Request a new feature' },
   { value: 'spot', label: 'Suggest a new study spot' },
   { value: 'other', label: 'Other' },
 ];
@@ -47,17 +42,12 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
   const { toast } = useToast();
   const pressStartedOnBackdrop = useRef(false);
 
-  // Dismissing mid-submit would unmount the modal and discard the typed
-  // message before the error path can keep it around, so both the backdrop
-  // click and Escape are gated on `!submitting` below.
   const handleEscape = useCallback(() => {
     if (!submitting) onClose();
   }, [submitting, onClose]);
 
   useEscapeKey(handleEscape);
 
-  // Postgres CHECK constraints are the real validation boundary; this only spares
-  // the user a round trip. `submitting` in the guard is the double-submit guard.
   const canSubmit = category !== '' && device !== '' && message.trim().length > 0 && !submitting;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -70,7 +60,6 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
     setSubmitting(true);
     try {
       await submitFeedback({ category, device, message: trimmed });
-      // Unmounting discards the form state, so there is nothing to reset here.
       onClose();
       toast({
         title: 'Thanks for the feedback!',
@@ -78,8 +67,6 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
         duration: 4000,
       });
     } catch (err) {
-      // Keep the modal open with the typed message intact — losing someone's
-      // feedback to a network blip is the one failure that actually costs us.
       console.error('feedback submission failed:', err);
       toast({
         title: 'Could not send feedback',
@@ -105,7 +92,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
       aria-labelledby="feedback-title"
     >
       <div
-        className="max-h-[calc(100dvh-2rem)] w-[90vw] max-w-xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
+        className="max-h-[calc(100dvh-2rem)] w-[90vw] max-w-2xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between">

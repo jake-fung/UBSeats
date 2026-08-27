@@ -217,7 +217,7 @@ export async function fetchGridPages(opts: { headed: boolean }): Promise<{ pages
     const thisMonday = mondayOf(new Date());
     const weeks: { pattern: RegExp; weekStart: Date }[] = [
       { pattern: /this week/i, weekStart: thisMonday },
-      // { pattern: /next week/i, weekStart: new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() + 7) },
+      { pattern: /next week/i, weekStart: new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() + 7) },
     ];
 
     const pages: WeekPage[] = [];

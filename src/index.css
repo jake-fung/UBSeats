@@ -318,6 +318,17 @@
   border: 1px solid rgba(255, 255, 255, 0.125);
 }
 
+.marker-label {
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+}
+
+.labels-visible .marker-label,
+.marker-wrapper:hover .marker-label,
+.marker-wrapper.is-selected .marker-label {
+  opacity: 1;
+}
+
 .loader {
   width: 80px;
   aspect-ratio: 1;

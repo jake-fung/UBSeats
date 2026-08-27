@@ -2,32 +2,24 @@ import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { cn } from '@/utils/cnUtils';
 
 export interface DragHandleProps {
-  /** Fired when a drag begins (pointer down on the handle). */
   onDragStart?: () => void;
-  /** Live signed offset in px from where the drag began; negative = dragged up. */
   onDragMove?: (offset: number) => void;
-  /** Final signed offset in px when the pointer is released; 0 when the gesture is cancelled. */
   onDragEnd?: (offset: number) => void;
   className?: string;
 }
 
-/**
- * A grab bar that reports a vertical drag gesture. It owns only the pointer
- * bookkeeping and stays policy-free: it reports a signed offset (up or down) and
- * lets the caller (typically the `useSheetDrag` hook) decide what the drag means.
- */
 export const DragHandle = ({ onDragStart, onDragMove, onDragEnd, className }: DragHandleProps) => {
-  const dragStartRef = useRef<number | null>(null); // pointer Y captured when the drag began
+  const dragStartRef = useRef<number | null>(null);
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     dragStartRef.current = e.clientY;
     onDragStart?.();
-    e.currentTarget.setPointerCapture(e.pointerId); // keep getting moves even if the finger slides off the handle
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (dragStartRef.current === null) return; // not an active drag → ignore stray moves
-    onDragMove?.(e.clientY - dragStartRef.current); // signed: negative up, positive down
+    if (dragStartRef.current === null) return;
+    onDragMove?.(e.clientY - dragStartRef.current);
   };
 
   const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -40,7 +32,7 @@ export const DragHandle = ({ onDragStart, onDragMove, onDragEnd, className }: Dr
   const handlePointerCancel = () => {
     if (dragStartRef.current === null) return;
     dragStartRef.current = null;
-    onDragEnd?.(0); // aborted gesture → 0 keeps the parent at its current detent
+    onDragEnd?.(0);
   };
 
   return (

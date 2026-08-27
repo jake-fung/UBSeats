@@ -5,7 +5,6 @@ interface ViewSpaceButtonProps {
   bookable?: boolean;
 }
 
-/** Opens a room's booking/info link in a new tab. Renders nothing without a link. */
 export const ViewSpaceButton = ({ link, bookable }: ViewSpaceButtonProps) => {
   if (!link) return null;
   return (

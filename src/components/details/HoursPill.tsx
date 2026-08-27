@@ -47,11 +47,11 @@ export const HoursPill = ({ status, hours }: HoursPillProps) => {
       {hours.length > 0 && (
         <div
           className={cn(
-            'my-1 grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
-            expanded && 'max-h-50 overflow-visible opacity-100',
+            'grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
+            expanded && 'my-1 max-h-50 overflow-visible opacity-100',
           )}
         >
-          <div className="rounded-2xl bg-white/80 px-6 py-4 text-xs text-gray-700 shadow-lg backdrop-blur-lg">
+          <div className="rounded-2xl bg-white/80 px-6 py-4 text-xs text-gray-700 shadow-md backdrop-blur-sm">
             {DAY_NAMES.map((name, i) => {
               const day = hours.find((h) => h.dayOfWeek === i);
               const isToday = i === today;

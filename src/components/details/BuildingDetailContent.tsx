@@ -9,12 +9,6 @@ import { useScrolled } from '@/hooks/useScrolled';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { BodyDragProps } from '@/hooks/useSheetDrag';
 
-/**
- * The two hosts differ only in a few cosmetic classes (corner rounding, top
- * padding, and the shadow/background applied once scrolled). Everything else —
- * the scroll container, sticky header, image, venues, cafés, and spaces — is
- * identical, so it lives here as the single source of truth.
- */
 type Variant = 'panel' | 'sheet';
 
 const VARIANTS: Record<Variant, { scroll: string; header: string; scrolled: string }> = {
@@ -35,11 +29,8 @@ interface BuildingDetailContentProps {
   isOpen: boolean;
   onClose: () => void;
   variant: Variant;
-  /** Sheet variant only: shared scroll container ref so the drag hook can read scrollTop. */
   scrollRef?: RefObject<HTMLDivElement>;
-  /** Sheet variant only: true at the half detent, where the body drags instead of scrolling. */
   scrollLocked?: boolean;
-  /** Sheet variant only: pointer handlers that let the whole body drag the sheet. */
   bodyDragProps?: BodyDragProps;
 }
 
@@ -53,14 +44,12 @@ export const BuildingDetailContent = ({
   bodyDragProps,
 }: BuildingDetailContentProps) => {
   const internalRef = useRef<HTMLDivElement>(null);
-  const contentRef = scrollRef ?? internalRef; // sheet shares its ref with the drag hook; panel owns its own
+  const contentRef = scrollRef ?? internalRef;
   const scrolled = useScrolled(contentRef, isOpen);
   useEscapeKey(onClose);
 
   const v = VARIANTS[variant];
 
-  // The desktop panel always scrolls. The mobile sheet locks scrolling at the half detent
-  // (the body drags instead) and only scrolls — with overscroll contained — once expanded.
   const overflowClass =
     variant === 'sheet'
       ? scrollLocked

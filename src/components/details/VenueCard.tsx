@@ -12,23 +12,10 @@ interface VenueCardProps {
   venue: Venue;
 }
 
-/**
- * One card for any venue. A venue with several spaces (a library) collapses them
- * behind a chevron; a venue with a single space (every café today) renders flat and
- * hosts that room's controls directly, so its name is not shown twice.
- *
- * The flat/expandable choice is keyed on `kind`, NOT on room count. A café's venue
- * name is backfilled from its room's name, so showing both would duplicate it — that
- * is the whole reason flat mode exists. A library's venue and room names are genuinely
- * different, so a library always stays expandable even when it holds a single room
- * (X̱wi7x̱wa Library does today) or when a filter leaves only one room matching.
- */
 export const VenueCard = ({ venue }: VenueCardProps) => {
   const status = useMemo(() => getBuildingStatus(venue.hours), [venue.hours]);
   const [expanded, setExpanded] = useState(false);
 
-  // A café with a second room would silently lose it in flat mode, so fall back to
-  // the expandable layout rather than hiding data if the one-room assumption ever breaks.
   const flat = venue.kind === 'cafe' && venue.rooms.length === 1;
   const Icon = VENUE_ICONS[venue.kind];
 
@@ -42,11 +29,6 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
     return (
       <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg">
         {photo}
-        {status && (
-          <div className="bg-white/70 px-5 pt-4">
-            <HoursPill status={status} hours={venue.hours} />
-          </div>
-        )}
         <RoomDetails room={venue.rooms[0]} venue={venue} />
       </div>
     );
@@ -58,7 +40,7 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
       className="cursor-pointer overflow-hidden rounded-2xl bg-white/70 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
     >
       {photo}
-      <div className="bg-white/70 px-5 py-4">
+      <div className="px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Icon className="h-4 w-4 shrink-0 text-primary" />
@@ -74,7 +56,7 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
         <div
           className={cn(
             'flex flex-col gap-2 transition-all duration-300 ease-in-out',
-            expanded ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0',
+            expanded ? 'mt-2 max-h-[9999px] opacity-100' : 'max-h-0 opacity-0',
           )}
         >
           {venue.rooms.map((room) => (

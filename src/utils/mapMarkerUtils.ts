@@ -2,13 +2,10 @@ import mapboxgl from 'mapbox-gl';
 import { Building } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 
-export function createBuildingMarkerElement(
-  building: Building,
-  isSelected: boolean,
-  buildingCount: number,
-): HTMLDivElement {
+export function createBuildingMarkerElement(building: Building, isSelected: boolean): HTMLDivElement {
   const wrapper = document.createElement('div');
-  wrapper.className = 'flex flex-col items-center cursor-pointer z-5';
+  // `marker-wrapper` / `is-selected` are hooks for the label visibility rules in index.css.
+  wrapper.className = cn('marker-wrapper flex flex-col items-center cursor-pointer z-5', isSelected && 'is-selected');
 
   const pill = document.createElement('div');
   pill.className =
@@ -25,17 +22,10 @@ export function createBuildingMarkerElement(
   wrapper.appendChild(pill);
 
   const label = document.createElement('div');
-  label.className = cn(
-    'absolute left-1/2 top-full -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none',
-    buildingCount > 10 && !isSelected && 'hidden',
-  );
+  label.className =
+    'marker-label absolute left-1/2 top-full -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none';
   label.textContent = building.name;
   wrapper.appendChild(label);
-
-  if (buildingCount > 10 && !isSelected) {
-    wrapper.addEventListener('mouseenter', () => label.classList.remove('hidden'));
-    wrapper.addEventListener('mouseleave', () => label.classList.add('hidden'));
-  }
 
   return wrapper;
 }
