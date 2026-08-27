@@ -15,12 +15,12 @@ const VARIANTS: Record<Variant, { scroll: string; header: string; scrolled: stri
   panel: {
     scroll: 'relative mb-4 px-6',
     header: 'rounded-tl-3xl pt-6',
-    scrolled: 'bg-white/40 shadow-lg shadow-gray-500/60 backdrop-blur-md',
+    scrolled: 'bg-white/80 shadow-lg shadow-gray-500/60 backdrop-blur-md',
   },
   sheet: {
     scroll: 'px-6 pb-8',
     header: 'rounded-t-3xl pt-4',
-    scrolled: 'bg-white/60 shadow-lg shadow-gray-500/40 backdrop-blur-md',
+    scrolled: 'bg-white/80 shadow-lg shadow-gray-500/60 backdrop-blur-md',
   },
 };
 

@@ -28,6 +28,11 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
   if (flat) {
     return (
       <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg">
+        {status && (
+          <div className="px-5 py-3">
+            <HoursPill status={status} hours={venue.hours} />
+          </div>
+        )}
         {photo}
         <RoomDetails room={venue.rooms[0]} venue={venue} />
       </div>

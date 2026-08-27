@@ -53,7 +53,10 @@ export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
                   className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
                 />
               </TooltipTrigger>
-              <TooltipContent>{`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</TooltipContent>
+              <TooltipContent className={cn(block.title && 'max-w-56 rounded-2xl px-3 py-1.5 text-center')}>
+                <div>{`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</div>
+                {block.title && <div className="text-muted-foreground">{block.title}</div>}
+              </TooltipContent>
             </Tooltip>
           ))}
         </div>

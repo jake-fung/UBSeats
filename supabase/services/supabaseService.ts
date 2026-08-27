@@ -244,7 +244,7 @@ export async function fetchClassroomAvailability(now: Date): Promise<Map<string,
   const bookingsByRoom = new Map<string, BookingInterval[]>();
   bookings.forEach((b) => {
     const list = bookingsByRoom.get(b.room_uuid) ?? [];
-    list.push({ startsAt: b.starts_at, endsAt: b.ends_at });
+    list.push({ startsAt: b.starts_at, endsAt: b.ends_at, title: b.title });
     bookingsByRoom.set(b.room_uuid, list);
   });
 

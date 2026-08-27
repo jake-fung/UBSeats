@@ -72,12 +72,14 @@ export interface TimeSlot {
   start: string; // ISO 8601
   end: string; // ISO 8601
   available: boolean;
+  title?: string | null; // booking name; only carried on unavailable slots
 }
 
 export interface DayBlock {
   start: Date;
   end: Date;
   status: BlockStatus;
+  title?: string | null;
 }
 
 const BLOCK_MINUTES = 15;
@@ -99,20 +101,27 @@ export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayB
       return { start, end, status: 'closed' as const };
     }
 
-    const isBooked = (slots ?? []).some(
+    const booked = (slots ?? []).filter(
       (slot) =>
         slot.available === false &&
         start.getTime() < new Date(slot.end).getTime() &&
         end.getTime() > new Date(slot.start).getTime(),
     );
 
-    return { start, end, status: isBooked ? ('unavailable' as const) : ('available' as const) };
+    if (booked.length === 0) {
+      return { start, end, status: 'available' as const };
+    }
+
+    // Back-to-back bookings can share a block, so name every one that overlaps it.
+    const titles = [...new Set(booked.map((slot) => slot.title).filter((t): t is string => !!t))];
+    return { start, end, status: 'unavailable' as const, title: titles.join(', ') || null };
   });
 }
 
 export interface BookingInterval {
   startsAt: string; // ISO 8601
   endsAt: string; // ISO 8601
+  title?: string | null;
 }
 
 const CLASSROOM_DAY_START_HOUR = 7;
@@ -127,31 +136,46 @@ export function bookingsToSlots(bookings: BookingInterval[], date: Date): TimeSl
   const windowStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLASSROOM_DAY_START_HOUR).getTime();
   const windowEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLASSROOM_DAY_END_HOUR).getTime();
 
-  const merged: { start: number; end: number }[] = [];
-  bookings
+  const clamped = bookings
     .map((b) => ({
       start: Math.max(new Date(b.startsAt).getTime(), windowStart),
       end: Math.min(new Date(b.endsAt).getTime(), windowEnd),
+      title: b.title ?? null,
     }))
     .filter((b) => b.start < b.end)
-    .sort((a, b) => a.start - b.start)
-    .forEach((b) => {
-      const last = merged[merged.length - 1];
-      if (last && b.start <= last.end) last.end = Math.max(last.end, b.end);
-      else merged.push({ ...b });
-    });
+    .sort((a, b) => a.start - b.start);
+
+  // Merge only to find the free gaps between bookings; each booking still emits its
+  // own unavailable slot below so the timetable can name it. Scheduled classes run
+  // back-to-back rather than overlapping, so the split stays exactly adjacent and
+  // parseAvailability's walk to the end of a booking chain is unaffected.
+  const merged: { start: number; end: number }[] = [];
+  clamped.forEach((b) => {
+    const last = merged[merged.length - 1];
+    if (last && b.start <= last.end) last.end = Math.max(last.end, b.end);
+    else merged.push({ start: b.start, end: b.end });
+  });
 
   const slots: TimeSlot[] = [];
   let cursor = windowStart;
   for (const b of merged) {
     if (cursor < b.start)
       slots.push({ start: new Date(cursor).toISOString(), end: new Date(b.start).toISOString(), available: true });
-    slots.push({ start: new Date(b.start).toISOString(), end: new Date(b.end).toISOString(), available: false });
     cursor = b.end;
   }
   if (cursor < windowEnd)
     slots.push({ start: new Date(cursor).toISOString(), end: new Date(windowEnd).toISOString(), available: true });
-  return slots;
+
+  clamped.forEach((b) =>
+    slots.push({
+      start: new Date(b.start).toISOString(),
+      end: new Date(b.end).toISOString(),
+      available: false,
+      title: b.title,
+    }),
+  );
+
+  return slots.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 }
 
 /**
