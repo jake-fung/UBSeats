@@ -20,12 +20,12 @@ export const RoomDetails = ({ room, venue }: RoomDetailsProps) => {
     <div className="relative flex w-full flex-1 flex-col justify-center px-5 py-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <FavouriteButton roomUuid={room.uuid} roomName={title} />
             <CategoryTags categoryIds={room.categoryIds} />
             <NoteTags notes={room.notes} />
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center wrap-break-word">
             <h4 className="text-base translate-y-[0.5px] font-semibold text-gray-900">{title}</h4>
           </div>
           <CapacityRow capacity={room.capacity} />
