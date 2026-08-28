@@ -57,7 +57,7 @@ export interface DayHours {
   closesAt: string | null;
 }
 
-export type VenueKind = 'library' | 'cafe';
+export type VenueKind = 'library';
 
 /** A named place inside a building with its own hours and photo: a library or a café. */
 export interface Venue {

@@ -71,11 +71,13 @@ export const useMapState = () => {
     setIsMenuOpened(true);
   };
 
-  const handleTransitionEnd = () => {
-    if (!isBuildingsLoading && mapLoaded) {
-      setLoaderDismissed(true);
-    }
-  };
+  const appReady = !isBuildingsLoading && mapLoaded;
+
+  useEffect(() => {
+    if (!appReady) return;
+    const timeout = setTimeout(() => setLoaderDismissed(true), 1000);
+    return () => clearTimeout(timeout);
+  }, [appReady]);
 
   return {
     activeFilters,
@@ -87,13 +89,13 @@ export const useMapState = () => {
     loaderActive: !loaderDismissed,
     buildings,
     isBuildingsLoading,
+    appReady,
     handleFilterChange,
     handleBuildingSelect,
     handleSearchChange: search.handleSearchChange,
     handleClearSearch: search.handleClearSearch,
     handleSearchSubmit: search.handleSearchSubmit,
     handleSearchIconClicked: search.handleSearchIconClicked,
-    handleTransitionEnd,
     mapLoaded,
     setMapLoaded,
   };

@@ -20,7 +20,7 @@ export const FavouriteButton = ({ roomUuid, roomName }: FavouriteButtonProps) =>
         e.stopPropagation();
         toggle(roomUuid);
       }}
-      className="items-center pl-1 justify-center rounded-full text-gray-400 transition-colors hover:text-primary"
+      className="items-center h-6 w-5 justify-center rounded-full text-gray-400 transition-colors hover:text-primary"
     >
       <Heart className={cn('h-4 w-4 transition-all', favourited && 'fill-primary text-primary')} />
     </button>

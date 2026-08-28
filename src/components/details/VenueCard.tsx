@@ -3,8 +3,7 @@ import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { RoomCard } from '@/components/details/RoomCard';
 import { RoomDetails } from '@/components/details/RoomDetails';
-import { VENUE_ICONS } from '@/components/details/venueIcons';
-import { ChevronDown } from 'lucide-react';
+import { BookOpen, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/utils/cnUtils';
 
@@ -16,8 +15,7 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
   const status = useMemo(() => getBuildingStatus(venue.hours), [venue.hours]);
   const [expanded, setExpanded] = useState(false);
 
-  const flat = venue.kind === 'cafe' && venue.rooms.length === 1;
-  const Icon = VENUE_ICONS[venue.kind];
+  const flat = venue.rooms.length === 1;
 
   if (venue.rooms.length === 0) return null;
 
@@ -48,7 +46,7 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
       <div className="px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 shrink-0 text-primary" />
+            <BookOpen className="h-4 w-4 shrink-0 text-primary" />
             <h4 className="text-base font-semibold text-gray-900">
               {venue.name} ({venue.rooms.length} Spaces)
             </h4>
