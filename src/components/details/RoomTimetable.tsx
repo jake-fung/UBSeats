@@ -1,7 +1,8 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
 import { cn } from '@/utils/cnUtils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export interface RoomTimetableProps {
   slots?: TimeSlot[];
@@ -26,6 +27,9 @@ function blockTime(date: Date): string {
 }
 
 export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
   const now = useMemo(() => new Date(), []);
   const blocks = useMemo(() => computeDayBlocks(slots, now), [slots, now]);
   const visibleBlocks = useMemo(() => {
@@ -46,14 +50,36 @@ export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
       <div className="relative">
         <div className="flex gap-px">
           {visibleBlocks.map((block, i) => (
-            <Tooltip key={block.start.toISOString()} delayDuration={0}>
+            <Tooltip
+              key={block.start.toISOString()}
+              delayDuration={0}
+              open={openId === block.start.toISOString()}
+              onOpenChange={(open) => {
+                if (isMobile) return;
+                setOpenId(open ? block.start.toISOString() : null);
+              }}
+            >
               <TooltipTrigger asChild>
                 <div
                   ref={i === 0 ? currentBlockRef : undefined}
+                  data-timetable-block=""
                   className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
+                  onClick={(e) => {
+                    if (!isMobile) return;
+                    e.stopPropagation();
+                    setOpenId(openId === block.start.toISOString() ? null : block.start.toISOString());
+                  }}
                 />
               </TooltipTrigger>
-              <TooltipContent className={cn(block.title && 'max-w-56 rounded-2xl px-3 py-1.5 text-center')}>
+              <TooltipContent
+                className={cn(block.title && 'max-w-56 rounded-2xl px-3 py-1.5 text-center')}
+                onPointerDownOutside={(e) => {
+                  const target = (e.detail.originalEvent.target as Element | null) ?? null;
+                  if (target?.closest('[data-timetable-block]')) return;
+                  setOpenId(null);
+                }}
+                onEscapeKeyDown={() => setOpenId(null)}
+              >
                 <div>{`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</div>
                 {block.title && <div className="text-muted-foreground">{block.title}</div>}
               </TooltipContent>

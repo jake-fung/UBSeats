@@ -1,13 +1,19 @@
 import { Note } from '@/supabase/schema/types';
 import { useState } from 'react';
 import { NotePopup } from '@/components/details/NotePopup';
-import { Apple, AppWindow, Cable, CalendarClock, InfoIcon, Monitor } from 'lucide-react';
+import { Apple, AppWindow, Cable, CalendarClock, ConciergeBell, InfoIcon, Monitor, Briefcase, CalendarRange, GraduationCap, Projector, Scale } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ICON_MAP = {
   Apple,
   AppWindow,
   Cable,
+  CalendarRange,
+  GraduationCap,
+  ConciergeBell,
+  Scale,
+  Briefcase,
+  Projector,
   CalendarClock,
   Monitor,
   InfoIcon,
