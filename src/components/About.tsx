@@ -1,32 +1,39 @@
-import { InfoIcon, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { InfoIcon, MessageSquareTextIcon, X } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
+import FeedbackModal from '@/components/FeedbackModal';
 
 const TECH_STACK = ['React', 'TypeScript', 'Mapbox GL JS', 'Supabase', 'TanStack Query', 'Tailwind CSS'];
 
-const About = () => {
+const Utilities = () => {
   const [aboutOpened, setAboutOpened] = useState(false);
+  const [feedbackOpened, setFeedbackOpened] = useState(false);
 
-  // Close on Escape while the modal is open.
-  useEffect(() => {
-    if (!aboutOpened) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAboutOpened(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [aboutOpened]);
+  const closeAbout = useCallback(() => setAboutOpened(false), []);
+  const closeFeedback = useCallback(() => setFeedbackOpened(false), []);
+  useEscapeKey(closeAbout);
 
   return (
     <>
-      <div className="fixed bottom-6 left-6 z-10">
+      <div className="fixed bottom-6 left-6 z-10 flex flex-row gap-3 rounded-full bg-white p-3 shadow-lg">
         <button
           aria-label="About UBSeats"
-          className="flex items-center gap-2 rounded-full bg-white p-3 text-gray-700 shadow-lg transition-all duration-200 hover:shadow-xl"
+          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
           onClick={() => setAboutOpened(true)}
         >
           <InfoIcon />
         </button>
+        <div className="w-px rounded-full bg-gray-700" />
+        <button
+          aria-label="Feedback"
+          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
+          onClick={() => setFeedbackOpened(true)}
+        >
+          <MessageSquareTextIcon />
+        </button>
       </div>
+
+      {feedbackOpened && <FeedbackModal onClose={closeFeedback} />}
 
       {aboutOpened && (
         <div
@@ -46,7 +53,7 @@ const About = () => {
               </h2>
               <button
                 aria-label="Close"
-                className="-mr-1 -mt-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                className="-mt-1 -mr-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                 onClick={() => setAboutOpened(false)}
               >
                 <X size={20} />
@@ -59,7 +66,7 @@ const About = () => {
             </p>
 
             <div className="mt-5">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Built with</h3>
+              <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">Built with</h3>
               <div className="flex flex-wrap gap-2">
                 {TECH_STACK.map((tech) => (
                   <span key={tech} className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
@@ -105,4 +112,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default Utilities;

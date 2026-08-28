@@ -31,7 +31,7 @@ Because classroom availability depends on a manual, CWL-authenticated scrape rat
 - 🟢 **Live room availability** — classrooms and library-booking rooms show real-time free/busy status and a slot timetable
 - 🔍 **Search & filter** — search by building name or filter by category (library, café, quiet study, bookable rooms, classrooms)
 - 📋 **Room details** — capacity, booking links, category tags, and notes per room
-- 📚 **Library support** — library sub-spaces are shown separately within each building
+- 📚 **Venue support** — libraries and cafés are shown as their own cards, with their own hours and photos, within each building
 - 📱 **Responsive** — works on both desktop and mobile
 
 ## Tech Stack
@@ -94,7 +94,7 @@ There is no `npm test` command — no test suite is configured for the frontend 
 ```
 src/
 ├── components/
-│   ├── details/            # BuildingDetailContent, RoomCard, RoomTimetable, LibraryCard, …
+│   ├── details/            # BuildingDetailContent, RoomCard, RoomDetails, VenueCard, …
 │   └── ui/                 # shadcn/ui primitives (skeleton, toast, toaster, tooltip)
 ├── hooks/                  # useMapState, useBuildings, useRoomAvailability, …
 ├── pages/                  # Route-level pages (Index)
@@ -102,7 +102,7 @@ src/
 │   ├── functions/          # sync-libcal-availability — Deno Edge Function, syncs
 │   │                       #   LibCal/MRBS availability into `room_availability`
 │   ├── services/           # supabaseService.ts — all data fetching
-│   └── schema/             # TypeScript types (Building, Room, Library, …)
+│   └── schema/             # TypeScript types (Building, Room, Venue, …)
 └── utils/                  # hoursUtils, spotUtils, mapMarkerUtils, cnUtils, …
 
 scraper/                    # Standalone Playwright scraper for general classroom
@@ -113,7 +113,7 @@ scraper/                    # Standalone Playwright scraper for general classroo
 
 - **Single data fetch** — `fetchBuildings()` fires 9 parallel Supabase queries and assembles them client-side into a `Building[]` tree. All filtering is done client-side via `useMemo`.
 - **Central state** — `useMapState` owns filter state, selected building, sidebar visibility, and the loading overlay. The `Index` page is a thin shell that delegates to this hook.
-- **Library rooms** — rooms with a `library_id` are separated from building rooms during assembly and rendered under a `LibraryCard` within `BuildingDetailContent`.
+- **Venues** — a venue is a named place inside a building with its own hours and photo: a library or a café (`venues.kind`). Rooms with a `venue_id` are grouped under their venue during assembly and rendered as a `VenueCard`, interleaved alphabetically with the building's loose rooms by `RoomSection`. A library's card expands to its rooms; a café's renders flat and hosts its single room's controls directly.
 - **Detail panel** — `BuildingDetailContent` renders inside `BottomSheet` (mobile, drag-to-dismiss) or `SidePanel` (desktop), chosen via `useIsMobile`.
 - **Live availability, two sources merged client-side** — `fetchRoomAvailability()` starts from classroom bookings (populated by the standalone `scraper/`) inverted into free/busy slots, then overlays fresher rows from `room_availability` (kept in sync by the `sync-libcal-availability` Edge Function for LibCal/MRBS-linked rooms). `useRoomAvailability` reads the merged map per room; `RoomCard` renders it via `RoomTimetable`.
 

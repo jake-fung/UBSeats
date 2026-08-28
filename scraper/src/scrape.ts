@@ -28,8 +28,8 @@ async function safeEval<R, Arg = void>(
     return await page.$$eval(selector, pageFunction as any, arg as any);
   } catch (err) {
     if (!isContextDestroyed(err)) throw err;
-    await page.waitForLoadState('domcontentloaded').catch(() => { });
-    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return await page.$$eval(selector, pageFunction as any, arg as any);
   }
@@ -40,7 +40,7 @@ async function mustFind(page: Page, selector: string): Promise<Locator> {
   try {
     await locator.first().waitFor({ state: 'attached', timeout: 15_000 });
   } catch (err) {
-    let ids: string[] = [];
+    let ids: string[];
     try {
       ids = await safeEval(page, '[id]', (els) => els.slice(0, 60).map((e) => e.id));
     } catch {
@@ -100,7 +100,7 @@ async function selectAwaitingPostback(page: Page, selector: string, value: strin
   const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: POSTBACK_TIMEOUT_MS }).catch(() => null);
   await page.selectOption(selector, value);
   await nav;
-  await page.waitForLoadState('networkidle').catch(() => { });
+  await page.waitForLoadState('networkidle').catch(() => {});
 }
 
 /**
@@ -125,7 +125,7 @@ async function fetchOneWeek(
       .catch(() => null);
     await (await mustFind(page, '#LinkBtn_locationByZone')).click();
     await navToForm;
-    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForLoadState('networkidle').catch(() => {});
     await mustFind(page, '#dlObject');
     const formHtml = await page.content();
 
@@ -135,7 +135,9 @@ async function fetchOneWeek(
     if (periodValue) {
       await selectAwaitingPostback(page, '#dlPeriod', periodValue);
     } else {
-      console.warn(`No "All Day" period option found — leaving #dlPeriod at its default. Options: ${await listOptions(page, '#dlPeriod')}`);
+      console.warn(
+        `No "All Day" period option found — leaving #dlPeriod at its default. Options: ${await listOptions(page, '#dlPeriod')}`,
+      );
     }
 
     // "List Timetable" is the parseable text export; its LABEL is "List Timetable"
@@ -144,7 +146,7 @@ async function fetchOneWeek(
     if (!typeValue) {
       throw new Error(
         `"List Timetable" report type (value containing "textspreadsheet") not found in #dlType. ` +
-        `Options: ${await listOptions(page, '#dlType')}`,
+          `Options: ${await listOptions(page, '#dlType')}`,
       );
     }
     await selectAwaitingPostback(page, '#dlType', typeValue);
@@ -156,7 +158,9 @@ async function fetchOneWeek(
     if (daysValue) {
       await page.selectOption('#lbDays', daysValue);
     } else {
-      console.warn(`No "All Days" option found — leaving #lbDays at its default. Options: ${await listOptions(page, '#lbDays')}`);
+      console.warn(
+        `No "All Days" option found — leaving #lbDays at its default. Options: ${await listOptions(page, '#lbDays')}`,
+      );
     }
 
     const weekValue = await findOptionValue(page, '#lbWeeks', weekPattern, 'label');
@@ -177,14 +181,16 @@ async function fetchOneWeek(
     const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: SUBMIT_TIMEOUT_MS }).catch(() => null);
     await (await mustFind(page, '#bGetTimetable')).click();
     await nav;
-    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForLoadState('networkidle').catch(() => {});
 
     const reportUrl = new URL('showtimetable.aspx', BASE_URL).href;
     await page.goto(reportUrl, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForLoadState('networkidle').catch(() => {});
     const html = await page.content();
     const timeHits = (html.match(/[0-2]\d:[0-5]\d/g) || []).length;
-    console.log(`[${tag}] report ${reportUrl}: ${html.length} bytes, ${timeHits} time-matches, hasSelectionForm=${html.includes('id="dlObject"')}`);
+    console.log(
+      `[${tag}] report ${reportUrl}: ${html.length} bytes, ${timeHits} time-matches, hasSelectionForm=${html.includes('id="dlObject"')}`,
+    );
 
     if (html.includes('id="dlObject"')) {
       mkdirSync('fixtures', { recursive: true });
@@ -192,12 +198,12 @@ async function fetchOneWeek(
       writeFileSync(dbg, html);
       throw new Error(
         `${reportUrl} returned the selection form rather than a report (saved ${dbg}). ` +
-        `The View Timetable postback may not have registered the report request.`,
+          `The View Timetable postback may not have registered the report request.`,
       );
     }
     return { html, formHtml };
   } finally {
-    await page.close().catch(() => { });
+    await page.close().catch(() => {});
   }
 }
 
@@ -209,10 +215,9 @@ export async function fetchGridPages(opts: { headed: boolean }): Promise<{ pages
     const context = await browser.newContext(existsSync(STATE_PATH) ? { storageState: STATE_PATH } : {});
 
     const thisMonday = mondayOf(new Date());
-    const nextMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() + 7);
     const weeks: { pattern: RegExp; weekStart: Date }[] = [
       { pattern: /this week/i, weekStart: thisMonday },
-      { pattern: /next week/i, weekStart: nextMonday },
+      { pattern: /next week/i, weekStart: new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() + 7) },
     ];
 
     const pages: WeekPage[] = [];

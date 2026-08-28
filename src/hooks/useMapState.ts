@@ -8,7 +8,7 @@ export const useMapState = () => {
   const [activeFilters, setActiveFilters] = useState<Filter>({});
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
-  const [loaderActive, setLoaderActive] = useState(true);
+  const [loaderDismissed, setLoaderDismissed] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -37,13 +37,6 @@ export const useMapState = () => {
     error: buildingsError,
   } = useBuildings(activeFilters, search.searchQuery);
 
-  // Sync loader visibility when isBuildingsLoading changes to true
-  useEffect(() => {
-    if (isBuildingsLoading || !mapLoaded) {
-      setLoaderActive(true);
-    }
-  }, [isBuildingsLoading, mapLoaded]);
-
   // Handle toast notifications for building loading errors
   useEffect(() => {
     if (buildingsError) {
@@ -69,6 +62,8 @@ export const useMapState = () => {
 
   const handleFilterChange = (filters: Filter) => {
     setActiveFilters(filters);
+    setSelectedBuilding(null);
+    setIsMenuOpened(false);
   };
 
   const handleBuildingSelect = (building: Building) => {
@@ -76,11 +71,13 @@ export const useMapState = () => {
     setIsMenuOpened(true);
   };
 
-  const handleTransitionEnd = () => {
-    if (!isBuildingsLoading && mapLoaded) {
-      setLoaderActive(false);
-    }
-  };
+  const appReady = !isBuildingsLoading && mapLoaded;
+
+  useEffect(() => {
+    if (!appReady) return;
+    const timeout = setTimeout(() => setLoaderDismissed(true), 1000);
+    return () => clearTimeout(timeout);
+  }, [appReady]);
 
   return {
     activeFilters,
@@ -89,16 +86,16 @@ export const useMapState = () => {
     setIsMenuOpened,
     showSearch: search.showSearch,
     searchQuery: search.searchQuery,
-    loaderActive,
+    loaderActive: !loaderDismissed,
     buildings,
     isBuildingsLoading,
+    appReady,
     handleFilterChange,
     handleBuildingSelect,
     handleSearchChange: search.handleSearchChange,
     handleClearSearch: search.handleClearSearch,
     handleSearchSubmit: search.handleSearchSubmit,
     handleSearchIconClicked: search.handleSearchIconClicked,
-    handleTransitionEnd,
     mapLoaded,
     setMapLoaded,
   };

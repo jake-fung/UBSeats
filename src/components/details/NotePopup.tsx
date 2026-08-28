@@ -36,7 +36,7 @@ export const NotePopup = ({ note, isVisible, onClose }: NotePopupProps) => {
           {note.name}
         </div>
 
-        <div className="max-w-md rounded-2xl bg-white/90 p-8 text-center shadow-2xl backdrop-blur-sm">
+        <div className="max-w-md rounded-2xl bg-white/90 p-8 text-center shadow-2xl backdrop-blur-xs">
           <h2 className="mb-3 text-2xl font-bold text-gray-900">{note.name}</h2>
           <p className="text-gray-500">{note.description}</p>
         </div>

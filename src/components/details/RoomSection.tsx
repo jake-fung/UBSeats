@@ -1,24 +1,39 @@
-import { Room } from '@/supabase/schema/types';
+import { Room, Venue } from '@/supabase/schema/types';
 import { RoomCard } from '@/components/details/RoomCard';
+import { VenueCard } from '@/components/details/VenueCard';
 
 interface RoomSectionProps {
   rooms: Room[];
+  venues: Venue[];
   heading: string;
 }
 
-/** A titled list of RoomCards; renders nothing when there are no rooms. */
-export const RoomSection = ({ rooms, heading }: RoomSectionProps) => {
-  if (rooms.length === 0) return null;
+type Item =
+  { kind: 'venue'; key: string; name: string; venue: Venue } | { kind: 'room'; key: string; name: string; room: Room };
+
+export const RoomSection = ({ rooms, venues, heading }: RoomSectionProps) => {
+  const total = rooms.length + venues.reduce((n, v) => n + v.rooms.length, 0);
+  if (total === 0) return null;
+
+  const items: Item[] = [
+    ...venues.map((venue): Item => ({ kind: 'venue', key: venue.id, name: venue.name, venue })),
+    ...rooms.map((room): Item => ({ kind: 'room', key: room.uuid, name: room.name, room })),
+  ].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <>
       <div className="flex items-center">
         <h3 className="text-lg font-semibold text-gray-900">
-          {heading} ({rooms.length})
+          {heading} ({total})
         </h3>
       </div>
-      {rooms.map((room) => (
-        <RoomCard key={room.uuid} room={room} />
-      ))}
+      {items.map((item) =>
+        item.kind === 'venue' ? (
+          <VenueCard key={item.key} venue={item.venue} />
+        ) : (
+          <RoomCard key={item.key} room={item.room} />
+        ),
+      )}
     </>
   );
 };

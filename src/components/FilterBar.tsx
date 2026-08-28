@@ -1,5 +1,15 @@
 import React from 'react';
-import { Book, CalendarFold, Clock, Coffee, Heart, Presentation, VolumeX } from 'lucide-react';
+import {
+  Book,
+  Building2,
+  CalendarFold,
+  CheckCircle,
+  Coffee,
+  Heart,
+  Monitor,
+  Presentation,
+  VolumeX,
+} from 'lucide-react';
 import { CategoryType, Filter } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { useCategories } from '@/hooks/useBuildings';
@@ -7,12 +17,14 @@ import { Skeleton } from './ui/skeleton';
 
 const ICON_MAP = {
   Book,
+  Building2,
   Coffee,
   VolumeX,
   CalendarFold,
   Presentation,
-  Clock,
+  CheckCircle,
   Heart,
+  Monitor,
 } as const;
 
 const SKELETON_COUNT = 4;
@@ -38,7 +50,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div
       className={cn(
-        'pointer-events-auto fixed top-[85px] z-10 w-full opacity-100 transition-all duration-300 ease-in-out',
+        'pointer-events-auto fixed top-21.25 z-10 w-full opacity-100 transition-all duration-300 ease-in-out',
         mobileCustomWrapperCss,
       )}
     >
@@ -46,7 +58,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         {categoriesLoading ? (
           <>
             {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-              <Skeleton key={i} className="h-8 w-20 flex-shrink-0 rounded-full" />
+              <Skeleton key={i} className="h-8 w-20 shrink-0 rounded-full" />
             ))}
           </>
         ) : (
@@ -59,7 +71,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
                 className={cn(
-                  'flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-sm transition-all duration-200 ease-out active:scale-95',
+                  'flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-xs transition-all duration-200 ease-out active:scale-95',
                   isActive ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100',
                 )}
               >

@@ -15,7 +15,7 @@ const SearchBar = ({ searchQuery, collapseNav, showSearch, onInputChange, onSubm
   return (
     <div
       className={cn(
-        'absolute left-[5vw] top-12 rounded-b-[32px] bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300',
+        'absolute top-12 left-[5vw] rounded-b-4xl bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300',
         collapseNav ? 'w-0' : 'w-[90vw]',
       )}
     >
@@ -31,12 +31,12 @@ const SearchBar = ({ searchQuery, collapseNav, showSearch, onInputChange, onSubm
             placeholder="Search by building name/code..."
             value={searchQuery}
             onChange={onInputChange}
-            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 outline-hidden transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
           />
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
           {searchQuery && (
             <X
-              className="absolute right-3 top-2.5 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+              className="absolute top-2.5 right-3 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
               onClick={onClear}
             />
           )}

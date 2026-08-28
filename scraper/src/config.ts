@@ -1,6 +1,6 @@
 // Scientia academic-year URL segment. Rollover (e.g. to 'sws_2026') breaks the
 // scrape visibly — navigation fails — and fixing it is this one constant.
-export const ACADEMIC_YEAR_SEGMENT = 'sws_2025';
+export const ACADEMIC_YEAR_SEGMENT = 'sws_2026';
 export const BASE_URL = `https://sws-van.as.it.ubc.ca/${ACADEMIC_YEAR_SEGMENT}/`;
 
 // Timetable day window; outside it rooms read as closed.

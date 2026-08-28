@@ -1,5 +1,14 @@
 import { supabase } from '@/supabase/client';
-import { Building, Category, DayHours, Library, Note, Room, RoomAvailability } from '@/supabase/schema/types';
+import {
+  Building,
+  Category,
+  DayHours,
+  FeedbackInput,
+  Note,
+  Room,
+  RoomAvailability,
+  Venue,
+} from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
 import { bookingsToSlots, classroomWindowCoversDate, BookingInterval } from '@/utils/hoursUtils';
@@ -19,8 +28,8 @@ async function selectAll<T extends keyof Tables>(table: T): Promise<Tables[T]['R
 }
 
 /**
- * Group `*_hours` rows into a `Map<key, DayHours[]>`. Shared by building, library,
- * and café hours, which differ only in the column that holds the owning id.
+ * Group `*_hours` rows into a `Map<key, DayHours[]>`. Shared by building and venue
+ * hours, which differ only in the column that holds the owning id.
  */
 function buildHoursMap<T extends { day_of_week: number; opens_at: string | null; closes_at: string | null }>(
   rows: T[],
@@ -38,8 +47,8 @@ function buildHoursMap<T extends { day_of_week: number; opens_at: string | null;
 }
 
 /**
- * Group `*_images` rows into a `Map<key, image_url>`. Shared by building, library,
- * and café images (last write wins, mirroring the original per-entity logic).
+ * Group `*_images` rows into a `Map<key, image_url>`. Shared by building and venue
+ * images (last write wins, mirroring the original per-entity logic).
  */
 function buildImageMap<T extends { image_url: string | null }>(
   rows: T[],
@@ -56,7 +65,7 @@ function buildImageMap<T extends { image_url: string | null }>(
 export async function fetchCategories(): Promise<Category[]> {
   const data = await selectAll('categories');
   return data.map((item) => ({
-    id: validateCategoryType(item.id) || 'library',
+    id: validateCategoryType(item.id)!,
     name: item.name,
     icon: item.icon,
     color: item.color,
@@ -72,9 +81,9 @@ export async function fetchBuildings(): Promise<Building[]> {
     roomNotesData,
     noteDefsData,
     hoursData,
-    librariesData,
-    libHoursData,
-    libImagesData,
+    venuesData,
+    venueHoursData,
+    venueImagesData,
     roomImagesData,
   ] = await Promise.all([
     selectAll('buildings'),
@@ -84,18 +93,18 @@ export async function fetchBuildings(): Promise<Building[]> {
     selectAll('room_notes'),
     selectAll('notes'),
     selectAll('building_hours'),
-    selectAll('libraries'),
-    selectAll('library_hours'),
-    selectAll('library_images'),
+    selectAll('venues'),
+    selectAll('venue_hours'),
+    selectAll('venue_images'),
     selectAll('room_images'),
   ]);
 
   const imageMap = buildImageMap(imagesData, (img) => img.building_uuid);
-  const libImagesMap = buildImageMap(libImagesData, (img) => img.library_id);
+  const venueImagesMap = buildImageMap(venueImagesData, (img) => img.venue_id);
   const roomImagesMap = buildImageMap(roomImagesData, (img) => img.room_uuid);
 
   const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
-  const libHoursMap = buildHoursMap(libHoursData, (h) => h.library_id);
+  const venueHoursMap = buildHoursMap(venueHoursData, (h) => h.venue_id);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -108,7 +117,13 @@ export async function fetchBuildings(): Promise<Building[]> {
 
   const noteDefsMap = new Map<string, Note>();
   noteDefsData.forEach((def) => {
-    noteDefsMap.set(def.id, { id: def.id, name: def.name, color: def.color, description: def.description });
+    noteDefsMap.set(def.id, {
+      id: def.id,
+      name: def.name,
+      color: def.color,
+      description: def.description,
+      icon: def.icon,
+    });
   });
 
   const notesMap = new Map<string, Note[]>();
@@ -121,14 +136,14 @@ export async function fetchBuildings(): Promise<Building[]> {
   });
 
   const roomsMap = new Map<string, Room[]>();
-  const libRoomsMap = new Map<string, Room[]>();
+  const venueRoomsMap = new Map<string, Room[]>();
   roomsData.forEach((r) => {
     if (!r.building_uuid) return;
     const categoryIds = categoriesMap.get(r.uuid) ?? [];
     const room: Room = {
       uuid: r.uuid,
       building_uuid: r.building_uuid,
-      library_id: r.library_id ?? null,
+      venue_id: r.venue_id ?? null,
       name: r.room_name,
       capacity: r.capacity,
       link: r.link,
@@ -136,11 +151,11 @@ export async function fetchBuildings(): Promise<Building[]> {
       notes: notesMap.get(r.uuid) ?? [],
       image: roomImagesMap.get(r.uuid),
     };
-    if (r.library_id) {
-      const list = libRoomsMap.get(r.library_id) ?? [];
+    if (r.venue_id) {
+      const list = venueRoomsMap.get(r.venue_id) ?? [];
       list.push(room);
       list.sort((a, b) => a.name.localeCompare(b.name));
-      libRoomsMap.set(r.library_id, list);
+      venueRoomsMap.set(r.venue_id, list);
     } else {
       const list = roomsMap.get(r.building_uuid) ?? [];
       list.push(room);
@@ -149,17 +164,21 @@ export async function fetchBuildings(): Promise<Building[]> {
     }
   });
 
-  const librariesMap = new Map<string, Library>();
-  librariesData.forEach((lib) => {
-    if (!lib.building_uuid) return;
-    librariesMap.set(lib.building_uuid, {
-      id: lib.id,
-      buildingUuid: lib.building_uuid,
-      name: lib.name,
-      hours: libHoursMap.get(lib.id) ?? [],
-      rooms: libRoomsMap.get(lib.id) ?? [],
-      image: libImagesMap.get(lib.id),
+  const venuesMap = new Map<string, Venue[]>();
+  venuesData.forEach((v) => {
+    if (!v.building_uuid) return;
+    const list = venuesMap.get(v.building_uuid) ?? [];
+    list.push({
+      id: v.id,
+      buildingUuid: v.building_uuid,
+      name: v.name,
+      kind: v.kind === 'cafe' ? 'cafe' : 'library',
+      hours: venueHoursMap.get(v.id) ?? [],
+      rooms: venueRoomsMap.get(v.id) ?? [],
+      image: venueImagesMap.get(v.id),
     });
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    venuesMap.set(v.building_uuid, list);
   });
 
   return buildingData
@@ -173,9 +192,9 @@ export async function fetchBuildings(): Promise<Building[]> {
       image: imageMap.get(b.uuid),
       rooms: roomsMap.get(b.uuid) ?? [],
       hours: hoursMap.get(b.uuid) ?? [],
-      library: librariesMap.get(b.uuid) ?? null,
+      venues: venuesMap.get(b.uuid) ?? [],
     }))
-    .filter((b) => (b.rooms && b.rooms.length > 0) || (b.library && b.library.rooms.length > 0));
+    .filter((b) => b.rooms.length > 0 || b.venues.some((v) => v.rooms.length > 0));
 }
 
 const STALE_AFTER_MS = 30 * 60 * 1000;
@@ -183,7 +202,10 @@ const STALE_AFTER_MS = 30 * 60 * 1000;
 const BOOKINGS_PAGE_SIZE = 1000;
 
 /** Today's classroom bookings, paginated past PostgREST's 1000-row cap. */
-async function selectClassroomBookingsForDay(dayStart: Date, dayEnd: Date): Promise<Tables['classroom_bookings']['Row'][]> {
+async function selectClassroomBookingsForDay(
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<Tables['classroom_bookings']['Row'][]> {
   const rows: Tables['classroom_bookings']['Row'][] = [];
   for (let from = 0; ; from += BOOKINGS_PAGE_SIZE) {
     const { data, error } = await supabase
@@ -228,7 +250,7 @@ export async function fetchClassroomAvailability(now: Date): Promise<Map<string,
   const bookingsByRoom = new Map<string, BookingInterval[]>();
   bookings.forEach((b) => {
     const list = bookingsByRoom.get(b.room_uuid) ?? [];
-    list.push({ startsAt: b.starts_at, endsAt: b.ends_at });
+    list.push({ startsAt: b.starts_at, endsAt: b.ends_at, title: b.title });
     bookingsByRoom.set(b.room_uuid, list);
   });
 
@@ -260,13 +282,39 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
   const rows = await selectAll('room_availability');
   rows.forEach((row) => {
     if (now.getTime() - new Date(row.checked_at).getTime() > STALE_AFTER_MS) return;
+    // Derive against the current clock instead of trusting row.is_available_now, which the
+    // Edge Function computed at sync time and can lag by up to STALE_AFTER_MS. This is the
+    // same derivation fetchClassroomAvailability performs, so bookable rooms and classrooms
+    // share one definition of "available now" and cannot drift apart again.
+    const slots = row.slots ?? [];
+    const summary = parseAvailability(slots, now);
     map.set(row.room_uuid, {
-      isAvailableNow: row.is_available_now,
-      availableUntil: row.available_until,
-      nextAvailableAt: row.next_available_at,
+      isAvailableNow: summary.isAvailableNow,
+      availableUntil: summary.availableUntil,
+      nextAvailableAt: summary.nextAvailableAt,
       checkedAt: row.checked_at,
-      slots: row.slots ?? [],
+      slots,
     });
   });
   return map;
+}
+
+/**
+ * Insert one feedback submission.
+ *
+ * The `feedback` table is write-only from the browser: RLS grants INSERT but no
+ * SELECT. That is why this must not chain `.select()` — the returning clause
+ * would come back empty and supabase-js would surface it as an error even though
+ * the write succeeded.
+ *
+ * Throws the PostgrestError on failure so the caller can keep the user's typed
+ * message on screen instead of silently discarding it.
+ */
+export async function submitFeedback(input: FeedbackInput): Promise<void> {
+  const { error } = await supabase.from('feedback').insert({
+    category: input.category,
+    device: input.device,
+    message: input.message,
+  });
+  if (error) throw error;
 }

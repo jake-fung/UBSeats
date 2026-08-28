@@ -7,7 +7,8 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { useMapState } from '@/hooks/useMapState';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
-import About from '@/components/About';
+import Utilities from '@/components/About';
+import Favourites from '@/components/Favourites';
 
 const Index = () => {
   const {
@@ -20,13 +21,13 @@ const Index = () => {
     loaderActive,
     buildings,
     isBuildingsLoading,
+    appReady,
     handleFilterChange,
     handleBuildingSelect,
     handleSearchChange,
     handleClearSearch,
     handleSearchSubmit,
     handleSearchIconClicked,
-    handleTransitionEnd,
     mapLoaded,
     setMapLoaded,
   } = useMapState();
@@ -44,9 +45,8 @@ const Index = () => {
           id="loader_container"
           className={cn(
             'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
-            isBuildingsLoading ? 'opacity-100' : 'pointer-events-none opacity-0',
+            appReady ? 'pointer-events-none opacity-0' : 'opacity-100',
           )}
-          onTransitionEnd={handleTransitionEnd}
         >
           <div className="loader"></div>
         </div>
@@ -98,7 +98,8 @@ const Index = () => {
             />
           )}
 
-          <About />
+          <Utilities />
+          <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
         </>
       )}
     </div>

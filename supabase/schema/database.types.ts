@@ -1,4 +1,4 @@
-import { TimeSlot } from "@/utils/hoursUtils";
+import { TimeSlot } from '@/utils/hoursUtils';
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -91,6 +91,7 @@ export type Database = {
           building_uuid: string;
           capacity: number | null;
           library_id: string | null;
+          venue_id: string | null;
           link: string | null;
           room_name: string | null;
           source_key: string | null;
@@ -100,6 +101,7 @@ export type Database = {
           building_uuid?: string;
           capacity?: number | null;
           library_id?: string | null;
+          venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
           source_key?: string | null;
@@ -109,6 +111,7 @@ export type Database = {
           building_uuid?: string;
           capacity?: number | null;
           library_id?: string | null;
+          venue_id?: string | null;
           link?: string | null;
           room_name?: string | null;
           source_key?: string | null;
@@ -123,10 +126,10 @@ export type Database = {
             referencedColumns: ['uuid'];
           },
           {
-            foreignKeyName: 'building_rooms_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'building_rooms_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];
@@ -195,6 +198,30 @@ export type Database = {
             referencedColumns: ['uuid'];
           },
         ];
+      };
+      feedback: {
+        Row: {
+          category: string;
+          created_at: string;
+          device: string;
+          id: string;
+          message: string;
+        };
+        Insert: {
+          category: string;
+          created_at?: string;
+          device: string;
+          id?: string;
+          message: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          device?: string;
+          id?: string;
+          message?: string;
+        };
+        Relationships: [];
       };
       room_availability: {
         Row: {
@@ -278,25 +305,28 @@ export type Database = {
         };
         Relationships: [];
       };
-      libraries: {
+      venues: {
         Row: {
           building_uuid: string;
           id: string;
+          kind: string;
           name: string;
         };
         Insert: {
           building_uuid: string;
           id?: string;
+          kind: string;
           name: string;
         };
         Update: {
           building_uuid?: string;
           id?: string;
+          kind?: string;
           name?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'libraries_building_uuid_fkey';
+            foreignKeyName: 'venues_building_uuid_fkey';
             columns: ['building_uuid'];
             isOneToOne: false;
             referencedRelation: 'buildings';
@@ -304,60 +334,60 @@ export type Database = {
           },
         ];
       };
-      library_hours: {
+      venue_hours: {
         Row: {
           closes_at: string | null;
           day_of_week: number;
           id: string;
-          library_id: string;
+          venue_id: string;
           opens_at: string | null;
         };
         Insert: {
           closes_at?: string | null;
           day_of_week: number;
           id?: string;
-          library_id: string;
+          venue_id: string;
           opens_at?: string | null;
         };
         Update: {
           closes_at?: string | null;
           day_of_week?: number;
           id?: string;
-          library_id?: string;
+          venue_id?: string;
           opens_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'library_hours_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'venue_hours_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];
       };
-      library_images: {
+      venue_images: {
         Row: {
           id: string;
           image_url: string;
-          library_id: string;
+          venue_id: string;
         };
         Insert: {
           id?: string;
           image_url: string;
-          library_id: string;
+          venue_id: string;
         };
         Update: {
           id?: string;
           image_url?: string;
-          library_id?: string;
+          venue_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'library_images_library_id_fkey';
-            columns: ['library_id'];
+            foreignKeyName: 'venue_images_venue_id_fkey';
+            columns: ['venue_id'];
             isOneToOne: false;
-            referencedRelation: 'libraries';
+            referencedRelation: 'venues';
             referencedColumns: ['id'];
           },
         ];
@@ -366,18 +396,21 @@ export type Database = {
         Row: {
           color: string | null;
           description: string | null;
+          icon: string | null;
           id: string;
           name: string;
         };
         Insert: {
           color?: string | null;
           description?: string | null;
+          icon?: string | null;
           id: string;
           name: string;
         };
         Update: {
           color?: string | null;
           description?: string | null;
+          icon?: string | null;
           id?: string;
           name?: string;
         };
@@ -451,7 +484,40 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      libraries: {
+        Row: {
+          building_uuid: string | null;
+          id: string | null;
+          name: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'venues_building_uuid_fkey';
+            columns: ['building_uuid'];
+            isOneToOne: false;
+            referencedRelation: 'buildings';
+            referencedColumns: ['uuid'];
+          },
+        ];
+      };
+      library_hours: {
+        Row: {
+          closes_at: string | null;
+          day_of_week: number | null;
+          id: string | null;
+          library_id: string | null;
+          opens_at: string | null;
+        };
+        Relationships: [];
+      };
+      library_images: {
+        Row: {
+          id: string | null;
+          image_url: string | null;
+          library_id: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;
@@ -471,14 +537,13 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof (DefaultSchema['Tables'] & DefaultSchema['Views']) | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -498,11 +563,11 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -521,11 +586,11 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -544,11 +609,11 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -559,13 +624,12 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

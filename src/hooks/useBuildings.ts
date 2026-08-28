@@ -1,23 +1,48 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
-import { Category, Filter, Room } from '@/supabase/schema/types';
+import { Building, Category, Filter, Room } from '@/supabase/schema/types';
 import { filterBuildingsBySearch } from '@/hooks/useSearch';
 import { isBuildingOpenNow } from '@/utils/hoursUtils';
 import { useFavourites } from '@/hooks/useFavourites';
+import { useRoomAvailabilityMap } from '@/hooks/useRoomAvailability';
 
-const OPEN_NOW_CATEGORY: Category = { id: 'open_now', name: 'Open now', icon: 'Clock', color: '#16A34A' };
-const FAVOURITES_CATEGORY: Category = { id: 'favourites', name: 'Favourites', icon: 'Heart', color: '#EF4444' };
+const AVAILABLE_ROOMS_CATEGORIES: Category = {
+  id: 'now_available_rooms',
+  name: 'Now Available Rooms',
+  icon: 'CheckCircle',
+  color: '#16A34A',
+};
+const OPEN_BUILDINGS_CATEGORIES: Category = {
+  id: 'open_buildings',
+  name: 'Open Buildings',
+  icon: 'Building2',
+  color: '#3B82F6',
+};
 
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
-    queryFn: async () => [FAVOURITES_CATEGORY, OPEN_NOW_CATEGORY, ...(await fetchCategories())],
+    queryFn: async () => [AVAILABLE_ROOMS_CATEGORIES, OPEN_BUILDINGS_CATEGORIES, ...(await fetchCategories())],
   });
 };
 
+const filterBuildingsByRoom = (buildings: Building[], keepRoom: (room: Room) => boolean): Building[] =>
+  buildings
+    .map((building) => ({
+      ...building,
+      rooms: building.rooms.filter(keepRoom),
+      // Drop a venue whose rooms were all filtered out, so filtering by `library`
+      // does not leave an empty café card sitting in the list.
+      venues: building.venues
+        .map((venue) => ({ ...venue, rooms: venue.rooms.filter(keepRoom) }))
+        .filter((venue) => venue.rooms.length > 0),
+    }))
+    .filter((building) => building.rooms.length > 0 || building.venues.length > 0);
+
 export const useBuildings = (filters?: Filter, searchQuery?: string) => {
   const { favourites } = useFavourites();
+  const availability = useRoomAvailabilityMap();
 
   const {
     data: buildings = [],
@@ -29,63 +54,37 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
   });
 
   const filteredBuildings = useMemo(() => {
-    let result = filterBuildingsBySearch([...buildings], searchQuery);
+    const result = filterBuildingsBySearch([...buildings], searchQuery);
 
-    if (filters) {
-      if (filters.category === 'open_now') {
-        result = result.filter((building) => isBuildingOpenNow(building.hours, building.library?.hours));
-      } else if (filters.category === 'favourites') {
-        const filteredRooms: Record<string, Room[]> = {};
-        const filteredLibraryRooms: Record<string, Room[]> = {};
-        result = result
-          .filter((building) => {
-            const roomsForBuilding = building.rooms.filter((room) => favourites.has(room.uuid));
-            const libraryRoomsForBuilding =
-              building.library?.rooms.filter((libraryRoom) => favourites.has(libraryRoom.uuid)) ?? [];
-            filteredRooms[building.uuid] = roomsForBuilding;
-            filteredLibraryRooms[building.uuid] = libraryRoomsForBuilding;
-            return roomsForBuilding.length > 0 || libraryRoomsForBuilding.length > 0;
-          })
-          .map((building) => ({
-            ...building,
-            library: building.library
-              ? { ...building.library, rooms: filteredLibraryRooms[building.uuid] }
-              : null,
-            rooms: filteredRooms[building.uuid],
-          }));
-      } else if (filters.category) {
-        const categoryQuery = filters.category.toLowerCase();
-
-        const filteredRooms: Record<string, Room[]> = {}
-        const filteredLibraryRooms: Record<string, Room[]> = {};
-        result = result
-          .filter((building) => {
-            const filteredRoomsForBuilding = building.rooms.filter((room) =>
-              room.categoryIds?.includes(categoryQuery),
-            );
-            const filteredLibraryRoomsForBuilding = building.library?.rooms.filter((libraryRoom) =>
-              libraryRoom.categoryIds?.includes(categoryQuery),
-            );
-            filteredRooms[building.uuid] = filteredRoomsForBuilding;
-            filteredLibraryRooms[building.uuid] = filteredLibraryRoomsForBuilding;
-            return (
-              filteredRooms[building.uuid].length > 0 ||
-              filteredLibraryRooms[building.uuid]?.length > 0
-            );
-          })
-          .map((building) => ({
-            ...building,
-            library: building.library ? {
-              ...building.library,
-              rooms: filteredLibraryRooms[building.uuid],
-            } : null,
-            rooms: filteredRooms[building.uuid],
-          }));
-      }
+    if (!filters?.category) {
+      return result;
     }
 
-    return result;
-  }, [buildings, filters, searchQuery, favourites]);
+    switch (filters.category) {
+      case 'open_buildings':
+        return result.filter((building) =>
+          isBuildingOpenNow(
+            building.hours,
+            building.venues.map((v) => v.hours),
+          ),
+        );
+      case 'now_available_rooms':
+        return filterBuildingsByRoom(result, (room) => availability?.get(room.uuid)?.isAvailableNow === true);
+      case 'favourites':
+        return filterBuildingsByRoom(result, (room) => favourites.has(room.uuid));
+      case 'library':
+      case 'cafe':
+      case 'quiet':
+      case 'bookable':
+      case 'classroom':
+      case 'workstation': {
+        const categoryQuery = filters.category.toLowerCase();
+        return filterBuildingsByRoom(result, (room) => room.categoryIds?.includes(categoryQuery) === true);
+      }
+      default:
+        return result;
+    }
+  }, [buildings, filters, searchQuery, favourites, availability]);
 
   return {
     buildings: filteredBuildings,

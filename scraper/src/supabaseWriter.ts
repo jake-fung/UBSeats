@@ -14,7 +14,10 @@ const PAGE_SIZE = 1000;
 async function selectAllPaged<T>(client: SupabaseClient, table: string, columns: string): Promise<T[]> {
   const rows: T[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await client.from(table).select(columns).range(from, from + PAGE_SIZE - 1);
+    const { data, error } = await client
+      .from(table)
+      .select(columns)
+      .range(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`${table} select failed: ${error.message}`);
     rows.push(...((data ?? []) as T[]));
     if (!data || data.length < PAGE_SIZE) break;
@@ -29,7 +32,11 @@ export async function writeToSupabase(rows: BookingRow[], windowStart: Date, win
   const client = createClient(url, key);
 
   const buildings = await selectAllPaged<{ uuid: string; bldg_code: string }>(client, 'buildings', 'uuid, bldg_code');
-  const existing = await selectAllPaged<ExistingRoom>(client, 'building_rooms', 'uuid, building_uuid, room_name, source_key');
+  const existing = await selectAllPaged<ExistingRoom>(
+    client,
+    'building_rooms',
+    'uuid, building_uuid, room_name, source_key',
+  );
   const buildingUuidByCode = new Map(buildings.map((b) => [b.bldg_code, b.uuid]));
 
   const scrapedRooms = rows.map(({ source_key, bldg_code, room_number }) => ({ source_key, bldg_code, room_number }));

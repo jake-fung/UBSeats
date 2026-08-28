@@ -1,6 +1,25 @@
-import { TimeSlot } from "@/utils/hoursUtils";
+import { TimeSlot } from '@/utils/hoursUtils';
 
-export type CategoryType = 'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_now' | 'favourites';
+export type CategoryType =
+  | 'library'
+  | 'cafe'
+  | 'quiet'
+  | 'bookable'
+  | 'classroom'
+  | 'workstation'
+  | 'open_buildings'
+  | 'favourites'
+  | 'now_available_rooms';
+
+export type FeedbackCategory = 'bug' | 'feature' | 'spot' | 'other';
+
+export type FeedbackDevice = 'iphone' | 'android' | 'ipad' | 'desktop';
+
+export interface FeedbackInput {
+  category: FeedbackCategory;
+  device: FeedbackDevice;
+  message: string;
+}
 
 export interface Category {
   id: CategoryType;
@@ -18,19 +37,19 @@ export interface Note {
   name: string;
   color: string | null;
   description: string | null;
+  icon: string | null;
 }
 
 export interface Room {
   uuid: string;
   building_uuid: string;
-  library_id?: string | null;
+  venue_id?: string | null;
   name: string;
   capacity: number | null;
   link: string;
   categoryIds?: string[];
   notes?: Note[];
   image?: string;
-  hours?: DayHours[];
 }
 
 export interface RoomAvailability {
@@ -47,10 +66,14 @@ export interface DayHours {
   closesAt: string | null;
 }
 
-export interface Library {
+export type VenueKind = 'library';
+
+/** A named place inside a building with its own hours and photo: a library or a café. */
+export interface Venue {
   id: string;
   buildingUuid: string;
   name: string;
+  kind: VenueKind;
   hours: DayHours[];
   rooms: Room[];
   image: string | undefined;
@@ -66,5 +89,5 @@ export interface Building {
   image: string | undefined;
   rooms: Room[];
   hours: DayHours[];
-  library: Library | null;
+  venues: Venue[];
 }

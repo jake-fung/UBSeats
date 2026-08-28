@@ -21,10 +21,10 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
-    "baseUrl": ".",
     "paths": {
+      "@/supabase/*": ["./supabase/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "supabase/client.ts", "supabase/schema", "supabase/services"]
 }

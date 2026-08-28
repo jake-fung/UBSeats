@@ -45,7 +45,7 @@ const Header = ({
     <>
       <header
         className={cn(
-          'fixed left-[5vw] top-5 z-10 h-[66px] w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:px-8 md:py-3',
+          'fixed top-5 left-[5vw] z-10 h-16.5 w-[90vw] rounded-full bg-white px-4 py-2 shadow-soft backdrop-blur-md transition-all duration-300 md:px-8 md:py-3',
           customWrapperCss,
         )}
       >
@@ -64,12 +64,12 @@ const Header = ({
                     placeholder="Search by building name/code..."
                     value={searchQuery}
                     onChange={handleInputChange}
-                    className="w-[40vw] rounded-full border border-transparent bg-gray-100 py-2 pl-10 pr-4 outline-none transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                    className="w-[40vw] rounded-full border border-transparent bg-gray-100 py-2 pr-4 pl-10 outline-hidden transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
                   />
-                  <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <Search className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
                   {searchQuery && (
                     <X
-                      className="absolute right-3 top-2.5 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+                      className="absolute top-2.5 right-3 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
                       onClick={onClearSearch}
                     />
                   )}

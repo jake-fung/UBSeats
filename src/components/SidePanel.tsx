@@ -14,14 +14,14 @@ export const SidePanel = ({ building, isOpen, onClose, onToggle }: SidePanelProp
   return (
     <section
       className={cn(
-        'fixed bottom-0 right-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-sm transition-transform duration-300',
+        'fixed right-0 bottom-0 z-20 h-full w-[50%] translate-x-full rounded-l-3xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-xs transition-transform duration-300',
         isOpen && 'translate-x-0',
       )}
     >
       <button
         onClick={onToggle}
         className={cn(
-          'absolute -left-10 top-1/2 z-20 flex h-20 w-10 -translate-y-1/2 items-center justify-center rounded-l-2xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg',
+          'absolute top-1/2 -left-10 z-20 flex h-20 w-10 -translate-y-1/2 items-center justify-center rounded-l-2xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg',
           !building && 'hidden',
         )}
       >
