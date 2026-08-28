@@ -396,18 +396,21 @@ export type Database = {
         Row: {
           color: string | null;
           description: string | null;
+          icon: string | null;
           id: string;
           name: string;
         };
         Insert: {
           color?: string | null;
           description?: string | null;
+          icon?: string | null;
           id: string;
           name: string;
         };
         Update: {
           color?: string | null;
           description?: string | null;
+          icon?: string | null;
           id?: string;
           name?: string;
         };

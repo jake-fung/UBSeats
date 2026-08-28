@@ -117,7 +117,13 @@ export async function fetchBuildings(): Promise<Building[]> {
 
   const noteDefsMap = new Map<string, Note>();
   noteDefsData.forEach((def) => {
-    noteDefsMap.set(def.id, { id: def.id, name: def.name, color: def.color, description: def.description });
+    noteDefsMap.set(def.id, {
+      id: def.id,
+      name: def.name,
+      color: def.color,
+      description: def.description,
+      icon: def.icon,
+    });
   });
 
   const notesMap = new Map<string, Note[]>();

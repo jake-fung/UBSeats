@@ -1,5 +1,15 @@
 import React from 'react';
-import { Book, Building2, CalendarFold, CheckCircle, Coffee, Heart, Presentation, VolumeX } from 'lucide-react';
+import {
+  Book,
+  Building2,
+  CalendarFold,
+  CheckCircle,
+  Coffee,
+  Heart,
+  Monitor,
+  Presentation,
+  VolumeX,
+} from 'lucide-react';
 import { CategoryType, Filter } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 import { useCategories } from '@/hooks/useBuildings';
@@ -14,6 +24,7 @@ const ICON_MAP = {
   Presentation,
   CheckCircle,
   Heart,
+  Monitor,
 } as const;
 
 const SKELETON_COUNT = 4;

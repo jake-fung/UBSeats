@@ -1,19 +1,27 @@
-import { CalendarFold, Coffee, LucideIcon, Presentation, VolumeX } from 'lucide-react';
+import { CalendarFold, Coffee, LucideIcon, Monitor, Presentation, VolumeX } from 'lucide-react';
 import { CategoryType } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
 
-const ICON_MAP: Record<Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>, LucideIcon> = {
+const ICON_MAP: Record<
+  Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>,
+  LucideIcon
+> = {
   quiet: VolumeX,
   bookable: CalendarFold,
   classroom: Presentation,
   cafe: Coffee,
+  workstation: Monitor,
 };
 
-const LABEL_MAP: Record<Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>, string> = {
+const LABEL_MAP: Record<
+  Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>,
+  string
+> = {
   quiet: 'Quiet',
   bookable: 'Bookable',
   classroom: 'Classroom',
   cafe: 'Café',
+  workstation: 'Workstations',
 };
 
 interface CategoryIconProps {
@@ -22,8 +30,10 @@ interface CategoryIconProps {
 }
 
 const SingleCategoryTags = ({ categoryId, className }: CategoryIconProps) => {
-  const Icon = ICON_MAP[categoryId as Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>];
-  const Label = LABEL_MAP[categoryId as Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>];
+  const Icon =
+    ICON_MAP[categoryId as Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>];
+  const Label =
+    LABEL_MAP[categoryId as Exclude<CategoryType, 'library' | 'favourites' | 'open_buildings' | 'now_available_rooms'>];
   if (!Icon || !Label) return null;
   return (
     <span className="inline-flex items-center justify-between gap-1 rounded-full bg-primary/90 px-3 py-1 text-xs font-medium">

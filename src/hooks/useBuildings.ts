@@ -76,7 +76,8 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
       case 'cafe':
       case 'quiet':
       case 'bookable':
-      case 'classroom': {
+      case 'classroom':
+      case 'workstation': {
         const categoryQuery = filters.category.toLowerCase();
         return filterBuildingsByRoom(result, (room) => room.categoryIds?.includes(categoryQuery) === true);
       }

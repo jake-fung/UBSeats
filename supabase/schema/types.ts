@@ -1,7 +1,15 @@
 import { TimeSlot } from '@/utils/hoursUtils';
 
 export type CategoryType =
-  'library' | 'cafe' | 'quiet' | 'bookable' | 'classroom' | 'open_buildings' | 'favourites' | 'now_available_rooms';
+  | 'library'
+  | 'cafe'
+  | 'quiet'
+  | 'bookable'
+  | 'classroom'
+  | 'workstation'
+  | 'open_buildings'
+  | 'favourites'
+  | 'now_available_rooms';
 
 export type FeedbackCategory = 'bug' | 'feature' | 'spot' | 'other';
 
@@ -29,6 +37,7 @@ export interface Note {
   name: string;
   color: string | null;
   description: string | null;
+  icon: string | null;
 }
 
 export interface Room {
