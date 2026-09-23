@@ -5,7 +5,8 @@ import { CapacityRow } from '@/components/details/CapacityRow';
 import { ViewSpaceButton } from '@/components/details/ViewSpaceButton';
 import { RoomTimetable } from '@/components/details/RoomTimetable';
 import { FavouriteButton } from '@/components/details/FavouriteButton';
-import { useRoomAvailability } from '@/hooks/useRoomAvailability';
+import { useRoomDaySlots } from '@/hooks/useRoomAvailability';
+import { useSelectedDate } from '@/hooks/useSelectedDate';
 
 interface RoomDetailsProps {
   room: Room;
@@ -13,7 +14,8 @@ interface RoomDetailsProps {
 }
 
 export const RoomDetails = ({ room, venue }: RoomDetailsProps) => {
-  const availability = useRoomAvailability(room.uuid);
+  const { selectedDate } = useSelectedDate();
+  const slots = useRoomDaySlots(room, selectedDate);
   const title = venue?.name ?? room.name;
 
   return (
@@ -32,7 +34,7 @@ export const RoomDetails = ({ room, venue }: RoomDetailsProps) => {
         </div>
         <ViewSpaceButton link={room.link} bookable={room.categoryIds?.includes('bookable')} />
       </div>
-      {availability && <RoomTimetable slots={availability.slots} />}
+      {slots && <RoomTimetable slots={slots} date={selectedDate} />}
     </div>
   );
 };

@@ -19,7 +19,7 @@ UBSeats combines data from a few places, refreshed at different cadences:
 - **Building metadata & geolocation** — sourced from [UBCGeodata/ubc-geospatial-opendata](https://github.com/UBCGeodata/ubc-geospatial-opendata), then curated and stored in Supabase (`buildings`, `building_hours`).
 - **Bookable room & study space details** — sourced from [UBC Learning Spaces](https://learningspaces.ubc.ca/), then curated and stored in Supabase (`building_rooms`, `venues`, `notes`, etc.). Populated and maintained manually as new buildings/rooms are added.
 - **Classroom (general teaching space) availability** — scraped from UBC's Scientia "List Timetable" (`sws-van.as.it.ubc.ca`) by the standalone [`scraper/`](scraper/) tool. This system sits behind UBC's CWL login and campus network, so the scraper is run manually/on-demand from campus Wi-Fi or the UBC VPN — see [`scraper/README.md`](scraper/README.md) for details. Results are written to `classroom_bookings` and inverted client-side into free/busy status.
-- **Library bookable-room availability** — synced from LibCal (`libcal.library.ubc.ca`) by the `sync-libcal-availability` Supabase Edge Function ([`supabase/functions/sync-libcal-availability`](supabase/functions/sync-libcal-availability)), which reads the public availability grids and writes into `room_availability`.
+- **Library bookable-room availability** — synced from LibCal (`libcal.library.ubc.ca`, `amsubc.libcal.com`) every 15 minutes by the `sync-libcal-availability` Supabase Edge Function ([`supabase/functions/sync-libcal-availability`](supabase/functions/sync-libcal-availability)). Each run reads the public availability grid for the rest of this week and all of next week, merges adjacent same-status slots, and writes them into `room_availability`.
 - **Map tiles** — Mapbox, via a public access token restricted to this app's domains.
 
 Two caveats worth knowing:
@@ -32,6 +32,7 @@ Two caveats worth knowing:
 - 🗺️ **Interactive map** — Mapbox GL JS map with markers for every campus building
 - 🕐 **Live hours** — open/closed status computed from real building and venue hours data
 - 🟢 **Live room availability** — classrooms and library-booking rooms show real-time free/busy status and a clickable slot timetable
+- 📅 **Day picker** — view any room's timetable for any day from today through the end of next week (library rooms and classrooms)
 - 🔍 **Search & filter** — search by building name, or filter by category (library, café, quiet study, bookable rooms, classrooms, workstations)
 - 📋 **Room details** — capacity, booking links, category tags, and per-room notes with icons and popups
 - 📚 **Venue support** — libraries and cafés are shown as their own cards, with their own hours and photos, within each building

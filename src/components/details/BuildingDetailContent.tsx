@@ -5,6 +5,7 @@ import { cn } from '@/utils/cnUtils';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { RoomSection } from '@/components/details/RoomSection';
+import { SelectedDayHint } from '@/components/details/SelectedDayHint';
 import { useScrolled } from '@/hooks/useScrolled';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { BodyDragProps } from '@/hooks/useSheetDrag';
@@ -79,6 +80,7 @@ export const BuildingDetailContent = ({
           <span>{building?.primaryAddress}</span>
         </div>
         {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
+        <SelectedDayHint />
       </div>
 
       {building?.image && (

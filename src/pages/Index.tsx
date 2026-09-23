@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
 import Utilities from '@/components/About';
 import Favourites from '@/components/Favourites';
+import DatePicker from '@/components/DatePicker';
 
 const Index = () => {
   const {
@@ -100,6 +101,7 @@ const Index = () => {
 
           <Utilities />
           <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
+          <DatePicker />
         </>
       )}
     </div>

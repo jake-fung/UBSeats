@@ -1994,6 +1994,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@eslint/js@^10.0.1",
+        "npm:@radix-ui/react-popover@^1.1.23",
         "npm:@radix-ui/react-toast@^1.2.23",
         "npm:@radix-ui/react-tooltip@^1.2.16",
         "npm:@supabase/supabase-js@^2.111.0",

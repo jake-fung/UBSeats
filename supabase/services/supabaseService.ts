@@ -11,7 +11,7 @@ import {
 } from '@/supabase/schema/types';
 import type { Database } from '@/supabase/schema/database.types';
 import { validateCategoryType } from '@/utils/spotUtils';
-import { bookingsToSlots, classroomWindowCoversDate, BookingInterval } from '@/utils/hoursUtils';
+import { bookingsToSlots, classroomWindowCoversDate, BookingInterval, TimeSlot } from '@/utils/hoursUtils';
 import { parseAvailability } from '@/supabase/functions/sync-libcal-availability/parseAvailability';
 
 type Tables = Database['public']['Tables'];
@@ -201,7 +201,7 @@ const STALE_AFTER_MS = 30 * 60 * 1000;
 
 const BOOKINGS_PAGE_SIZE = 1000;
 
-/** Today's classroom bookings, paginated past PostgREST's 1000-row cap. */
+/** One day's classroom bookings, paginated past PostgREST's 1000-row cap. */
 async function selectClassroomBookingsForDay(
   dayStart: Date,
   dayEnd: Date,
@@ -224,22 +224,23 @@ async function selectClassroomBookingsForDay(
 }
 
 /**
- * Availability for classroom-tagged rooms, derived by inverting today's
- * schedule bookings. Returns an empty map when there is no scrape whose
- * current+next-week window still covers today (stale data must not render
- * as a fully free day).
+ * Every classroom-tagged room's slots for `date`'s local day, derived by inverting that
+ * day's schedule bookings. Returns null when there is no scrape whose current+next-week
+ * window covers `date` (stale data must not render as a fully free day).
  */
-export async function fetchClassroomAvailability(now: Date): Promise<Map<string, RoomAvailability>> {
+async function loadClassroomDay(
+  date: Date,
+): Promise<{ scrapedAt: string; slotsByRoom: Map<string, TimeSlot[]> } | null> {
   const { data: latest, error: latestError } = await supabase
     .from('classroom_bookings')
     .select('scraped_at')
     .order('scraped_at', { ascending: false })
     .limit(1);
   if (latestError) throw latestError;
-  if (!latest?.length || !classroomWindowCoversDate(latest[0].scraped_at, now)) return new Map();
+  if (!latest?.length || !classroomWindowCoversDate(latest[0].scraped_at, date)) return null;
 
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
 
   const [tagsResult, bookings] = await Promise.all([
     supabase.from('room_categories').select('room_uuid').eq('categories_id', 'classroom'),
@@ -254,16 +255,32 @@ export async function fetchClassroomAvailability(now: Date): Promise<Map<string,
     bookingsByRoom.set(b.room_uuid, list);
   });
 
-  const map = new Map<string, RoomAvailability>();
+  const slotsByRoom = new Map<string, TimeSlot[]>();
   (tagsResult.data ?? []).forEach(({ room_uuid }) => {
     if (!room_uuid) return;
-    const slots = bookingsToSlots(bookingsByRoom.get(room_uuid) ?? [], now);
+    slotsByRoom.set(room_uuid, bookingsToSlots(bookingsByRoom.get(room_uuid) ?? [], date));
+  });
+  return { scrapedAt: latest[0].scraped_at, slotsByRoom };
+}
+
+/** Classroom slots for a picked day. Empty when no scrape covers that day. */
+export async function fetchClassroomDaySlots(date: Date): Promise<Map<string, TimeSlot[]>> {
+  return (await loadClassroomDay(date))?.slotsByRoom ?? new Map();
+}
+
+/** Today's availability for classroom-tagged rooms, summarised against `now`. */
+export async function fetchClassroomAvailability(now: Date): Promise<Map<string, RoomAvailability>> {
+  const map = new Map<string, RoomAvailability>();
+  const day = await loadClassroomDay(now);
+  if (!day) return map;
+
+  day.slotsByRoom.forEach((slots, room_uuid) => {
     const summary = parseAvailability(slots, now);
     map.set(room_uuid, {
       isAvailableNow: summary.isAvailableNow,
       availableUntil: summary.availableUntil,
       nextAvailableAt: summary.nextAvailableAt,
-      checkedAt: latest[0].scraped_at,
+      checkedAt: day.scrapedAt,
       slots,
     });
   });

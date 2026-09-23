@@ -53,3 +53,29 @@ export function parseAvailability(slots: Slot[], now: Date): AvailabilityResult 
     nextAvailableAt: endOfBooking,
   };
 }
+
+/**
+ * Collapses exactly-adjacent slots with the same status into single runs. LibCal reports
+ * fixed 15/30-minute cells, so a two-week grid is ~500 slots per room, but every consumer
+ * only cares where the status changes: computeDayBlocks tests overlap, and
+ * parseAvailability already walks back-to-back bookings. Merging is therefore lossless
+ * for them and shrinks the stored row ~5x.
+ *
+ * Gaps are never bridged: a missing interval is the "closed" signal (see
+ * parseAvailability), so it must stay missing.
+ */
+export function mergeSlots(slots: Slot[]): Slot[] {
+  const sorted = [...slots].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  const merged: Slot[] = [];
+
+  for (const slot of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && last.available === slot.available && new Date(last.end).getTime() === new Date(slot.start).getTime()) {
+      last.end = slot.end;
+    } else {
+      merged.push({ ...slot });
+    }
+  }
+
+  return merged;
+}

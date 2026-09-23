@@ -1,6 +1,6 @@
 import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2';
-import { parseAvailability } from './parseAvailability.ts';
-import { fetchLibcalSlots } from './libcalClient.ts';
+import { mergeSlots, parseAvailability } from './parseAvailability.ts';
+import { createLibcalFetcher, type LibcalFetcher } from './libcalClient.ts';
 
 const LIBCAL_HOSTS = ['libcal.library.ubc.ca', 'amsubc.libcal.com'];
 const CONCURRENCY = 4;
@@ -31,9 +31,9 @@ export function classifyRooms(rows: BuildingRoomRow[]): SourcedRoom[] {
   return rooms;
 }
 
-async function processRoom(supabase: SupabaseClient, room: SourcedRoom): Promise<void> {
+async function processRoom(supabase: SupabaseClient, fetchSlots: LibcalFetcher, room: SourcedRoom): Promise<void> {
   try {
-    const slots = await fetchLibcalSlots(room.host, room.spaceId, new Date());
+    const slots = mergeSlots(await fetchSlots(room.host, room.spaceId, new Date()));
     const result = parseAvailability(slots, new Date());
     const { error } = await supabase.from('room_availability').upsert({
       room_uuid: room.uuid,
@@ -52,9 +52,12 @@ async function processRoom(supabase: SupabaseClient, room: SourcedRoom): Promise
 }
 
 export async function processInBatches(rooms: SourcedRoom[], supabase: SupabaseClient): Promise<void> {
+  // One fetcher per run, so rooms in the same LibCal group share a grid request within
+  // this run but never reuse a grid from an earlier run.
+  const fetchSlots = createLibcalFetcher();
   for (let i = 0; i < rooms.length; i += CONCURRENCY) {
     const batch = rooms.slice(i, i + CONCURRENCY);
-    await Promise.all(batch.map((room) => processRoom(supabase, room)));
+    await Promise.all(batch.map((room) => processRoom(supabase, fetchSlots, room)));
     if (i + CONCURRENCY < rooms.length) {
       await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
     }

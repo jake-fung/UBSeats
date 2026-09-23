@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
-import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
+import { BlockStatus, DayBlock, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
+import { isSameLocalDay } from '@/utils/dateUtils';
 import { cn } from '@/utils/cnUtils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 export interface RoomTimetableProps {
   slots?: TimeSlot[];
+  date: Date;
 }
 
 const STATUS_CLASSES: Record<BlockStatus, string> = {
@@ -26,23 +28,42 @@ function blockTime(date: Date): string {
   return formatTime(`${hh}:${mm}`);
 }
 
-export const RoomTimetable = ({ slots }: RoomTimetableProps) => {
+/**
+ * A future day has no "now" to start from, so show it from first to last open block.
+ * Interior closed blocks (e.g. a lunch closure) stay visible as grey.
+ */
+function trimClosedEnds(blocks: DayBlock[]): DayBlock[] {
+  let first = 0;
+  while (first < blocks.length && blocks[first].status === 'closed') first++;
+  let last = blocks.length - 1;
+  while (last >= first && blocks[last].status === 'closed') last--;
+  return blocks.slice(first, last + 1);
+}
+
+export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
-  const now = useMemo(() => new Date(), []);
-  const blocks = useMemo(() => computeDayBlocks(slots, now), [slots, now]);
+  // `date` is referentially stable per day, so this re-reads the clock when the day
+  // changes (e.g. today rolls over at midnight) and otherwise keeps a stable "now".
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `date` is the re-read trigger, not an input
+  const now = useMemo(() => new Date(), [date]);
+  const isToday = isSameLocalDay(date, now);
+  const blocks = useMemo(() => computeDayBlocks(slots, date), [slots, date]);
   const visibleBlocks = useMemo(() => {
+    if (!isToday) return trimClosedEnds(blocks);
     const filtered = blocks.filter((block) => block.end > now);
     if (filtered.every((block) => block.status === 'closed')) {
       return [];
     }
     return filtered;
-  }, [blocks, now]);
+  }, [blocks, now, isToday]);
   const currentBlockRef = useRef<HTMLDivElement>(null);
 
   if (visibleBlocks.length === 0) {
-    return null;
+    // Today keeps its old behaviour (nothing left to show → hide). A future day with data
+    // but no open block is a real closure, which is worth saying rather than vanishing.
+    return isToday ? null : <p className="px-1 pt-1 text-xs text-gray-500">Closed all day</p>;
   }
 
   return (
