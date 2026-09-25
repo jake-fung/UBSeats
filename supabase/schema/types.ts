@@ -77,6 +77,8 @@ export interface Venue {
   hours: DayHours[];
   rooms: Room[];
   image: string | undefined;
+  /** Room count before a client-side filter narrowed `rooms`; unset when unfiltered. */
+  totalRooms?: number;
 }
 
 export interface Building {
