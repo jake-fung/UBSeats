@@ -13,9 +13,15 @@ interface VenueCardProps {
 
 export const VenueCard = ({ venue }: VenueCardProps) => {
   const status = useMemo(() => getBuildingStatus(venue.hours), [venue.hours]);
-  const [expanded, setExpanded] = useState(false);
+  const totalRooms = venue.totalRooms ?? venue.rooms.length;
+  // A filter can narrow a multi-room venue to one room; that room still belongs
+  // inside the grouped card (open, so the match is visible), not the flat layout.
+  const narrowed = venue.rooms.length < totalRooms;
+  // null until the user toggles, so the default follows the filter if it changes while mounted.
+  const [userExpanded, setExpanded] = useState<boolean | null>(null);
+  const expanded = userExpanded ?? narrowed;
 
-  const flat = venue.rooms.length === 1;
+  const flat = totalRooms === 1;
 
   if (venue.rooms.length === 0) return null;
 

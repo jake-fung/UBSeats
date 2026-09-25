@@ -35,7 +35,7 @@ const filterBuildingsByRoom = (buildings: Building[], keepRoom: (room: Room) => 
       // Drop a venue whose rooms were all filtered out, so filtering by `library`
       // does not leave an empty café card sitting in the list.
       venues: building.venues
-        .map((venue) => ({ ...venue, rooms: venue.rooms.filter(keepRoom) }))
+        .map((venue) => ({ ...venue, rooms: venue.rooms.filter(keepRoom), totalRooms: venue.rooms.length }))
         .filter((venue) => venue.rooms.length > 0),
     }))
     .filter((building) => building.rooms.length > 0 || building.venues.length > 0);
