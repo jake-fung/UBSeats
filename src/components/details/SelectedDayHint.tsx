@@ -7,17 +7,13 @@ import { formatShortDay } from '@/utils/dateUtils';
  * bottom sheet covers the date pill, so without this nothing in view names the day.
  */
 export const SelectedDayHint = () => {
-  const { selectedDate, isToday, setSelectedDate } = useSelectedDate();
+  const { selectedDate, isToday } = useSelectedDate();
   if (isToday) return null;
 
   return (
-    <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
-      <CalendarDays size={14} className="shrink-0" aria-hidden="true" />
-      <span>Showing {formatShortDay(selectedDate)}</span>
-      <span aria-hidden="true">·</span>
-      <button type="button" className="font-medium text-primary" onClick={() => setSelectedDate(null)}>
-        Back to today
-      </button>
+    <div className="flex items-center gap-1.5 text-sm font-bold text-red-500">
+      <CalendarDays size={16} className="shrink-0" aria-hidden="true" />
+      <span>Showing {formatShortDay(selectedDate)} opening hours & timetable</span>
     </div>
   );
 };

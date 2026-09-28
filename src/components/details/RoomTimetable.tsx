@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { BlockStatus, DayBlock, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
 import { isSameLocalDay } from '@/utils/dateUtils';
 import { cn } from '@/utils/cnUtils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -28,46 +28,36 @@ function blockTime(date: Date): string {
   return formatTime(`${hh}:${mm}`);
 }
 
-/**
- * A future day has no "now" to start from, so show it from first to last open block.
- * Interior closed blocks (e.g. a lunch closure) stay visible as grey.
- */
-function trimClosedEnds(blocks: DayBlock[]): DayBlock[] {
-  let first = 0;
-  while (first < blocks.length && blocks[first].status === 'closed') first++;
-  let last = blocks.length - 1;
-  while (last >= first && blocks[last].status === 'closed') last--;
-  return blocks.slice(first, last + 1);
-}
-
 export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
-  // `date` is referentially stable per day, so this re-reads the clock when the day
-  // changes (e.g. today rolls over at midnight) and otherwise keeps a stable "now".
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- `date` is the re-read trigger, not an input
   const now = useMemo(() => new Date(), [date]);
   const isToday = isSameLocalDay(date, now);
   const blocks = useMemo(() => computeDayBlocks(slots, date), [slots, date]);
   const visibleBlocks = useMemo(() => {
-    if (!isToday) return trimClosedEnds(blocks);
-    const filtered = blocks.filter((block) => block.end > now);
+    const filtered = isToday ? blocks.filter((block) => block.end > now) : blocks;
     if (filtered.every((block) => block.status === 'closed')) {
       return [];
     }
     return filtered;
   }, [blocks, now, isToday]);
-  const currentBlockRef = useRef<HTMLDivElement>(null);
+  const firstOpenIndex = isToday ? 0 : visibleBlocks.findIndex((block) => block.status !== 'closed');
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const firstOpenRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    const block = firstOpenRef.current;
+    if (container && block) container.scrollLeft = block.offsetLeft;
+  }, [date, firstOpenIndex]);
 
   if (visibleBlocks.length === 0) {
-    // Today keeps its old behaviour (nothing left to show → hide). A future day with data
-    // but no open block is a real closure, which is worth saying rather than vanishing.
     return isToday ? null : <p className="px-1 pt-1 text-xs text-gray-500">Closed all day</p>;
   }
 
   return (
-    <div className="no-scrollbar w-full overflow-x-scroll p-1">
+    <div ref={scrollRef} className="no-scrollbar w-full overflow-x-scroll p-1">
       <div className="relative">
         <div className="flex gap-px">
           {visibleBlocks.map((block, i) => (
@@ -82,7 +72,7 @@ export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
             >
               <TooltipTrigger asChild>
                 <div
-                  ref={i === 0 ? currentBlockRef : undefined}
+                  ref={i === firstOpenIndex ? firstOpenRef : undefined}
                   data-timetable-block=""
                   className={cn('h-6 w-3 shrink-0 rounded-[2px]', STATUS_CLASSES[block.status])}
                   onClick={(e) => {

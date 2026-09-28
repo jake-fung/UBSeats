@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { CategoryType, Filter } from '@/supabase/schema/types';
 import { cn } from '@/utils/cnUtils';
-import { useCategories } from '@/hooks/useBuildings';
+import { isNowOnlyCategory, useCategories } from '@/hooks/useBuildings';
+import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { Skeleton } from './ui/skeleton';
 
 const ICON_MAP = {
@@ -41,6 +42,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   customWrapperCss: mobileCustomWrapperCss,
 }) => {
   const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const { isToday } = useSelectedDate();
+  const visibleCategories = isToday ? categories : categories?.filter((category) => !isNowOnlyCategory(category.id));
 
   const handleCategoryClick = (categoryId: CategoryType) => {
     const category = activeFilters.category === categoryId ? undefined : categoryId;
@@ -62,7 +65,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             ))}
           </>
         ) : (
-          categories?.map((category) => {
+          visibleCategories?.map((category) => {
             const isActive = activeFilters.category === category.id;
             const IconComponent = ICON_MAP[category.icon as keyof typeof ICON_MAP] || Book;
 

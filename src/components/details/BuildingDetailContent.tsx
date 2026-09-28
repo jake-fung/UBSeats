@@ -73,6 +73,7 @@ export const BuildingDetailContent = ({
           <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
             {building?.code}
           </span>
+          <SelectedDayHint />
         </div>
         <h2 className="mb-1 text-2xl font-bold text-gray-900">{building?.name}</h2>
         <div className="mb-2 flex items-center text-sm text-gray-600">
@@ -80,7 +81,6 @@ export const BuildingDetailContent = ({
           <span>{building?.primaryAddress}</span>
         </div>
         {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
-        <SelectedDayHint />
       </div>
 
       {building?.image && (

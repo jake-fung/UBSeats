@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useBuildings } from '@/hooks/useBuildings';
+import { isNowOnlyCategory, useBuildings } from '@/hooks/useBuildings';
+import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { useSearch } from '@/hooks/useSearch';
 import type { Building, Filter } from '@/supabase/schema/types';
 
+// Shared so a dropped filter stays referentially stable for useBuildings' memo.
+const NO_FILTERS: Filter = {};
+
 export const useMapState = () => {
-  const [activeFilters, setActiveFilters] = useState<Filter>({});
+  const [chosenFilters, setChosenFilters] = useState<Filter>({});
+  const { isToday } = useSelectedDate();
+  // Derived rather than cleared: the chip is hidden on another day, so its filter must not
+  // keep narrowing the map unseen, and it picks back up on returning to today.
+  const activeFilters = !isToday && isNowOnlyCategory(chosenFilters.category) ? NO_FILTERS : chosenFilters;
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const [loaderDismissed, setLoaderDismissed] = useState(false);
@@ -61,7 +69,7 @@ export const useMapState = () => {
   }, [buildings.length, isBuildingsLoading, buildingsError, toast]);
 
   const handleFilterChange = (filters: Filter) => {
-    setActiveFilters(filters);
+    setChosenFilters(filters);
     setSelectedBuilding(null);
     setIsMenuOpened(false);
   };

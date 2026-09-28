@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
-import { Building, Category, Filter, Room } from '@/supabase/schema/types';
+import { Building, Category, CategoryType, Filter, Room } from '@/supabase/schema/types';
 import { filterBuildingsBySearch } from '@/hooks/useSearch';
 import { isBuildingOpenNow } from '@/utils/hoursUtils';
 import { useFavourites } from '@/hooks/useFavourites';
@@ -19,6 +19,17 @@ const OPEN_BUILDINGS_CATEGORIES: Category = {
   icon: 'Building2',
   color: '#3B82F6',
 };
+
+/**
+ * Filters that only mean something against the live clock. With another day picked they
+ * would filter the map by right now while the panel shows that day, so they step aside.
+ */
+const NOW_ONLY_CATEGORIES: ReadonlySet<CategoryType> = new Set([
+  AVAILABLE_ROOMS_CATEGORIES.id,
+  OPEN_BUILDINGS_CATEGORIES.id,
+]);
+
+export const isNowOnlyCategory = (id: CategoryType | undefined): boolean => !!id && NOW_ONLY_CATEGORIES.has(id);
 
 export const useCategories = () => {
   return useQuery({
