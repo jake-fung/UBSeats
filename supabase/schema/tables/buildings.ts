@@ -1,0 +1,47 @@
+import type { DayHours } from './building_hours';
+import type { Room } from './building_rooms';
+import type { Venue } from './venues';
+
+export type BuildingsTable = {
+  Row: {
+    bldg_code: string;
+    bldg_usage: string | null;
+    lat: number;
+    lng: number;
+    name: string;
+    primary_address: string | null;
+    uuid: string;
+  };
+  Insert: {
+    bldg_code: string;
+    bldg_usage?: string | null;
+    lat: number;
+    lng: number;
+    name: string;
+    primary_address?: string | null;
+    uuid?: string;
+  };
+  Update: {
+    bldg_code?: string;
+    bldg_usage?: string | null;
+    lat?: number;
+    lng?: number;
+    name?: string;
+    primary_address?: string | null;
+    uuid?: string;
+  };
+  Relationships: [];
+};
+
+export interface Building {
+  uuid: string;
+  name: string;
+  code: string;
+  primaryAddress: string;
+  lat: number;
+  lng: number;
+  image: string | undefined;
+  rooms: Room[];
+  hours: DayHours[];
+  venues: Venue[];
+}
