@@ -1,5 +1,5 @@
 import { CalendarFold, Coffee, LucideIcon, Monitor, Presentation, VolumeX } from 'lucide-react';
-import { CategoryType } from '@/supabase/schema/types';
+import { CategoryType } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 
 const ICON_MAP: Record<

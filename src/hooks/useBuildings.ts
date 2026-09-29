@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBuildings, fetchCategories } from '@/supabase/services/supabaseService';
-import { Building, Category, CategoryType, Filter, Room } from '@/supabase/schema/types';
+import { Building, Category, CategoryType, Filter, Room } from '@/supabase/schema';
 import { filterBuildingsBySearch } from '@/hooks/useSearch';
 import { isBuildingOpenNow } from '@/utils/hoursUtils';
 import { useFavourites } from '@/hooks/useFavourites';

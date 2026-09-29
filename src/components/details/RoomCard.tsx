@@ -1,4 +1,4 @@
-import { Room } from '@/supabase/schema/types';
+import { Room } from '@/supabase/schema';
 import { RoomDetails } from '@/components/details/RoomDetails';
 
 interface RoomCardProps {

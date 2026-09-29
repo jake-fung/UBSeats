@@ -1,6 +1,6 @@
 import { useMemo, useRef, type RefObject } from 'react';
 import { MapPin } from 'lucide-react';
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';

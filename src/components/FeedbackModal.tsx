@@ -3,7 +3,7 @@ import { useCallback, useRef, useState, type FormEvent } from 'react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useToast } from '@/hooks/use-toast';
 import { submitFeedback } from '@/supabase/services/supabaseService';
-import type { FeedbackCategory, FeedbackDevice } from '@/supabase/schema/types';
+import type { FeedbackCategory, FeedbackDevice } from '@/supabase/schema';
 
 const MESSAGE_MAX_LENGTH = 2000;
 

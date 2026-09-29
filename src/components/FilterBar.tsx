@@ -10,7 +10,7 @@ import {
   Presentation,
   VolumeX,
 } from 'lucide-react';
-import { CategoryType, Filter } from '@/supabase/schema/types';
+import { CategoryType, Filter } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 import { isNowOnlyCategory, useCategories } from '@/hooks/useBuildings';
 import { useSelectedDate } from '@/hooks/useSelectedDate';

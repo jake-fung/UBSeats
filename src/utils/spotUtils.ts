@@ -1,4 +1,4 @@
-import { CategoryType } from '@/supabase/schema/types';
+import { CategoryType } from '@/supabase/schema';
 
 // Utility function to convert a string ID to a CategoryType
 export const validateCategoryType = (id: string): CategoryType | undefined => {

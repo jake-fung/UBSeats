@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { Note } from '@/supabase/schema/types';
+import { Note } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 
 interface NotePopupProps {

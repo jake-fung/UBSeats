@@ -1,4 +1,4 @@
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { BuildingDetailContent } from '@/components/details/BuildingDetailContent';

@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { isNowOnlyCategory, useBuildings } from '@/hooks/useBuildings';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { useSearch } from '@/hooks/useSearch';
-import type { Building, Filter } from '@/supabase/schema/types';
+import type { Building, Filter } from '@/supabase/schema';
 
 // Shared so a dropped filter stays referentially stable for useBuildings' memo.
 const NO_FILTERS: Filter = {};

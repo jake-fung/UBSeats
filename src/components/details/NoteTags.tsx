@@ -1,4 +1,4 @@
-import { Note } from '@/supabase/schema/types';
+import { Note } from '@/supabase/schema';
 import { useState } from 'react';
 import { NotePopup } from '@/components/details/NotePopup';
 import { Apple, AppWindow, Cable, CalendarClock, ConciergeBell, InfoIcon, Monitor, Briefcase, CalendarRange, GraduationCap, Projector, Scale } from 'lucide-react';

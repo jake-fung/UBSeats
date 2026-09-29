@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 import { DragHandle } from '@/components/DragHandle';
 import { useSheetDrag } from '@/hooks/useSheetDrag';

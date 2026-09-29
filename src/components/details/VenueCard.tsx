@@ -1,4 +1,4 @@
-import { Venue } from '@/supabase/schema/types';
+import { Venue } from '@/supabase/schema';
 import { getBuildingStatus } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { RoomCard } from '@/components/details/RoomCard';

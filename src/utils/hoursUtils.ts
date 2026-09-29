@@ -1,4 +1,4 @@
-import { DayHours } from '@/supabase/schema/types';
+import { DayHours } from '@/supabase/schema';
 
 export interface BuildingStatus {
   isOpen: boolean;
@@ -24,6 +24,20 @@ export function formatTime(time: string): string {
   const suffix = h >= 12 ? 'pm' : 'am';
   const hour = h % 12 || 12;
   return m === 0 ? `${hour}${suffix}` : `${hour}:${m.toString().padStart(2, '0')}${suffix}`;
+}
+
+const VANCOUVER_DATE_TIME = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Vancouver',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZoneName: 'short',
+});
+
+/** An instant as Vancouver wall-clock time whatever the viewer's zone, e.g. "Sep 28, 3:41 PM PDT". */
+export function formatVancouverDateTime(date: Date | number): string {
+  return VANCOUVER_DATE_TIME.format(date);
 }
 
 export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {

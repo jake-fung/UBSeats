@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Building } from '@/supabase/schema/types';
+import type { Building } from '@/supabase/schema';
 
 // Single home for the search matching logic (moved out of useBuildings).
 export const filterBuildingsBySearch = (buildings: Building[], query?: string): Building[] => {

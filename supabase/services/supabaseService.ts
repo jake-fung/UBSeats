@@ -1,15 +1,15 @@
 import { supabase } from '@/supabase/client';
-import {
+import type {
   Building,
   Category,
+  Database,
   DayHours,
   FeedbackInput,
   Note,
   Room,
   RoomAvailability,
   Venue,
-} from '@/supabase/schema/types';
-import type { Database } from '@/supabase/schema/database.types';
+} from '@/supabase/schema';
 import { validateCategoryType } from '@/utils/spotUtils';
 import { bookingsToSlots, classroomWindowCoversDate, BookingInterval, TimeSlot } from '@/utils/hoursUtils';
 import { parseAvailability } from '@/supabase/functions/sync-libcal-availability/parseAvailability';

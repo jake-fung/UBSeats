@@ -1,6 +1,9 @@
 import { InfoIcon, MessageSquareTextIcon, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useRoomAvailabilityMap } from '@/hooks/useRoomAvailability';
+import { formatVancouverDateTime } from '@/utils/hoursUtils';
+
 import FeedbackModal from '@/components/FeedbackModal';
 
 const TECH_STACK = ['React', 'TypeScript', 'Mapbox GL JS', 'Supabase', 'TanStack Query', 'Tailwind CSS'];
@@ -8,6 +11,10 @@ const TECH_STACK = ['React', 'TypeScript', 'Mapbox GL JS', 'Supabase', 'TanStack
 const Utilities = () => {
   const [aboutOpened, setAboutOpened] = useState(false);
   const [feedbackOpened, setFeedbackOpened] = useState(false);
+  const roomAvailability = useRoomAvailabilityMap();
+  const lastCheckedMs = roomAvailability?.size
+    ? Math.max(...Array.from(roomAvailability.values(), (a) => Date.parse(a.checkedAt)))
+    : NaN;
 
   const closeAbout = useCallback(() => setAboutOpened(false), []);
   const closeFeedback = useCallback(() => setFeedbackOpened(false), []);
@@ -44,7 +51,7 @@ const Utilities = () => {
           aria-labelledby="about-title"
         >
           <div
-            className="w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
+            className="w-[90vw] max-w-lg rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-start justify-between">
@@ -105,6 +112,11 @@ const Utilities = () => {
 
             <p className="mt-4 text-xs text-gray-400">Built by Jake Fung</p>
             <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</p>
+            {Number.isFinite(lastCheckedMs) && (
+              <p className="text-xs text-gray-400">
+                Classroom availability last updated: {formatVancouverDateTime(lastCheckedMs)}
+              </p>
+            )}
           </div>
         </div>
       )}

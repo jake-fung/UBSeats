@@ -1,5 +1,5 @@
 import mapboxgl from 'mapbox-gl';
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 
 export function createBuildingMarkerElement(building: Building, isSelected: boolean): HTMLDivElement {

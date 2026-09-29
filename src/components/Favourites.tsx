@@ -1,5 +1,5 @@
 import { Heart } from 'lucide-react';
-import { Filter } from '@/supabase/schema/types';
+import { Filter } from '@/supabase/schema';
 
 interface FavouritesProps {
   onFilterChange: (filter: Filter) => void;

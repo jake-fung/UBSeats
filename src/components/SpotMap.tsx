@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtils';

@@ -1,4 +1,4 @@
-import { Room, Venue } from '@/supabase/schema/types';
+import { Room, Venue } from '@/supabase/schema';
 import { NoteTags } from '@/components/details/NoteTags';
 import { CategoryTags } from '@/components/details/CategoryTags';
 import { CapacityRow } from '@/components/details/CapacityRow';

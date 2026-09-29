@@ -1,4 +1,4 @@
-import { DayHours } from '@/supabase/schema/types';
+import { DayHours } from '@/supabase/schema';
 import { ChevronDown, Clock } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useState } from 'react';

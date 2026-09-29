@@ -136,7 +136,8 @@ supabase/
 ├── functions/              # sync-libcal-availability — Deno Edge Function, syncs
 │                           #   LibCal availability into `room_availability` (+ tests)
 ├── services/               # supabaseService.ts — all data fetching
-├── schema/                 # types.ts (Building, Room, Venue, …) + generated database.types.ts
+├── schema/                 # tables/<table>.ts — DB row types + app type (Building, Room, Venue, …);
+│                           #   database.ts composes the Database type; import from '@/supabase/schema'
 └── migrations-pending/     # SQL migrations not yet applied
 
 scraper/                    # Standalone Playwright scraper for general classroom

@@ -1,4 +1,4 @@
-import { Room, Venue } from '@/supabase/schema/types';
+import { Room, Venue } from '@/supabase/schema';
 import { RoomCard } from '@/components/details/RoomCard';
 import { VenueCard } from '@/components/details/VenueCard';
 
