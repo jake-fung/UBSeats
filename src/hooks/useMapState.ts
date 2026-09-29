@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { isNowOnlyCategory, useBuildings } from '@/hooks/useBuildings';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { useSearch } from '@/hooks/useSearch';
@@ -20,6 +21,20 @@ export const useMapState = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const { toast } = useToast();
+
+  const handleLocationError = useCallback((message: string) => toast({ title: message, duration: 3000 }), [toast]);
+  const userLocation = useUserLocation(handleLocationError);
+  const { disable: disableUserLocation } = userLocation;
+
+  // The map's pan bounds define "campus"; a first fix outside them isn't worth showing.
+  const handleUserOutOfBounds = useCallback(() => {
+    disableUserLocation();
+    toast({
+      title: "You're not near campus",
+      description: 'Your location only shows on the campus map.',
+      duration: 3000,
+    });
+  }, [disableUserLocation, toast]);
 
   const search = useSearch({
     onQueryChange: () => {
@@ -106,5 +121,7 @@ export const useMapState = () => {
     handleSearchIconClicked: search.handleSearchIconClicked,
     mapLoaded,
     setMapLoaded,
+    userLocation,
+    handleUserOutOfBounds,
   };
 };

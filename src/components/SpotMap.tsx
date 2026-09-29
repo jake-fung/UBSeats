@@ -2,8 +2,14 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Building } from '@/supabase/schema';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { clearMarkers, createBuildingMarkerElement } from '@/utils/mapMarkerUtils';
+import {
+  accuracyRadiusPx,
+  clearMarkers,
+  createBuildingMarkerElement,
+  createUserLocationMarkerElement,
+} from '@/utils/mapMarkerUtils';
 import { getScreenHeight, getScreenWidth } from '@/utils/screenSizeUtils';
+import type { UserPosition } from '@/hooks/useUserLocation';
 
 const FIT_BOUNDS_PADDING = { top: 200, bottom: 150, left: 200, right: 200 } as const;
 const MOBILE_FIT_BOUNDS_PADDING = { top: 170, bottom: 100, left: 50, right: 50 } as const;
@@ -11,6 +17,7 @@ const FIT_BOUNDS_MAX_ZOOM = 16;
 const LABEL_MIN_ZOOM = 16;
 const BUILDING_DETAIL_PITCH = 60;
 const BUILDING_DETAIL_ZOOM = 18;
+const USER_LOCATION_ZOOM = 17;
 const SIDEBAR_PADDING_RIGHT = getScreenWidth() / 2;
 const SIDEBAR_PADDING_BOTTOM = getScreenHeight() / 2;
 
@@ -22,6 +29,8 @@ interface SpotMapProps {
   mapLoaded: boolean;
   setMapLoaded: (loaded: boolean) => void;
   isMobile: boolean;
+  userPosition: UserPosition | null;
+  onUserOutOfBounds: () => void;
 }
 
 const SpotMap: React.FC<SpotMapProps> = ({
@@ -32,10 +41,16 @@ const SpotMap: React.FC<SpotMapProps> = ({
   mapLoaded,
   setMapLoaded,
   isMobile,
+  userPosition,
+  onUserOutOfBounds,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+  const userMarker = useRef<mapboxgl.Marker | null>(null);
+  const userRing = useRef<HTMLDivElement | null>(null);
+  // True until the first fix after the toggle turns on; that fix alone moves the camera.
+  const awaitingFirstFix = useRef(true);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
@@ -43,6 +58,8 @@ const SpotMap: React.FC<SpotMapProps> = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
       style: import.meta.env.VITE_MAPBOX_STYLE_URL,
+      // Bottom-left belongs to the control row; the wordmark joins the attribution on the right.
+      logoPosition: 'bottom-right',
     });
 
     map.current.on('load', () => setMapLoaded(true));
@@ -144,6 +161,61 @@ const SpotMap: React.FC<SpotMapProps> = ({
       });
     }
   }, [isMenuOpened, mapLoaded, selectedBuilding, isMobile]);
+
+  useEffect(() => {
+    const mapInstance = map.current;
+    if (!mapLoaded || !mapInstance) return;
+
+    if (!userPosition) {
+      userMarker.current?.remove();
+      userMarker.current = null;
+      userRing.current = null;
+      awaitingFirstFix.current = true;
+      return;
+    }
+
+    const lngLat: [number, number] = [userPosition.lng, userPosition.lat];
+
+    if (awaitingFirstFix.current) {
+      awaitingFirstFix.current = false;
+      const bounds = mapInstance.getMaxBounds();
+      if (bounds && !bounds.contains(lngLat)) {
+        onUserOutOfBounds();
+        return;
+      }
+      mapInstance.flyTo({ center: lngLat, zoom: USER_LOCATION_ZOOM, essential: true });
+    }
+
+    if (userMarker.current) {
+      userMarker.current.setLngLat(lngLat);
+    } else {
+      const { element, ring } = createUserLocationMarkerElement();
+      userRing.current = ring;
+      // Map-aligned so the accuracy ring lies flat under the building-detail pitch.
+      userMarker.current = new mapboxgl.Marker({ element, pitchAlignment: 'map', rotationAlignment: 'map' })
+        .setLngLat(lngLat)
+        .addTo(mapInstance);
+    }
+  }, [mapLoaded, userPosition, onUserOutOfBounds]);
+
+  useEffect(() => {
+    const mapInstance = map.current;
+    const ring = userRing.current;
+    if (!mapLoaded || !mapInstance || !userPosition || !ring) return;
+
+    const syncRingSize = () => {
+      const diameter = 2 * accuracyRadiusPx(userPosition.accuracy, userPosition.lat, mapInstance.getZoom());
+      ring.style.width = `${diameter}px`;
+      ring.style.height = `${diameter}px`;
+    };
+
+    syncRingSize();
+    mapInstance.on('zoom', syncRingSize);
+
+    return () => {
+      mapInstance.off('zoom', syncRingSize);
+    };
+  }, [mapLoaded, userPosition]);
 
   return (
     <div className="z-0 h-[calc(100vh+36px)] w-screen">

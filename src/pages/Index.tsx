@@ -10,6 +10,7 @@ import { cn } from '@/utils/cnUtils';
 import Utilities from '@/components/About';
 import Favourites from '@/components/Favourites';
 import DatePicker from '@/components/DatePicker';
+import LocateButton from '@/components/LocateButton';
 
 const Index = () => {
   const {
@@ -31,6 +32,8 @@ const Index = () => {
     handleSearchIconClicked,
     mapLoaded,
     setMapLoaded,
+    userLocation,
+    handleUserOutOfBounds,
   } = useMapState();
 
   const isMobile = useIsMobile();
@@ -85,6 +88,8 @@ const Index = () => {
               mapLoaded={mapLoaded}
               setMapLoaded={setMapLoaded}
               isMobile={isMobile}
+              userPosition={userLocation.position}
+              onUserOutOfBounds={handleUserOutOfBounds}
             />
           </main>
 
@@ -99,9 +104,13 @@ const Index = () => {
             />
           )}
 
-          <Utilities />
-          <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
-          <DatePicker />
+          {/* wrap-reverse: on narrow phones the overflow line stacks above, never below the screen edge. */}
+          <div className="fixed bottom-6 left-6 z-10 flex max-w-[calc(100vw-3rem)] flex-wrap-reverse items-center gap-4">
+            <Utilities />
+            <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
+            {userLocation.supported && <LocateButton enabled={userLocation.enabled} onToggle={userLocation.toggle} />}
+            <DatePicker />
+          </div>
         </>
       )}
     </div>

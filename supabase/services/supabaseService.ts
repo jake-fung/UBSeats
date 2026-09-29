@@ -280,7 +280,8 @@ export async function fetchClassroomAvailability(now: Date): Promise<Map<string,
       isAvailableNow: summary.isAvailableNow,
       availableUntil: summary.availableUntil,
       nextAvailableAt: summary.nextAvailableAt,
-      checkedAt: day.scrapedAt,
+      scrapedAt: day.scrapedAt,
+      checkedAt: null,
       slots,
     });
   });
@@ -310,6 +311,7 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
       availableUntil: summary.availableUntil,
       nextAvailableAt: summary.nextAvailableAt,
       checkedAt: row.checked_at,
+      scrapedAt: null,
       slots,
     });
   });

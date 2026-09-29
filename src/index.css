@@ -329,6 +329,39 @@
   opacity: 1;
 }
 
+/* SpotMap's container is 36px taller than the viewport (h-[calc(100vh+36px)], clipped by <main>),
+   which would hide Mapbox's required wordmark and attribution; lift them back into view. */
+.mapboxgl-ctrl-bottom-right {
+  bottom: 36px;
+}
+
+.user-location-dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  animation: user-location-pulse 2s ease-out infinite;
+}
+
+@keyframes user-location-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-location-dot::after {
+    animation: none;
+  }
+}
+
 .loader {
   width: 80px;
   aspect-ratio: 1;

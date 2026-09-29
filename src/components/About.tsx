@@ -1,5 +1,6 @@
 import { InfoIcon, MessageSquareTextIcon, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useRoomAvailabilityMap } from '@/hooks/useRoomAvailability';
 import { formatVancouverDateTime } from '@/utils/hoursUtils';
@@ -12,9 +13,9 @@ const Utilities = () => {
   const [aboutOpened, setAboutOpened] = useState(false);
   const [feedbackOpened, setFeedbackOpened] = useState(false);
   const roomAvailability = useRoomAvailabilityMap();
-  const lastCheckedMs = roomAvailability?.size
-    ? Math.max(...Array.from(roomAvailability.values(), (a) => Date.parse(a.checkedAt)))
-    : NaN;
+  const lastCheckedMs = Math.max(
+    ...Array.from(roomAvailability?.values() ?? [], (a) => Date.parse(a.scrapedAt)).filter(Number.isFinite),
+  );
 
   const closeAbout = useCallback(() => setAboutOpened(false), []);
   const closeFeedback = useCallback(() => setFeedbackOpened(false), []);
@@ -22,27 +23,19 @@ const Utilities = () => {
 
   return (
     <>
-      <div className="fixed bottom-6 left-6 z-10 flex flex-row gap-3 rounded-full bg-white p-3 shadow-lg">
-        <button
-          aria-label="About UBSeats"
-          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
-          onClick={() => setAboutOpened(true)}
-        >
+      <div className="flex items-center rounded-full bg-white text-gray-700 shadow-lg">
+        <button aria-label="About UBSeats" className="rounded-l-full p-3" onClick={() => setAboutOpened(true)}>
           <InfoIcon />
         </button>
-        <div className="w-px rounded-full bg-gray-700" />
-        <button
-          aria-label="Feedback"
-          className="flex items-center text-gray-700 transition-all duration-200 hover:shadow-xl"
-          onClick={() => setFeedbackOpened(true)}
-        >
+        <div className="h-6 w-px rounded-full bg-gray-700" />
+        <button aria-label="Feedback" className="rounded-r-full p-3" onClick={() => setFeedbackOpened(true)}>
           <MessageSquareTextIcon />
         </button>
       </div>
 
-      {feedbackOpened && <FeedbackModal onClose={closeFeedback} />}
+      {feedbackOpened && createPortal(<FeedbackModal onClose={closeFeedback} />, document.body)}
 
-      {aboutOpened && (
+      {aboutOpened && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200 animate-in fade-in"
           onClick={() => setAboutOpened(false)}
@@ -51,7 +44,7 @@ const Utilities = () => {
           aria-labelledby="about-title"
         >
           <div
-            className="w-[90vw] max-w-lg rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
+            className="w-[90vw] max-w-md rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-start justify-between">
@@ -118,7 +111,8 @@ const Utilities = () => {
               </p>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

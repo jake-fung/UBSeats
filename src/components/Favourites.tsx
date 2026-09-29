@@ -1,5 +1,6 @@
 import { Heart } from 'lucide-react';
 import { Filter } from '@/supabase/schema';
+import { cn } from '@/utils/cnUtils';
 
 interface FavouritesProps {
   onFilterChange: (filter: Filter) => void;
@@ -16,13 +17,17 @@ const Favourites = ({ onFilterChange, activeFilters }: FavouritesProps) => {
     }
   };
   return (
-    <>
-      <div className={`fixed bottom-6 left-34 z-10 flex flex-row gap-3 rounded-full p-3 shadow-lg text-gray-700 ${isActive ? 'bg-primary text-white' : 'bg-white'}`}>
-        <button className="rounded" onClick={handleFavouriteClick}>
-          <Heart />
-        </button>
-      </div>
-    </>
+    <button
+      aria-label="Favourites only"
+      aria-pressed={isActive}
+      onClick={handleFavouriteClick}
+      className={cn(
+        'flex items-center rounded-full p-3 shadow-lg',
+        isActive ? 'bg-primary text-white' : 'bg-white text-gray-700',
+      )}
+    >
+      <Heart />
+    </button>
   );
 };
 

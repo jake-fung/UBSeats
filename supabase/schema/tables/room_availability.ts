@@ -40,6 +40,7 @@ export interface RoomAvailability {
   isAvailableNow: boolean;
   availableUntil: string | null;
   nextAvailableAt: string | null;
-  checkedAt: string;
+  checkedAt: string | null;
+  scrapedAt: string | null;
   slots: TimeSlot[];
 }

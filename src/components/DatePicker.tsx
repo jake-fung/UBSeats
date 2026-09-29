@@ -25,7 +25,7 @@ const DatePicker = () => {
         <button
           aria-label={isToday ? 'Pick a day' : `Showing ${FULL_LABEL.format(selectedDate)}. Pick a day`}
           className={cn(
-            'fixed bottom-6 left-50 z-10 flex flex-row items-center gap-2 rounded-full p-3 shadow-lg',
+            'flex flex-row items-center gap-2 rounded-full p-3 shadow-lg',
             isToday ? 'bg-white text-gray-700' : 'bg-primary text-white',
           )}
         >
