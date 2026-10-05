@@ -31,8 +31,12 @@ Verified from code (2026-10-04):
    - `parseAvailability.ts` computes isAvailableNow / availableUntil / nextAvailableAt; mergeSlots
 2b. Library hours sync (local, NOT deployed as of 2026-10-04) — `supabase/functions/sync-library-hours/`
    - Weekly (pg_cron Sun 08:30 UTC, in migrations-pending). Reads venues/buildings.library_branch,
-     fetches hours.library.ubc.ca month fragments, writes 7 actual days per branch via RPC
-     `replace_library_hours`; failures keep old rows and trigger a Resend email.
+     fetches hours.library.ubc.ca month fragments, resolves this + next Sun-Sat week per branch,
+     RPC `replace_library_hours` writes *_hours_by_week (both weeks, 1.2 reads) and the legacy
+     one-row-per-weekday *_hours (this week, main reads) — expand phase; this-week failure keeps
+     old rows + Resend email; next-week failure only logged.
+   - 1.2 read side: `hoursForDate(owner, date)` in hoursUtils picks the week's synced rows, else
+     hand-entered weekly rows; null = "Hours not published yet".
 3. Frontend read side — `supabase/services/supabaseService.ts`, `src/hooks/useRoomAvailability.ts`
    (react-query refetchInterval)
 

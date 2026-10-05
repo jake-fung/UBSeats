@@ -231,15 +231,55 @@ export function buildWeekRows(tablesByMonth: Map<string, HoursTable>, dates: Cal
   return rows;
 }
 
-/** The 7 calendar dates starting today in `timeZone`. Each weekday appears exactly once. */
-export function weekDatesFrom(now: Date, timeZone = 'America/Vancouver'): CalendarDate[] {
+export interface CalendarWeek {
+  start: string; // the week's Sunday as "YYYY-MM-DD", the value stored in week_start
+  dates: CalendarDate[]; // Sunday..Saturday
+}
+
+const DAY_MS = 86_400_000;
+
+function weekFrom(sundayUtcMs: number): CalendarWeek {
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sundayUtcMs + i * DAY_MS);
+    return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
+  });
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return { start: `${dates[0].year}-${pad(dates[0].month)}-${pad(dates[0].day)}`, dates };
+}
+
+/** This Sunday–Saturday week and the next one, by the calendar date in `timeZone`. */
+export function calendarWeeks(
+  now: Date,
+  timeZone = 'America/Vancouver',
+): { thisWeek: CalendarWeek; nextWeek: CalendarWeek } {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(now)
     .reduce<Record<string, string>>((acc, p) => ({ ...acc, [p.type]: p.value }), {});
-  const start = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+  const today = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+  const sunday = today - new Date(today).getUTCDay() * DAY_MS;
+  return { thisWeek: weekFrom(sunday), nextWeek: weekFrom(sunday + 7 * DAY_MS) };
+}
 
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start + i * 86_400_000);
-    return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
-  });
+export interface ResolvedWeeks {
+  thisRows: DayRow[];
+  nextRows: DayRow[] | null; // null when next week could not be resolved
+  nextError: string | null;
+}
+
+/**
+ * This week must resolve or the branch fails (throws). Next week is best effort: near
+ * the end of a published period the site often has no rule for it yet, which should not
+ * stop this week's hours from being saved.
+ */
+export function resolveWeeks(
+  tablesByMonth: Map<string, HoursTable>,
+  thisWeek: CalendarWeek,
+  nextWeek: CalendarWeek,
+): ResolvedWeeks {
+  const thisRows = buildWeekRows(tablesByMonth, thisWeek.dates);
+  try {
+    return { thisRows, nextRows: buildWeekRows(tablesByMonth, nextWeek.dates), nextError: null };
+  } catch (err) {
+    return { thisRows, nextRows: null, nextError: err instanceof Error ? err.message : String(err) };
+  }
 }

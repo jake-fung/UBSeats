@@ -47,6 +47,24 @@ function buildHoursMap<T extends { day_of_week: number; opens_at: string | null;
 }
 
 /**
+ * Group `*_hours_by_week` rows into `Map<ownerKey, Map<weekStart, DayHours[]>>`. Shared by
+ * building and venue hours, like buildHoursMap.
+ */
+function buildWeeklyHoursMap<
+  T extends { week_start: string; day_of_week: number; opens_at: string; closes_at: string },
+>(rows: T[], keyOf: (row: T) => string): Map<string, Map<string, DayHours[]>> {
+  const map = new Map<string, Map<string, DayHours[]>>();
+  rows.forEach((row) => {
+    const byWeek = map.get(keyOf(row)) ?? new Map<string, DayHours[]>();
+    const list = byWeek.get(row.week_start) ?? [];
+    list.push({ dayOfWeek: row.day_of_week, opensAt: row.opens_at, closesAt: row.closes_at });
+    byWeek.set(row.week_start, list);
+    map.set(keyOf(row), byWeek);
+  });
+  return map;
+}
+
+/**
  * Group `*_images` rows into a `Map<key, image_url>`. Shared by building and venue
  * images (last write wins, mirroring the original per-entity logic).
  */
@@ -85,6 +103,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     venueHoursData,
     venueImagesData,
     roomImagesData,
+    weeklyHoursData,
+    venueWeeklyHoursData,
   ] = await Promise.all([
     selectAll('buildings'),
     selectAll('building_images'),
@@ -97,6 +117,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     selectAll('venue_hours'),
     selectAll('venue_images'),
     selectAll('room_images'),
+    selectAll('building_hours_by_week'),
+    selectAll('venue_hours_by_week'),
   ]);
 
   const imageMap = buildImageMap(imagesData, (img) => img.building_uuid);
@@ -105,6 +127,8 @@ export async function fetchBuildings(): Promise<Building[]> {
 
   const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
   const venueHoursMap = buildHoursMap(venueHoursData, (h) => h.venue_id);
+  const weeklyHoursMap = buildWeeklyHoursMap(weeklyHoursData, (h) => h.building_uuid);
+  const venueWeeklyHoursMap = buildWeeklyHoursMap(venueWeeklyHoursData, (h) => h.venue_id);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -174,6 +198,7 @@ export async function fetchBuildings(): Promise<Building[]> {
       name: v.name,
       kind: v.kind === 'cafe' ? 'cafe' : 'library',
       hours: venueHoursMap.get(v.id) ?? [],
+      hoursByWeek: venueWeeklyHoursMap.get(v.id) ?? new Map(),
       rooms: venueRoomsMap.get(v.id) ?? [],
       image: venueImagesMap.get(v.id),
     });
@@ -192,6 +217,7 @@ export async function fetchBuildings(): Promise<Building[]> {
       image: imageMap.get(b.uuid),
       rooms: roomsMap.get(b.uuid) ?? [],
       hours: hoursMap.get(b.uuid) ?? [],
+      hoursByWeek: weeklyHoursMap.get(b.uuid) ?? new Map(),
       venues: venuesMap.get(b.uuid) ?? [],
     }))
     .filter((b) => b.rooms.length > 0 || b.venues.some((v) => v.rooms.length > 0));

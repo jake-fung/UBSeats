@@ -2,7 +2,7 @@ import { DayHours } from '@/supabase/schema';
 import { ChevronDown, Clock } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
 import { useState } from 'react';
-import { BuildingStatus, formatTime } from '@/utils/hoursUtils';
+import { BuildingStatus, formatTime, hoursForDate, HoursOwner } from '@/utils/hoursUtils';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -13,14 +13,17 @@ function formatDayHours(day: DayHours): string {
 }
 
 export interface HoursPillProps {
-  status: BuildingStatus;
-  hours: DayHours[];
+  /** Today's open/closed status; null when today's hours are unknown. */
+  status: BuildingStatus | null;
+  owner: HoursOwner;
 }
 
-export const HoursPill = ({ status, hours }: HoursPillProps) => {
+export const HoursPill = ({ status, owner }: HoursPillProps) => {
   const [expanded, setExpanded] = useState(false);
   const { selectedDate, isToday } = useSelectedDate();
   const highlightedDay = selectedDate.getDay();
+  // The selected day's week: a synced library may differ week to week, or not be published yet.
+  const hours = hoursForDate(owner, selectedDate);
 
   return (
     <div>
@@ -31,19 +34,20 @@ export const HoursPill = ({ status, hours }: HoursPillProps) => {
         }}
         className={cn(
           'z-10 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors',
-          isToday ? (status.isOpen ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200') : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+          isToday && status
+            ? status.isOpen
+              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+              : 'bg-red-100 text-red-700 hover:bg-red-200'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
         )}
       >
         <Clock className="h-3 w-3" />
-        {(() => {
-          const day = hours.find((h) => h.dayOfWeek === highlightedDay);
-          return `${formatDayHours(day)}`;
-        })()}
+        {hours ? formatDayHours(hours.find((h) => h.dayOfWeek === highlightedDay)) : 'Hours not published yet'}
         <div className={cn('flex items-center gap-1 transition-transform duration-200', expanded ? 'rotate-180' : '')}>
           <ChevronDown className="h-3 w-3" />
         </div>
       </button>
-      {hours.length > 0 && (
+      {hours && hours.length > 0 && (
         <div
           className={cn(
             'grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',

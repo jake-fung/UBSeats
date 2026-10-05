@@ -1,11 +1,19 @@
--- NOT YET APPLIED. Run once the `sync-library-hours` Edge Function is deployed.
+-- NOT YET APPLIED. Run once the `sync-library-hours` Edge Function is deployed, and
+-- before the 1.2 frontend reaches any deployed environment (1.2 reads the *_by_week tables).
 --
--- 2026-10-04 — weekly library hours sync from hours.library.ubc.ca.
+-- 2026-10-04 — weekly library hours sync from hours.library.ubc.ca, EXPAND phase.
 --
--- Each mapped venue/building gets this week's ACTUAL hours (holidays applied) written
--- into the existing venue_hours / building_hours tables, one branch at a time. A branch
--- that fails to fetch or parse keeps its previous rows; its hours_synced_at is then
--- older than the run's start, which is what the function's alert email reports.
+-- Each run resolves this week's and next week's ACTUAL hours (holidays applied) per
+-- mapped branch:
+--   * *_hours_by_week   gets both weeks tagged with week_start (a Sunday). 1.2 reads this.
+--   * venue_hours / building_hours keep one row per weekday and get THIS week only, so the
+--     currently deployed main build, which matches rows by day_of_week alone, is unchanged.
+-- This week failing keeps all of the branch's rows and is emailed; next week failing only
+-- means next week is not stored (1.2 shows "hours not published yet").
+--
+-- CONTRACT (after 1.2 is on main): stop writing the legacy tables in replace_library_hours,
+-- then delete the synced owners' rows from venue_hours / building_hours. Those tables stay
+-- for hand-entered hours that repeat every week.
 --
 -- Edge Function secrets required before the first run (not stored here):
 --   RESEND_API_KEY, ALERT_EMAIL_TO  (optional: ALERT_EMAIL_FROM)
@@ -57,12 +65,61 @@ begin
   end if;
 end $$;
 
--- 3. Per-branch atomic replace ------------------------------------------------------
---    Swaps one target's 7-day rows and stamps hours_synced_at in a single transaction,
---    so a failure mid-write can never leave a branch with half a week.
---    p_rows: [{ "day_of_week": 0-6, "opens_at": "HH:MM", "closes_at": "HH:MM" }, ...]
---    Closed days are simply absent, which the read side already treats as closed.
-create or replace function public.replace_library_hours(p_kind text, p_id uuid, p_rows jsonb)
+-- 3. Backup of the hand-entered hours the first sync will overwrite -----------------
+--    RLS on with no policy: not readable through the public API.
+create table public.library_hours_backup_20261004 as
+select 'venue'::text as kind, h.venue_id as owner_id, h.day_of_week::integer, h.opens_at, h.closes_at
+  from public.venue_hours h join public.venues v on v.id = h.venue_id
+ where v.library_branch is not null
+union all
+select 'building', h.building_uuid, h.day_of_week::integer, h.opens_at, h.closes_at
+  from public.building_hours h join public.buildings b on b.uuid = h.building_uuid
+ where b.library_branch is not null;
+
+alter table public.library_hours_backup_20261004 enable row level security;
+
+-- 4. Week-tagged hours (expand) -----------------------------------------------------
+create table public.venue_hours_by_week (
+  id          uuid primary key default gen_random_uuid(),
+  venue_id    uuid not null references public.venues (id) on delete cascade,
+  week_start  date not null check (extract(dow from week_start) = 0),
+  day_of_week integer not null check (day_of_week between 0 and 6),
+  opens_at    time not null,
+  closes_at   time not null,
+  unique (venue_id, week_start, day_of_week)
+);
+
+create table public.building_hours_by_week (
+  id            uuid primary key default gen_random_uuid(),
+  building_uuid uuid not null references public.buildings (uuid) on delete cascade,
+  week_start    date not null check (extract(dow from week_start) = 0),
+  day_of_week   smallint not null check (day_of_week between 0 and 6),
+  opens_at      time not null,
+  closes_at     time not null,
+  unique (building_uuid, week_start, day_of_week)
+);
+
+comment on table public.venue_hours_by_week is
+  'Actual hours per week (week_start = Sunday). Closed days have no row. Written by sync-library-hours.';
+comment on table public.building_hours_by_week is
+  'Actual hours per week (week_start = Sunday). Closed days have no row. Written by sync-library-hours.';
+
+alter table public.venue_hours_by_week    enable row level security;
+alter table public.building_hours_by_week enable row level security;
+create policy "Allow public read access" on public.venue_hours_by_week    for select using (true);
+create policy "Allow public read access" on public.building_hours_by_week for select using (true);
+
+-- 5. Per-branch atomic replace ------------------------------------------------------
+--    One transaction per branch, so a failure mid-write never leaves half a week.
+--    p_this_rows / p_next_rows: [{ "day_of_week": 0-6, "opens_at": "HH:MM", "closes_at": "HH:MM" }]
+--    p_next_rows null = next week could not be resolved; it is then simply not stored.
+create or replace function public.replace_library_hours(
+  p_kind            text,
+  p_id              uuid,
+  p_this_week_start date,
+  p_this_rows       jsonb,
+  p_next_rows       jsonb default null
+)
 returns integer
 language plpgsql
 security definer
@@ -71,19 +128,42 @@ as $function$
 declare
   v_count integer;
 begin
+  if extract(dow from p_this_week_start) <> 0 then
+    raise exception 'replace_library_hours: % is not a Sunday', p_this_week_start;
+  end if;
+
   if p_kind = 'venue' then
+    -- Expand only: the one-row-per-weekday table main reads. Drop this block at contract.
     delete from public.venue_hours where venue_id = p_id;
     insert into public.venue_hours (venue_id, day_of_week, opens_at, closes_at)
     select p_id, (r->>'day_of_week')::integer, (r->>'opens_at')::time, (r->>'closes_at')::time
-      from jsonb_array_elements(p_rows) as r;
+      from jsonb_array_elements(p_this_rows) as r;
+
+    -- This week, next week and any past week are replaced; nothing older is kept.
+    delete from public.venue_hours_by_week where venue_id = p_id and week_start <= p_this_week_start + 7;
+    insert into public.venue_hours_by_week (venue_id, week_start, day_of_week, opens_at, closes_at)
+    select p_id, w.week_start, (r->>'day_of_week')::integer, (r->>'opens_at')::time, (r->>'closes_at')::time
+      from (values (p_this_week_start, p_this_rows),
+                   (p_this_week_start + 7, coalesce(p_next_rows, '[]'::jsonb))) as w (week_start, rows),
+           jsonb_array_elements(w.rows) as r;
     get diagnostics v_count = row_count;
+
     update public.venues set hours_synced_at = now() where id = p_id;
   elsif p_kind = 'building' then
+    -- Expand only: the one-row-per-weekday table main reads. Drop this block at contract.
     delete from public.building_hours where building_uuid = p_id;
     insert into public.building_hours (building_uuid, day_of_week, opens_at, closes_at)
     select p_id, (r->>'day_of_week')::smallint, (r->>'opens_at')::time, (r->>'closes_at')::time
-      from jsonb_array_elements(p_rows) as r;
+      from jsonb_array_elements(p_this_rows) as r;
+
+    delete from public.building_hours_by_week where building_uuid = p_id and week_start <= p_this_week_start + 7;
+    insert into public.building_hours_by_week (building_uuid, week_start, day_of_week, opens_at, closes_at)
+    select p_id, w.week_start, (r->>'day_of_week')::smallint, (r->>'opens_at')::time, (r->>'closes_at')::time
+      from (values (p_this_week_start, p_this_rows),
+                   (p_this_week_start + 7, coalesce(p_next_rows, '[]'::jsonb))) as w (week_start, rows),
+           jsonb_array_elements(w.rows) as r;
     get diagnostics v_count = row_count;
+
     update public.buildings set hours_synced_at = now() where uuid = p_id;
   else
     raise exception 'replace_library_hours: unknown kind %', p_kind;
@@ -97,12 +177,12 @@ begin
 end;
 $function$;
 
-revoke execute on function public.replace_library_hours(text, uuid, jsonb) from public, anon, authenticated;
-grant  execute on function public.replace_library_hours(text, uuid, jsonb) to service_role;
+revoke execute on function public.replace_library_hours(text, uuid, date, jsonb, jsonb) from public, anon, authenticated;
+grant  execute on function public.replace_library_hours(text, uuid, date, jsonb, jsonb) to service_role;
 
--- 4. Weekly schedule ----------------------------------------------------------------
+-- 6. Weekly schedule ----------------------------------------------------------------
 --    pg_cron runs in UTC and ignores DST: 08:30 UTC Sunday is 01:30 PDT / 00:30 PST,
---    so the run always lands on Sunday in Vancouver and syncs Sunday–Saturday.
+--    so the run always lands on Sunday in Vancouver and syncs that week and the next.
 select cron.schedule(
   'sync-library-hours',
   '30 8 * * 0',

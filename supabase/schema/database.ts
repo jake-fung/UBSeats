@@ -1,5 +1,6 @@
 import type { AmenitiesTable } from './tables/amenities';
 import type { BuildingHoursTable } from './tables/building_hours';
+import type { BuildingHoursByWeekTable } from './tables/building_hours_by_week';
 import type { BuildingImagesTable } from './tables/building_images';
 import type { BuildingRoomsTable } from './tables/building_rooms';
 import type { BuildingsTable } from './tables/buildings';
@@ -12,6 +13,7 @@ import type { RoomCategoriesTable } from './tables/room_categories';
 import type { RoomImagesTable } from './tables/room_images';
 import type { RoomNotesTable } from './tables/room_notes';
 import type { VenueHoursTable } from './tables/venue_hours';
+import type { VenueHoursByWeekTable } from './tables/venue_hours_by_week';
 import type { VenueImagesTable } from './tables/venue_images';
 import type { VenuesTable } from './tables/venues';
 
@@ -30,6 +32,7 @@ export type Database = {
     Tables: {
       amenities: AmenitiesTable;
       building_hours: BuildingHoursTable;
+      building_hours_by_week: BuildingHoursByWeekTable;
       building_images: BuildingImagesTable;
       building_rooms: BuildingRoomsTable;
       buildings: BuildingsTable;
@@ -42,6 +45,7 @@ export type Database = {
       room_images: RoomImagesTable;
       room_notes: RoomNotesTable;
       venue_hours: VenueHoursTable;
+      venue_hours_by_week: VenueHoursByWeekTable;
       venue_images: VenueImagesTable;
       venues: VenuesTable;
     };

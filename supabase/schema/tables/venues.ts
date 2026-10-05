@@ -45,7 +45,10 @@ export interface Venue {
   buildingUuid: string;
   name: string;
   kind: VenueKind;
+  /** Hand-entered hours that repeat every week. Read through hoursForDate. */
   hours: DayHours[];
+  /** Synced actual hours keyed by week start ("YYYY-MM-DD", a Sunday). Empty if not synced. */
+  hoursByWeek: Map<string, DayHours[]>;
   rooms: Room[];
   image: string | undefined;
   totalRooms?: number;

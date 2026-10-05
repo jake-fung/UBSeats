@@ -1,6 +1,7 @@
 export * from './database';
 export * from './tables/amenities';
 export * from './tables/building_hours';
+export * from './tables/building_hours_by_week';
 export * from './tables/building_images';
 export * from './tables/building_rooms';
 export * from './tables/buildings';
@@ -13,5 +14,6 @@ export * from './tables/room_categories';
 export * from './tables/room_images';
 export * from './tables/room_notes';
 export * from './tables/venue_hours';
+export * from './tables/venue_hours_by_week';
 export * from './tables/venue_images';
 export * from './tables/venues';

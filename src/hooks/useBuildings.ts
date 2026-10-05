@@ -73,12 +73,7 @@ export const useBuildings = (filters?: Filter, searchQuery?: string) => {
 
     switch (filters.category) {
       case 'open_buildings':
-        return result.filter((building) =>
-          isBuildingOpenNow(
-            building.hours,
-            building.venues.map((v) => v.hours),
-          ),
-        );
+        return result.filter((building) => isBuildingOpenNow(building, building.venues));
       case 'now_available_rooms':
         return filterBuildingsByRoom(result, (room) => availability?.get(room.uuid)?.isAvailableNow === true);
       case 'favourites':

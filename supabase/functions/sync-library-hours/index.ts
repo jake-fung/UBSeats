@@ -1,6 +1,15 @@
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchBranchIds, fetchMonth } from './libraryClient.ts';
-import { buildWeekRows, monthKey, parseHoursTable, weekDatesFrom, type HoursTable } from './parseHours.ts';
+import {
+  calendarWeeks,
+  monthKey,
+  parseHoursTable,
+  resolveWeeks,
+  type CalendarDate,
+  type CalendarWeek,
+  type DayRow,
+  type HoursTable,
+} from './parseHours.ts';
 import { sendAlertEmail, type BranchFailure } from './alertEmail.ts';
 
 interface SyncTarget {
@@ -24,29 +33,45 @@ async function loadTargets(supabase: SupabaseClient): Promise<SyncTarget[]> {
   ];
 }
 
-/** Fetches, parses and replaces one branch's week. Throws on any failure; old rows stay. */
+const toDbRows = (rows: DayRow[]) =>
+  rows.map((r) => ({ day_of_week: r.dayOfWeek, opens_at: r.opensAt, closes_at: r.closesAt }));
+
+/**
+ * Fetches, parses and replaces one branch's two weeks. Throws if this week fails (all of
+ * the branch's rows stay as they were); a failed next week is logged and simply not stored.
+ */
 async function syncTarget(
   supabase: SupabaseClient,
   target: SyncTarget,
   branchIds: Map<string, string>,
-  dates: ReturnType<typeof weekDatesFrom>,
+  weeks: { thisWeek: CalendarWeek; nextWeek: CalendarWeek },
 ): Promise<void> {
   const locationId = branchIds.get(target.branch);
   if (!locationId) throw new Error('branch not found on hours.library.ubc.ca');
 
-  // The week spans one or two months; each date is resolved against its own month's table.
+  // Each date is resolved against its own month's table.
   const tables = new Map<string, HoursTable>();
-  for (const date of dates) {
+  const loadMonthOf = async (date: CalendarDate) => {
     const key = monthKey(date);
     if (!tables.has(key)) tables.set(key, parseHoursTable(await fetchMonth(locationId, date.year, date.month)));
+  };
+  for (const date of weeks.thisWeek.dates) await loadMonthOf(date);
+  try {
+    for (const date of weeks.nextWeek.dates) await loadMonthOf(date);
+  } catch {
+    // A month only next week needs failed to load; resolveWeeks reports next week as missing.
   }
 
-  const rows = buildWeekRows(tables, dates).map((r) => ({
-    day_of_week: r.dayOfWeek,
-    opens_at: r.opensAt,
-    closes_at: r.closesAt,
-  }));
-  const { error } = await supabase.rpc('replace_library_hours', { p_kind: target.kind, p_id: target.id, p_rows: rows });
+  const { thisRows, nextRows, nextError } = resolveWeeks(tables, weeks.thisWeek, weeks.nextWeek);
+  if (nextError) console.warn(`next week not stored for ${target.branch}: ${nextError}`);
+
+  const { error } = await supabase.rpc('replace_library_hours', {
+    p_kind: target.kind,
+    p_id: target.id,
+    p_this_week_start: weeks.thisWeek.start,
+    p_this_rows: toDbRows(thisRows),
+    p_next_rows: nextRows ? toDbRows(nextRows) : null,
+  });
   if (error) throw new Error(`replace_library_hours: ${error.message}`);
 }
 
@@ -71,10 +96,10 @@ Deno.serve(async () => {
   }
 
   if (branchIds) {
-    const dates = weekDatesFrom(runStartedAt);
+    const weeks = calendarWeeks(runStartedAt);
     for (const target of targets) {
       try {
-        await syncTarget(supabase, target, branchIds, dates);
+        await syncTarget(supabase, target, branchIds, weeks);
       } catch (err) {
         console.error(`library hours sync failed for ${target.branch}:`, err);
         failures.push({

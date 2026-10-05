@@ -6,8 +6,9 @@ import {
   parseHours,
   parseHoursTable,
   parseWeekdays,
+  calendarWeeks,
   resolveDay,
-  weekDatesFrom,
+  resolveWeeks,
 } from './parseHours.ts';
 
 // Real hours-table markup from hours.library.ubc.ca, fetched 2026-10-04.
@@ -132,12 +133,54 @@ Deno.test('parseBranchIds reads the numeric location_id from each calendar', () 
   );
 });
 
-Deno.test('weekDatesFrom starts on the Vancouver date, not the UTC one', () => {
-  // 2026-10-04T05:00Z is still Saturday Oct 3 in Vancouver (UTC-7).
-  const dates = weekDatesFrom(new Date('2026-10-04T05:00:00Z'));
-  assertEquals(dates[0], d(2026, 10, 3));
-  assertEquals(dates[6], d(2026, 10, 9));
-  // The scheduled run (Sunday 08:30 UTC) lands on Sunday locally in both PDT and PST.
-  assertEquals(weekDatesFrom(new Date('2026-10-04T08:30:00Z'))[0], d(2026, 10, 4));
-  assertEquals(weekDatesFrom(new Date('2026-12-06T08:30:00Z'))[0], d(2026, 12, 6));
+Deno.test('calendarWeeks uses the Vancouver date, not the UTC one', () => {
+  // 2026-10-04T05:00Z is still Saturday Oct 3 in Vancouver (UTC-7), so this week began Sep 27.
+  const { thisWeek, nextWeek } = calendarWeeks(new Date('2026-10-04T05:00:00Z'));
+  assertEquals(thisWeek.start, '2026-09-27');
+  assertEquals(thisWeek.dates[6], d(2026, 10, 3));
+  assertEquals(nextWeek.start, '2026-10-04');
+  assertEquals(nextWeek.dates[6], d(2026, 10, 10));
+});
+
+Deno.test('calendarWeeks: the scheduled Sunday run starts this week on that Sunday in PDT and PST', () => {
+  assertEquals(calendarWeeks(new Date('2026-10-04T08:30:00Z')).thisWeek.start, '2026-10-04');
+  assertEquals(calendarWeeks(new Date('2026-12-06T08:30:00Z')).thisWeek.start, '2026-12-06');
+});
+
+Deno.test('calendarWeeks: a mid-week run still covers the whole Sunday-Saturday week', () => {
+  const { thisWeek, nextWeek } = calendarWeeks(new Date('2026-10-08T19:00:00Z')); // Thu Oct 8
+  assertEquals(thisWeek.start, '2026-10-04');
+  assertEquals(
+    thisWeek.dates.map((x) => x.day),
+    [4, 5, 6, 7, 8, 9, 10],
+  );
+  assertEquals(nextWeek.start, '2026-10-11');
+});
+
+Deno.test('resolveWeeks saves this week even when next week runs past the published period', () => {
+  // Week of Dec 13: this week is all regular hours; next week (Dec 20-26) needs the
+  // holiday rows, which this October-style table (Oct 12 only) does not have.
+  const tables = new Map([['2026-12', parseHoursTable(KOERNER_OCT)]]);
+  const { thisWeek, nextWeek } = calendarWeeks(new Date('2026-12-13T08:30:00Z'));
+  const result = resolveWeeks(tables, thisWeek, nextWeek);
+  assertEquals(result.thisRows.length, 7);
+  assertEquals(result.nextRows, null);
+  assertEquals(result.nextError, 'no hours rule covers 12/23');
+});
+
+Deno.test('resolveWeeks returns both weeks when both resolve, holidays in the right week', () => {
+  const tables = new Map([['2026-10', parseHoursTable(KOERNER_OCT)]]);
+  const { thisWeek, nextWeek } = calendarWeeks(new Date('2026-10-04T08:30:00Z'));
+  const result = resolveWeeks(tables, thisWeek, nextWeek);
+  assertEquals(result.thisRows.length, 7); // Oct 4-10: open every day
+  assertEquals(
+    result.nextRows?.map((r) => r.dayOfWeek),
+    [0, 2, 3, 4, 5, 6], // Oct 11-17: Thanksgiving Monday (1) closed
+  );
+});
+
+Deno.test('resolveWeeks fails the branch when this week cannot resolve', () => {
+  const tables = new Map([['2027-1', parseHoursTable(KOERNER_OCT)]]);
+  const { thisWeek, nextWeek } = calendarWeeks(new Date('2027-01-03T08:30:00Z'));
+  assertThrows(() => resolveWeeks(tables, thisWeek, nextWeek), Error, 'no hours rule covers');
 });

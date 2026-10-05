@@ -1,4 +1,5 @@
 import { DayHours } from '@/supabase/schema';
+import { toDateKey } from '@/utils/dateUtils';
 
 export interface BuildingStatus {
   isOpen: boolean;
@@ -40,6 +41,32 @@ export function formatVancouverDateTime(date: Date | number): string {
   return VANCOUVER_DATE_TIME.format(date);
 }
 
+/** A building or venue: hand-entered weekly hours, plus synced actual hours per week. */
+export interface HoursOwner {
+  hours: DayHours[];
+  hoursByWeek: Map<string, DayHours[]>;
+}
+
+/** The Sunday starting `date`'s week as "YYYY-MM-DD", matching the sync's week_start. */
+export function weekStartOf(date: Date): string {
+  return toDateKey(new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay()));
+}
+
+/**
+ * The hours that apply in `date`'s week. Synced owners use that week's actual hours, and
+ * `null` means the week isn't stored (not published yet, or the sync failed) — callers
+ * show "not published" rather than reusing another week's holidays. Everyone else keeps
+ * their hand-entered hours, which repeat every week.
+ */
+export function hoursForDate(owner: HoursOwner, date: Date): DayHours[] | null {
+  if (owner.hoursByWeek.size === 0) return owner.hours;
+  return owner.hoursByWeek.get(weekStartOf(date)) ?? null;
+}
+
+export function hasAnyHours(owner: HoursOwner): boolean {
+  return owner.hours.length > 0 || owner.hoursByWeek.size > 0;
+}
+
 export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
   if (!hours || hours.length === 0) return null;
 
@@ -75,9 +102,9 @@ export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
  * do — BuildingDetailContent/VenueCard already track those as separate statuses,
  * and most buildings only carry hours through their venues.
  */
-export function isBuildingOpenNow(hours: DayHours[], venueHours: DayHours[][]): boolean {
-  if (getBuildingStatus(hours)?.isOpen) return true;
-  return venueHours.some((h) => getBuildingStatus(h)?.isOpen === true);
+export function isBuildingOpenNow(building: HoursOwner, venues: HoursOwner[]): boolean {
+  const now = new Date();
+  return [building, ...venues].some((owner) => getBuildingStatus(hoursForDate(owner, now) ?? [])?.isOpen === true);
 }
 
 export type BlockStatus = 'available' | 'unavailable' | 'closed';

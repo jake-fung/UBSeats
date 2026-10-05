@@ -80,7 +80,56 @@
   Verified: 14 deno tests pass; deno check ok; eslint + app tsc clean; read-only live dry run
   parsed all 9 branches for weeks of Oct 4, Oct 11 (Thanksgiving), Dec 20.
   Not verified: migration SQL (not applied), email send, RPC, cron.
-- Next: learner approval for live steps (apply migration, deploy function, Resend account +
+- Learner approved steps 2-4 (deploy, migrate, manual run), then INTERRUPTED before any deploy to ask
+  whether production (main) and 1.2 stay working. Nothing live was changed.
+- Correction logged: Claude earlier said the day picker doesn't read stored hours. Wrong: 1.2's
+  HoursPill highlights `useSelectedDate().getDay()`, so a next-week date shows this week's stored
+  hours for that weekday (holidays bleed into / are missing from next week). main has no day picker.
+- Verified safe for schema: views list explicit columns, no FKs/triggers on hours rows, select *
+  ignores extra columns, missing days already render "Closed" in main + 1.2, IKBLC 06:00-00:00
+  already in prod. Data change: 8 of 9 targets get different (site-accurate) hours; Research
+  Commons gains hours; IKBLC unchanged this week.
+- Stage: awaiting learner decision on the 1.2 next-week mismatch before going live.
+- Learner proposal: add a column on building_hours storing which week the hours belong to.
+  Claude raised: venue_hours holds 7 of 9 targets; unique (building_uuid, day_of_week) blocks a
+  second week; main picks hours by day_of_week only, so multiple weeks of rows would show wrong
+  hours in production; rows for the other 47 hand-entered buildings have no week. Awaiting
+  learner on purpose (label only vs store this + next week) and how each build reads it.
+- Learner decision: store THIS week and NEXT week (14 days), week column on venue_hours too.
+- Still open (asked): how main avoids mixing two weeks of rows (main ignores the column; learner
+  has expand/contract precedent from venues), week value representation, and whether an
+  unresolvable next week fails the whole branch (period ends e.g. Dec 22 now fail a week earlier).
+- Learner decisions: use expand/contract to keep main working; if next week can't resolve, save
+  this week alone; week value = week-start Sunday (date).
+- Open (asked): concrete expand shape (what main reads / what 1.2 reads / what sync writes /
+  what contract removes), given main reads `building_hours` + `venue_hours` by name with select *;
+  and the week value for the hand-entered, never-synced rows.
+- Learner asked Claude to design the expand/contract shape ("design it for me"). Claude's PROPOSAL
+  (not a learner decision): new tables building_hours_by_week / venue_hours_by_week (week_start
+  Sunday date); old tables untouched in shape, sync keeps writing this week there during expand
+  (main unchanged); 1.2 reads by-week rows for synced owners, old rows for hand-entered owners;
+  missing synced week -> "hours not published" in 1.2 (changes keep-old behaviour for 1.2 only);
+  next-week failure not alerted; contract = stop dual write + delete synced rows from old tables.
+  Alternative considered: rename + compat views (rejected: empty hours in main if sync fails).
+- Design checkpoint: learner chose "Confirm and continue" on Claude's proposal (2026-10-04).
+  Earlier approval of live steps 2-4 was for the previous design; needs re-approval.
+- Implementation checkpoint CONFIRMED for two-week revision (incl. backup table, local-day week
+  basis, migrate-before-1.2-ships).
+- Learner committed v1 as 774b5c2 ("library hours pipeline") before the revision.
+- IMPLEMENTED two-week revision locally (uncommitted): migration rewritten (backup table,
+  *_hours_by_week tables + RLS read policy, RPC (kind,id,this_week_start,this_rows,next_rows),
+  dual-write marked for contract); parseHours calendarWeeks/resolveWeeks; index.ts best-effort next
+  week; 1.2 frontend: by-week types, supabaseService hoursByWeek, hoursUtils weekStartOf/
+  hoursForDate/hasAnyHours, HoursPill owner prop + "Hours not published yet", status/open filter
+  use today's week.
+  Verified: 19 deno tests, deno check, app tsc, eslint (1 pre-existing warning), vite build, live
+  read-only dry run for weeks of Oct 4 and Dec 13. NOT verified: migration SQL, RPC, cron, email,
+  1.2 UI in browser (needs migration; 1.2 dev against prod DB fails until migrated).
+- Learner approved go-live steps 1-4. Step 1 DONE: sync-library-hours v1 deployed (verify_jwt true).
+  Step 2 apply_migration call was DECLINED at the tool prompt; migration NOT applied. Steps 3-4
+  not run. Deployed function is inert (no cron; loadTargets would 500 on missing columns, no writes).
+- Stage: awaiting learner on how to proceed with the migration.
+- Previously next: learner approval for live steps (apply migration, deploy function, Resend account +
   secrets), then System check.
 
 ## Classroom scraper

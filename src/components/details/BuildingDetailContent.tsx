@@ -2,7 +2,7 @@ import { useMemo, useRef, type RefObject } from 'react';
 import { MapPin } from 'lucide-react';
 import { Building } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
-import { getBuildingStatus } from '@/utils/hoursUtils';
+import { getBuildingStatus, hasAnyHours, hoursForDate } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { RoomSection } from '@/components/details/RoomSection';
 import { SelectedDayHint } from '@/components/details/SelectedDayHint';
@@ -58,7 +58,10 @@ export const BuildingDetailContent = ({
         : 'touch-pan-y overflow-y-auto overscroll-contain'
       : 'overflow-y-auto';
 
-  const status = useMemo(() => (building ? getBuildingStatus(building.hours) : null), [building]);
+  const status = useMemo(
+    () => (building ? getBuildingStatus(hoursForDate(building, new Date()) ?? []) : null),
+    [building],
+  );
 
   return (
     <div className={cn('no-scrollbar h-full', overflowClass, v.scroll)} ref={contentRef} {...bodyDragProps}>
@@ -80,7 +83,7 @@ export const BuildingDetailContent = ({
           <MapPin className="mr-1 h-4 w-4 shrink-0" />
           <span>{building?.primaryAddress}</span>
         </div>
-        {status && building?.hours && <HoursPill status={status} hours={building.hours} />}
+        {building && hasAnyHours(building) && <HoursPill status={status} owner={building} />}
       </div>
 
       {building?.image && (

@@ -1,5 +1,5 @@
 import { Venue } from '@/supabase/schema';
-import { getBuildingStatus } from '@/utils/hoursUtils';
+import { getBuildingStatus, hasAnyHours, hoursForDate } from '@/utils/hoursUtils';
 import { HoursPill } from '@/components/details/HoursPill';
 import { RoomCard } from '@/components/details/RoomCard';
 import { RoomDetails } from '@/components/details/RoomDetails';
@@ -12,7 +12,8 @@ interface VenueCardProps {
 }
 
 export const VenueCard = ({ venue }: VenueCardProps) => {
-  const status = useMemo(() => getBuildingStatus(venue.hours), [venue.hours]);
+  const status = useMemo(() => getBuildingStatus(hoursForDate(venue, new Date()) ?? []), [venue]);
+  const showHours = hasAnyHours(venue);
   const totalRooms = venue.totalRooms ?? venue.rooms.length;
   const narrowed = venue.rooms.length < totalRooms;
   const [userExpanded, setExpanded] = useState<boolean | null>(null);
@@ -29,9 +30,9 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
   if (flat) {
     return (
       <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg">
-        {status && (
+        {showHours && (
           <div className="px-5 py-3">
-            <HoursPill status={status} hours={venue.hours} />
+            <HoursPill status={status} owner={venue} />
           </div>
         )}
         {photo}
@@ -58,7 +59,7 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
             <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', expanded ? 'rotate-180' : '')} />
           </div>
         </div>
-        {status && <HoursPill status={status} hours={venue.hours} />}
+        {showHours && <HoursPill status={status} owner={venue} />}
         <div
           className={cn(
             'flex flex-col gap-2 transition-all duration-300 ease-in-out',
