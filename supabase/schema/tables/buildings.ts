@@ -6,7 +6,9 @@ export type BuildingsTable = {
   Row: {
     bldg_code: string;
     bldg_usage: string | null;
+    hours_synced_at: string | null;
     lat: number;
+    library_branch: string | null;
     lng: number;
     name: string;
     primary_address: string | null;
@@ -15,7 +17,9 @@ export type BuildingsTable = {
   Insert: {
     bldg_code: string;
     bldg_usage?: string | null;
+    hours_synced_at?: string | null;
     lat: number;
+    library_branch?: string | null;
     lng: number;
     name: string;
     primary_address?: string | null;
@@ -24,7 +28,9 @@ export type BuildingsTable = {
   Update: {
     bldg_code?: string;
     bldg_usage?: string | null;
+    hours_synced_at?: string | null;
     lat?: number;
+    library_branch?: string | null;
     lng?: number;
     name?: string;
     primary_address?: string | null;

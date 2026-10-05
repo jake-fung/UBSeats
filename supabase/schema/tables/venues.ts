@@ -4,20 +4,26 @@ import type { Room } from './building_rooms';
 export type VenuesTable = {
   Row: {
     building_uuid: string;
+    hours_synced_at: string | null;
     id: string;
     kind: string;
+    library_branch: string | null;
     name: string;
   };
   Insert: {
     building_uuid: string;
+    hours_synced_at?: string | null;
     id?: string;
     kind: string;
+    library_branch?: string | null;
     name: string;
   };
   Update: {
     building_uuid?: string;
+    hours_synced_at?: string | null;
     id?: string;
     kind?: string;
+    library_branch?: string | null;
     name?: string;
   };
   Relationships: [
