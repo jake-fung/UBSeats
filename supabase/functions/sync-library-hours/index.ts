@@ -10,26 +10,24 @@ import {
   type DayRow,
   type HoursTable,
 } from './parseHours.ts';
-import { sendAlertEmail, type BranchFailure } from './alertEmail.ts';
 
 interface SyncTarget {
   kind: 'venue' | 'building';
   id: string;
-  name: string;
   branch: string;
 }
 
 async function loadTargets(supabase: SupabaseClient): Promise<SyncTarget[]> {
   const [venues, buildings] = await Promise.all([
-    supabase.from('venues').select('id, name, library_branch').not('library_branch', 'is', null),
-    supabase.from('buildings').select('uuid, name, library_branch').not('library_branch', 'is', null),
+    supabase.from('venues').select('id, library_branch').not('library_branch', 'is', null),
+    supabase.from('buildings').select('uuid, library_branch').not('library_branch', 'is', null),
   ]);
   if (venues.error) throw new Error(venues.error.message);
   if (buildings.error) throw new Error(buildings.error.message);
 
   return [
-    ...venues.data.map((v) => ({ kind: 'venue' as const, id: v.id, name: v.name, branch: v.library_branch })),
-    ...buildings.data.map((b) => ({ kind: 'building' as const, id: b.uuid, name: b.name, branch: b.library_branch })),
+    ...venues.data.map((v) => ({ kind: 'venue' as const, id: v.id, branch: v.library_branch })),
+    ...buildings.data.map((b) => ({ kind: 'building' as const, id: b.uuid, branch: b.library_branch })),
   ];
 }
 
@@ -86,13 +84,14 @@ Deno.serve(async () => {
     return Response.json({ error: String(err) }, { status: 500 });
   }
 
-  const failures: BranchFailure[] = [];
+  const failed: string[] = [];
   let branchIds: Map<string, string> | null = null;
   try {
     branchIds = await fetchBranchIds();
   } catch (err) {
     // The run started but the site is unreachable: every branch keeps last week's hours.
-    for (const t of targets) failures.push({ branch: t.branch, target: t.name, reason: String(err) });
+    console.error('hours.library.ubc.ca unreachable; no branch synced:', err);
+    for (const t of targets) failed.push(t.branch);
   }
 
   if (branchIds) {
@@ -102,21 +101,15 @@ Deno.serve(async () => {
         await syncTarget(supabase, target, branchIds, weeks);
       } catch (err) {
         console.error(`library hours sync failed for ${target.branch}:`, err);
-        failures.push({
-          branch: target.branch,
-          target: target.name,
-          reason: err instanceof Error ? err.message : String(err),
-        });
+        failed.push(target.branch);
       }
     }
   }
 
   // Every mapped branch either synced this run or is listed here, so this is exactly the
   // set whose hours_synced_at is older than runStartedAt.
-  if (failures.length > 0) await sendAlertEmail(failures, runStartedAt);
-
   return Response.json(
-    { synced: targets.length - failures.length, failed: failures.map((f) => f.branch) },
+    { synced: targets.length - failed.length, failed },
     { status: branchIds ? 200 : 502 },
   );
 });

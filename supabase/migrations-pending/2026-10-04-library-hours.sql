@@ -1,5 +1,4 @@
--- NOT YET APPLIED. Run once the `sync-library-hours` Edge Function is deployed, and
--- before the 1.2 frontend reaches any deployed environment (1.2 reads the *_by_week tables).
+-- APPLIED 2026-10-06 (pasted into the dashboard SQL Editor, so not in schema_migrations).
 --
 -- 2026-10-04 — weekly library hours sync from hours.library.ubc.ca, EXPAND phase.
 --
@@ -8,15 +7,13 @@
 --   * *_hours_by_week   gets both weeks tagged with week_start (a Sunday). 1.2 reads this.
 --   * venue_hours / building_hours keep one row per weekday and get THIS week only, so the
 --     currently deployed main build, which matches rows by day_of_week alone, is unchanged.
--- This week failing keeps all of the branch's rows and is emailed; next week failing only
+-- This week failing keeps all of the branch's rows and is logged; next week failing only
 -- means next week is not stored (1.2 shows "hours not published yet").
 --
 -- CONTRACT (after 1.2 is on main): stop writing the legacy tables in replace_library_hours,
 -- then delete the synced owners' rows from venue_hours / building_hours. Those tables stay
 -- for hand-entered hours that repeat every week.
 --
--- Edge Function secrets required before the first run (not stored here):
---   RESEND_API_KEY, ALERT_EMAIL_TO  (optional: ALERT_EMAIL_FROM)
 -- Vault secrets `project_url` and `anon_key` already exist (used by sync-libcal-availability).
 
 begin;
