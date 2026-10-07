@@ -4,6 +4,8 @@ import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useToast } from '@/hooks/use-toast';
 import { submitFeedback } from '@/supabase/services/supabaseService';
 import type { FeedbackCategory, FeedbackDevice } from '@/supabase/schema';
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
 
 const MESSAGE_MAX_LENGTH = 2000;
 
@@ -20,15 +22,6 @@ const FEEDBACK_DEVICES: { value: FeedbackDevice; label: string }[] = [
   { value: 'ipad', label: 'iPad' },
   { value: 'desktop', label: 'Laptop or desktop' },
 ];
-
-const chipClass = (selected: boolean) =>
-  [
-    'rounded-full border px-3 py-2 text-xs transition-colors',
-    'focus:ring-2 focus:ring-[#0055B7] focus:ring-offset-1 focus:outline-none',
-    selected
-      ? 'border-[#0055B7] bg-[#0055B7] text-white'
-      : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50',
-  ].join(' ');
 
 interface FeedbackModalProps {
   onClose: () => void;
@@ -118,15 +111,14 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
             </legend>
             <div className="flex flex-wrap gap-2">
               {FEEDBACK_CATEGORIES.map((option) => (
-                <button
+                <Chip
                   key={option.value}
-                  type="button"
-                  aria-pressed={category === option.value}
-                  className={chipClass(category === option.value)}
+                  tone="outline"
+                  pressed={category === option.value}
                   onClick={() => setCategory(option.value)}
                 >
                   {option.label}
-                </button>
+                </Chip>
               ))}
             </div>
           </fieldset>
@@ -137,22 +129,21 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
             </legend>
             <div className="flex flex-wrap gap-2">
               {FEEDBACK_DEVICES.map((option) => (
-                <button
+                <Chip
                   key={option.value}
-                  type="button"
-                  aria-pressed={device === option.value}
-                  className={chipClass(device === option.value)}
+                  tone="outline"
+                  pressed={device === option.value}
                   onClick={() => setDevice(option.value)}
                 >
                   {option.label}
-                </button>
+                </Chip>
               ))}
             </div>
           </fieldset>
 
           <div className="grid gap-2">
             <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               placeholder="Feedback..."
               rows={4}
               maxLength={MESSAGE_MAX_LENGTH}
@@ -160,13 +151,9 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
               onChange={(e) => setMessage(e.target.value)}
               aria-label="Feedback message"
             />
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors hover:bg-gray-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
-            >
+            <Button type="submit" variant="outline" disabled={!canSubmit}>
               {submitting ? 'Sending…' : 'Send'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -31,7 +31,7 @@ const SearchBar = ({ searchQuery, collapseNav, showSearch, onInputChange, onSubm
             placeholder="Search by building name/code..."
             value={searchQuery}
             onChange={onInputChange}
-            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 outline-hidden transition-all focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 transition-all focus:border-gray-300 focus:bg-white"
           />
           <Search className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
           {searchQuery && (

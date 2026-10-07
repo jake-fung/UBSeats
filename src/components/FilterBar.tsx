@@ -15,6 +15,7 @@ import { cn } from '@/utils/cnUtils';
 import { isNowOnlyCategory, useCategories } from '@/hooks/useBuildings';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { Skeleton } from './ui/skeleton';
+import { Chip } from './ui/chip';
 
 const ICON_MAP = {
   Book,
@@ -70,17 +71,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
             const IconComponent = ICON_MAP[category.icon as keyof typeof ICON_MAP] || Book;
 
             return (
-              <button
+              <Chip
                 key={category.id}
+                tone="filled"
+                pressed={isActive}
+                icon={IconComponent}
                 onClick={() => handleCategoryClick(category.id)}
-                className={cn(
-                  'flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-xs transition-all duration-200 ease-out active:scale-95',
-                  isActive ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100',
-                )}
               >
-                <IconComponent className={cn('h-3.5 w-3.5', isActive ? 'text-white' : 'text-gray-500')} />
                 <span className="whitespace-nowrap">{category.name}</span>
-              </button>
+              </Chip>
             );
           })
         )}
