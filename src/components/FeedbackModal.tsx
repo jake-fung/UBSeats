@@ -1,11 +1,10 @@
-import { X } from 'lucide-react';
-import { useCallback, useRef, useState, type FormEvent } from 'react';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useState, type FormEvent } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitFeedback } from '@/supabase/services/supabaseService';
 import type { FeedbackCategory, FeedbackDevice } from '@/supabase/schema';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
+import { DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 const MESSAGE_MAX_LENGTH = 2000;
 
@@ -33,13 +32,10 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
-  const pressStartedOnBackdrop = useRef(false);
-
-  const handleEscape = useCallback(() => {
-    if (!submitting) onClose();
-  }, [submitting, onClose]);
-
-  useEscapeKey(handleEscape);
+  /** Keep the dialog open while a submission is in flight (Esc and outside clicks are ignored). */
+  const holdWhileSubmitting = (e: Event) => {
+    if (submitting) e.preventDefault();
+  };
 
   const canSubmit = category !== '' && device !== '' && message.trim().length > 0 && !submitting;
 
@@ -72,92 +68,70 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-200 animate-in fade-in"
-      onMouseDown={(e) => {
-        pressStartedOnBackdrop.current = e.target === e.currentTarget;
-      }}
-      onClick={(e) => {
-        if (!submitting && pressStartedOnBackdrop.current && e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="feedback-title"
+    <DialogContent
+      className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto overscroll-contain"
+      onEscapeKeyDown={holdWhileSubmitting}
+      onInteractOutside={holdWhileSubmitting}
     >
-      <div
-        className="max-h-[calc(100dvh-2rem)] w-[90vw] max-w-2xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-xl duration-200 animate-in fade-in zoom-in-95"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-start justify-between">
-          <h2 id="feedback-title" className="text-xl font-semibold text-gray-900">
-            Feedback
-          </h2>
-          <button
-            type="button"
-            aria-label="Close"
-            className="-mt-1 -mr-1 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            onClick={onClose}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <DialogTitle className="mb-3 pr-8 text-xl font-semibold text-gray-900">Feedback</DialogTitle>
 
-        <p className="text-sm leading-relaxed text-gray-600">Please provide feedback on how I can improve UBSeats.</p>
+      <DialogDescription className="text-sm leading-relaxed text-gray-600">
+        Please provide feedback on how I can improve UBSeats.
+      </DialogDescription>
 
-        <form className="grid gap-4" onSubmit={handleSubmit}>
-          <fieldset className="mt-3">
-            <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
-              what is your suggestion?
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {FEEDBACK_CATEGORIES.map((option) => (
-                <Chip
-                  key={option.value}
-                  tone="outline"
-                  pressed={category === option.value}
-                  onClick={() => setCategory(option.value)}
-                >
-                  {option.label}
-                </Chip>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
-              what device are you on?
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {FEEDBACK_DEVICES.map((option) => (
-                <Chip
-                  key={option.value}
-                  tone="outline"
-                  pressed={device === option.value}
-                  onClick={() => setDevice(option.value)}
-                >
-                  {option.label}
-                </Chip>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className="grid gap-2">
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              placeholder="Feedback..."
-              rows={4}
-              maxLength={MESSAGE_MAX_LENGTH}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              aria-label="Feedback message"
-            />
-            <Button type="submit" variant="outline" disabled={!canSubmit}>
-              {submitting ? 'Sending…' : 'Send'}
-            </Button>
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <fieldset className="mt-3">
+          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+            what is your suggestion?
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {FEEDBACK_CATEGORIES.map((option) => (
+              <Chip
+                key={option.value}
+                tone="outline"
+                pressed={category === option.value}
+                onClick={() => setCategory(option.value)}
+              >
+                {option.label}
+              </Chip>
+            ))}
           </div>
-        </form>
-      </div>
-    </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+            what device are you on?
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {FEEDBACK_DEVICES.map((option) => (
+              <Chip
+                key={option.value}
+                tone="outline"
+                pressed={device === option.value}
+                onClick={() => setDevice(option.value)}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="grid gap-2">
+          <textarea
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            placeholder="Feedback..."
+            rows={4}
+            maxLength={MESSAGE_MAX_LENGTH}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            aria-label="Feedback message"
+          />
+          <Button type="submit" variant="outline" disabled={!canSubmit}>
+            {submitting ? 'Sending…' : 'Send'}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
   );
 };
 

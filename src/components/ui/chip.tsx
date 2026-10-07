@@ -29,7 +29,12 @@ const Chip = ({ pressed, tone, icon: Icon, className, children, type = 'button',
     <button
       type={type}
       aria-pressed={pressed}
-      className={cn('flex shrink-0 items-center rounded-full transition-all', t.base, pressed ? t.pressed : t.rest, className)}
+      className={cn(
+        'flex shrink-0 items-center rounded-full transition-all',
+        t.base,
+        pressed ? t.pressed : t.rest,
+        className,
+      )}
       {...props}
     >
       {Icon && <Icon className={cn('h-3.5 w-3.5', pressed ? 'text-white' : 'text-gray-500')} aria-hidden="true" />}
