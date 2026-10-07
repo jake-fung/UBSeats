@@ -1,6 +1,5 @@
-import { Search, X } from 'lucide-react';
-
 import { cn } from '@/utils/cnUtils';
+import SearchField from './SearchField';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -20,27 +19,13 @@ const SearchBar = ({ searchQuery, collapseNav, showSearch, onInputChange, onSubm
       )}
     >
       <div
+        inert={!showSearch}
         className={cn(
           'grid transition-all duration-300 ease-in-out',
           showSearch ? 'mt-10 grid-rows-[1fr] opacity-100' : 'h-0 grid-rows-[0fr] opacity-0',
         )}
       >
-        <form className="relative" onSubmit={onSubmit}>
-          <input
-            type="text"
-            placeholder="Search by building name/code..."
-            value={searchQuery}
-            onChange={onInputChange}
-            className="w-full rounded-full border border-transparent bg-gray-100 px-10 py-2 transition-all focus:border-gray-300 focus:bg-white"
-          />
-          <Search className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
-          {searchQuery && (
-            <X
-              className="absolute top-2.5 right-3 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
-              onClick={onClear}
-            />
-          )}
-        </form>
+        <SearchField value={searchQuery} onChange={onInputChange} onSubmit={onSubmit} onClear={onClear} />
       </div>
     </div>
   );

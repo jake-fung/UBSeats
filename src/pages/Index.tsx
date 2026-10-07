@@ -57,7 +57,7 @@ const Index = () => {
       )}
       {!isBuildingsLoading && (
         <>
-          <header className="fixed z-10">
+          <div className="fixed z-10">
             <Header
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -77,7 +77,7 @@ const Index = () => {
               activeFilters={activeFilters}
               customWrapperCss={mobileMenuOpened || isMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
             />
-          </header>
+          </div>
 
           <main className="h-screen overflow-hidden">
             <SpotMap

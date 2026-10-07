@@ -1,7 +1,8 @@
-import { MapPin, Search, X } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 
 import { cn } from '@/utils/cnUtils';
 import SearchBar from './SearchBar';
+import SearchField from './SearchField';
 
 interface HeaderProps {
   searchQuery: string;
@@ -51,41 +52,34 @@ const Header = ({
       >
         <div className="flex h-full w-full items-center justify-between px-3">
           <div className="flex items-center">
-            <MapPin className="mr-2 h-6 w-6 text-primary" />
-            <div className="text-xl font-semibold tracking-tight text-gray-900">UBSeats</div>
+            <MapPin className="mr-2 h-6 w-6 text-primary" aria-hidden="true" />
+            <h1 className="text-xl font-semibold tracking-tight text-gray-900">UBSeats</h1>
           </div>
 
           {!collapseNav && (
-            <nav className="flex items-center md:space-x-8">
+            <div className="flex items-center md:space-x-8">
               {!isMobile && (
-                <form className="relative" onSubmit={handleSearchSubmit}>
-                  <input
-                    type="text"
-                    placeholder="Search by building name/code..."
-                    value={searchQuery}
-                    onChange={handleInputChange}
-                    className="w-[40vw] rounded-full border border-transparent bg-gray-100 py-2 pr-4 pl-10 transition-all focus:border-gray-300 focus:bg-white"
-                  />
-                  <Search className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
-                  {searchQuery && (
-                    <X
-                      className="absolute top-2.5 right-3 h-5 w-5 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
-                      onClick={onClearSearch}
-                    />
-                  )}
-                </form>
+                <SearchField
+                  value={searchQuery}
+                  onChange={handleInputChange}
+                  onSubmit={handleSearchSubmit}
+                  onClear={onClearSearch}
+                  className="w-[40vw]"
+                />
               )}
 
               {isMobile && (
                 <button
+                  type="button"
+                  aria-expanded={shouldShowSearch}
                   onClick={onSearchIconClicked}
                   className={cn('h-6 w-6 transition-colors', shouldShowSearch ? 'text-primary' : 'text-gray-700')}
                   aria-label="Search"
                 >
-                  <Search />
+                  <Search aria-hidden="true" />
                 </button>
               )}
-            </nav>
+            </div>
           )}
         </div>
       </header>

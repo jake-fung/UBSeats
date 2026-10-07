@@ -1,7 +1,7 @@
 import { DayHours } from '@/supabase/schema';
 import { ChevronDown, Clock } from 'lucide-react';
 import { cn } from '@/utils/cnUtils';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { BuildingStatus, formatTime, hoursForDate, HoursOwner } from '@/utils/hoursUtils';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 
@@ -24,10 +24,15 @@ export const HoursPill = ({ status, owner }: HoursPillProps) => {
   const highlightedDay = selectedDate.getDay();
   // The selected day's week: a synced library may differ week to week, or not be published yet.
   const hours = hoursForDate(owner, selectedDate);
+  const listId = useId();
+  const hasList = !!hours && hours.length > 0;
 
   return (
     <div>
       <button
+        type="button"
+        aria-expanded={hasList ? expanded : undefined}
+        aria-controls={hasList ? listId : undefined}
         onClick={(e) => {
           e.stopPropagation();
           setExpanded((v) => !v);
@@ -41,14 +46,16 @@ export const HoursPill = ({ status, owner }: HoursPillProps) => {
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
         )}
       >
-        <Clock className="h-3 w-3" />
+        <Clock className="h-3 w-3" aria-hidden="true" />
         {hours ? formatDayHours(hours.find((h) => h.dayOfWeek === highlightedDay)) : 'Hours not published yet'}
         <div className={cn('flex items-center gap-1 transition-transform duration-200', expanded ? 'rotate-180' : '')}>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className="h-3 w-3" aria-hidden="true" />
         </div>
       </button>
-      {hours && hours.length > 0 && (
+      {hasList && (
         <div
+          id={listId}
+          aria-hidden={!expanded}
           className={cn(
             'grid max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out',
             expanded && 'my-1 max-h-50 overflow-visible opacity-100',
