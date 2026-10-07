@@ -53,7 +53,7 @@ const AboutContent = ({ lastCheckedMs }: { lastCheckedMs: number }) => (
     </DialogDescription>
 
     <div className="mt-5">
-      <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">Built with</h3>
+      <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">Built with</h3>
       <div className="flex flex-wrap gap-2">
         {TECH_STACK.map((tech) => (
           <span key={tech} className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
@@ -90,10 +90,10 @@ const AboutContent = ({ lastCheckedMs }: { lastCheckedMs: number }) => (
       </a>
     </div>
 
-    <p className="mt-4 text-xs text-gray-400">Built by Jake Fung</p>
-    <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</p>
+    <p className="mt-4 text-xs text-gray-500">Built by Jake Fung</p>
+    <p className="text-xs text-gray-500">&copy; {new Date().getFullYear()} UBSeats. All rights reserved.</p>
     {Number.isFinite(lastCheckedMs) && (
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         Classroom availability last updated: {formatVancouverDateTime(lastCheckedMs)}
       </p>
     )}

@@ -53,7 +53,7 @@ export const NoteTags = ({ notes }: NoteTagsProps) => {
               <button
                 type="button"
                 aria-label={note.name}
-                className="inline-flex cursor-pointer items-center justify-center rounded-full p-0.5 transition-transform"
+                className="inline-flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform"
                 style={{ color: note.color ?? '#6B7280' }}
                 onClick={(e) => {
                   e.stopPropagation();

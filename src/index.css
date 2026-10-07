@@ -137,7 +137,7 @@
   opacity: 1;
 }
 
-/* SpotMap's container is 36px taller than the viewport (h-[calc(100vh+36px)], clipped by <main>),
+/* SpotMap's container is 36px taller than the viewport (h-[calc(100dvh+36px)], clipped by <main>),
    which would hide Mapbox's required wordmark and attribution; lift them back into view. */
 .mapboxgl-ctrl-bottom-right {
   bottom: 36px;

@@ -34,7 +34,7 @@ const DatePicker = () => {
       <PopoverContent side="top" align="start" sideOffset={12} className="w-auto bg-white p-3">
         <div className="grid grid-cols-7 gap-1 text-center">
           {WEEKDAYS.map((weekday) => (
-            <div key={weekday} className="text-[10px] font-medium text-gray-400">
+            <div key={weekday} className="text-[10px] font-medium text-gray-500">
               {weekday}
             </div>
           ))}

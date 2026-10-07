@@ -81,7 +81,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
 
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <fieldset className="mt-3">
-          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             what is your suggestion?
           </legend>
           <div className="flex flex-wrap gap-2">
@@ -99,7 +99,7 @@ const FeedbackModal = ({ onClose }: FeedbackModalProps) => {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+          <legend className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             what device are you on?
           </legend>
           <div className="flex flex-wrap gap-2">
