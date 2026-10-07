@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>UBSeats — brag</title>
+    <script src="assets/js/gsap.min.js"></script>
+    <script src="assets/js/audio-rms.js"></script>
+    <style>
+      @font-face { font-family: "Poppins"; src: url("assets/fonts/Poppins-Regular.ttf") format("truetype"); font-weight: 400; }
+      @font-face { font-family: "Poppins"; src: url("assets/fonts/Poppins-Medium.ttf") format("truetype"); font-weight: 500; }
+      @font-face { font-family: "Poppins"; src: url("assets/fonts/Poppins-SemiBold.ttf") format("truetype"); font-weight: 600; }
+      @font-face { font-family: "Poppins"; src: url("assets/fonts/Poppins-Bold.ttf") format("truetype"); font-weight: 700; }
+
+      :root {
+        --navy: #24324d;
+        --navy-deep: #1b2740;
+        --ink: #111827;
+        --muted: #4b5563;
+        --label: #6b7280;
+        --blue: #0080ff;
+        --blue-text: #0069d1;
+        --green: #4ade80;
+        --red: #f87171;
+        --grey: #d1d5db;
+        --paper: #f7f9fc;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--navy); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        font-family: "Poppins", system-ui, sans-serif; color: var(--ink);
+      }
+      .clip { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+
+      /* ---------- shared bits ---------- */
+      .pin { display: block; }
+      .tt-row { display: flex; gap: 4px; }
+      .blk { border-radius: 3px; flex: 0 0 auto; }
+      .blk.a { background: var(--green); }
+      .blk.u { background: var(--red); }
+      .blk.c { background: var(--grey); }
+
+      /* ---------- scene 1: hook ---------- */
+      #s1-bg { background: var(--navy-deep); }
+      #s1-map { position: absolute; inset: -40px; background: url("assets/img/map-blur.jpg") center / cover; opacity: 0.28; }
+      #s1-vignette { background: radial-gradient(ellipse at 30% 45%, rgba(27,39,64,0) 0%, rgba(27,39,64,0.85) 75%); }
+      #s1-glow {
+        position: absolute; left: 260px; top: 640px; width: 1300px; height: 360px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(248,113,113,0.30), rgba(248,113,113,0));
+      }
+      #s1-copy { position: absolute; left: 180px; top: 230px; width: 1560px; }
+      #s1-l1 { font-size: 150px; font-weight: 700; color: #ffffff; letter-spacing: -0.03em; line-height: 1.05; }
+      #s1-l2 { margin-top: 18px; font-size: 104px; font-weight: 600; color: #e5e9f2; letter-spacing: -0.02em; line-height: 1.1; }
+      #s1-l2 .taken { color: var(--red); }
+      #s1-strip { position: absolute; left: 180px; top: 760px; }
+      #s1-strip .blk { width: 30px; height: 64px; }
+      #s1-strip-labels { position: absolute; left: 180px; top: 838px; display: flex; gap: 0; }
+      #s1-strip-labels span { width: 136px; font-size: 22px; font-weight: 500; color: #aab4c8; }
+      #s1-room {
+        position: absolute; left: 180px; top: 700px; font-size: 28px; font-weight: 500; color: #c7cfdd;
+      }
+
+      /* ---------- scene 2: reveal ---------- */
+      #s2-bg { background: var(--paper); }
+      #s2-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      #s2-lockup { display: flex; align-items: center; gap: 44px; }
+      #s2-word { font-size: 200px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; color: var(--ink); }
+      #s2-sub { margin-top: 48px; font-size: 46px; font-weight: 500; color: var(--muted); letter-spacing: -0.01em; }
+      #s2-glow {
+        position: absolute; left: 260px; top: 60px; width: 1400px; height: 960px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(0,128,255,0.13), rgba(0,128,255,0));
+      }
+
+      /* ---------- scene 3/4: map + panel ---------- */
+      #cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+      #cam img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      #map-shade { background: linear-gradient(90deg, rgba(27,39,64,0) 40%, rgba(27,39,64,0.35) 100%); opacity: 0; }
+      #ring {
+        position: absolute; left: 392px; top: 360px; width: 160px; height: 80px; border-radius: 18px;
+        border: 5px solid var(--blue); opacity: 0;
+      }
+      #chip-ring {
+        position: absolute; left: 196px; top: 102px; width: 238px; height: 60px; border-radius: 40px;
+        border: 4px solid #ffffff; opacity: 0;
+      }
+      .cap {
+        position: absolute; left: 72px; bottom: 72px; padding: 22px 40px 22px 34px; border-radius: 999px;
+        background: #ffffff; box-shadow: 0 18px 40px rgba(10,20,40,0.28);
+        font-size: 44px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em;
+        display: flex; align-items: center; gap: 18px; opacity: 0; white-space: nowrap;
+      }
+      .cap .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--blue); flex: 0 0 auto; }
+      .cap .dot.g { background: #16a34a; }
+      #cursor { position: absolute; left: 0; top: 0; width: 56px; height: 56px; opacity: 0; }
+      #cursor svg { display: block; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)); }
+
+      #panel {
+        position: absolute; left: 960px; top: 0; width: 960px; height: 1080px;
+        background: rgba(247,249,252,0.97); border-radius: 44px 0 0 44px;
+        box-shadow: -30px 0 80px rgba(10,20,40,0.35); padding: 56px 64px 0 64px;
+      }
+      .badge {
+        display: inline-block; padding: 6px 18px; border-radius: 999px; background: var(--blue-text);
+        color: #ffffff; font-size: 24px; font-weight: 600;
+      }
+      #p-title { margin-top: 18px; font-size: 44px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; color: var(--ink); }
+      #p-addr { margin-top: 10px; font-size: 26px; font-weight: 400; color: var(--muted); }
+      #p-hours {
+        margin-top: 16px; display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 999px;
+        background: #dcfce7; color: #15803d; font-size: 24px; font-weight: 600;
+      }
+      #p-photo {
+        margin-top: 26px; width: 832px; height: 250px; border-radius: 26px; overflow: hidden;
+        background: url("assets/img/ikb.jpg") center 72% / cover;
+      }
+      #p-spaces { margin-top: 30px; font-size: 32px; font-weight: 600; color: var(--ink); }
+      #room {
+        margin-top: 18px; width: 832px; border-radius: 28px; background: #ffffff; padding: 28px 30px 26px 30px;
+        box-shadow: 0 18px 44px rgba(17,24,39,0.12);
+      }
+      #room-top { display: flex; align-items: flex-start; justify-content: space-between; }
+      .tag {
+        display: inline-flex; align-items: center; gap: 8px; padding: 5px 16px; border-radius: 999px;
+        background: var(--blue-text); color: #ffffff; font-size: 21px; font-weight: 600;
+      }
+      #room-name { margin-top: 10px; font-size: 34px; font-weight: 600; color: var(--ink); }
+      #room-cap { margin-top: 4px; font-size: 24px; color: var(--muted); }
+      .view {
+        padding: 16px 28px; border-radius: 14px; background: var(--blue-text); color: #ffffff; font-size: 26px; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 10px;
+      }
+      #room-tt { position: relative; margin-top: 78px; }
+      #room-tt .tt-row { gap: 3px; }
+      #room-tt .blk { width: 18px; height: 46px; }
+      #room-labels { position: relative; height: 26px; margin-top: 6px; }
+      #room-labels span { position: absolute; top: 0; font-size: 17px; color: var(--label); white-space: nowrap; }
+      #tip {
+        position: absolute; left: 57px; top: -70px; padding: 10px 20px; border-radius: 14px; background: var(--ink);
+        color: #ffffff; font-size: 22px; font-weight: 500; white-space: nowrap; opacity: 0;
+      }
+      #tip::after {
+        content: ""; position: absolute; left: 70px; bottom: -8px; width: 16px; height: 16px; background: var(--ink);
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      #tip-mark { position: absolute; left: 124px; top: -6px; width: 26px; height: 58px; border-radius: 6px; border: 3px solid var(--ink); opacity: 0; }
+
+      /* ---------- scene 5: proof ---------- */
+      #s5-bg { background: var(--navy-deep); }
+      #s5-map { position: absolute; inset: -40px; background: url("assets/img/map-blur.jpg") center / cover; opacity: 0.22; }
+      #s5-glow {
+        position: absolute; left: 980px; top: 140px; width: 900px; height: 800px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(0,128,255,0.35), rgba(0,128,255,0));
+      }
+      #s5-head { position: absolute; left: 180px; top: 170px; font-size: 40px; font-weight: 500; color: #c7cfdd; }
+      #s5-list { position: absolute; left: 180px; top: 270px; display: flex; flex-direction: column; gap: 34px; }
+      .stat {
+        display: inline-flex; align-items: center; gap: 30px; align-self: flex-start; padding: 26px 48px 26px 30px;
+        border-radius: 999px; background: #ffffff; box-shadow: 0 24px 50px rgba(5,12,28,0.35); opacity: 0;
+      }
+      .stat .ic {
+        width: 76px; height: 76px; border-radius: 50%; background: #e6f2ff; display: flex; align-items: center; justify-content: center;
+        flex: 0 0 auto;
+      }
+      .stat .tx { font-size: 58px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; white-space: nowrap; }
+      .stat .tx b { color: var(--blue-text); font-weight: 700; }
+
+      /* ---------- scene 6: outro ---------- */
+      #s6-bg { background: var(--paper); }
+      #s6-glow {
+        position: absolute; left: 360px; top: 120px; width: 1200px; height: 760px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(0,128,255,0.16), rgba(0,128,255,0));
+      }
+      #s6-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      #s6-lockup { display: flex; align-items: center; gap: 40px; }
+      #s6-word { font-size: 180px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; color: var(--ink); }
+      #s6-tag { margin-top: 44px; font-size: 60px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+      #s6-url {
+        margin-top: 40px; padding: 18px 54px; border-radius: 999px; background: var(--blue-text); color: #ffffff;
+        font-size: 48px; font-weight: 600; letter-spacing: -0.01em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1920" data-height="1080">
+
+      <!-- ============ Scene 1 — Hook (0 – 3.4) ============ -->
+      <section id="s1" class="clip" data-start="0" data-duration="3.4" data-track-index="1">
+        <div id="s1-wrap" class="fill">
+          <div id="s1-bg" class="fill"></div>
+          <div id="s1-map"></div>
+          <div id="s1-vignette" class="fill"></div>
+          <div id="s1-glow"></div>
+                    <div id="s1-copy">
+            <div id="s1-l1">IKB. 2pm.</div>
+            <div id="s1-l2">Every room: <span class="taken">taken.</span></div>
+          </div>
+          <div id="s1-strip" class="tt-row"></div>
+          <div id="s1-strip-labels">
+            <span>9am</span><span>10am</span><span>11am</span><span>12pm</span><span>1pm</span><span>2pm</span><span>3pm</span><span>4pm</span><span>5pm</span><span>6pm</span><span>7pm</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Scene 2 — Reveal (3.0 – 6.0) ============ -->
+      <section id="s2" class="clip" data-start="3.0" data-duration="3.0" data-track-index="2">
+        <div id="s2-wrap" class="fill">
+          <div id="s2-bg" class="fill"></div>
+          <div id="s2-glow"></div>
+          <div id="s2-stage">
+            <div id="s2-lockup">
+              <svg id="s2-pin" class="pin" width="190" height="190" viewBox="0 0 24 24" fill="none" stroke="#0080ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <div id="s2-word">UBSeats</div>
+            </div>
+            <div id="s2-sub">Live seat &amp; room availability across UBC Vancouver.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Scenes 3+4 — Map, filter, IKB (5.6 – 15.5) ============ -->
+      <section id="s3" class="clip" data-start="5.6" data-duration="9.9" data-track-index="3">
+        <div id="s3-wrap" class="fill">
+          <div id="cam">
+            <img id="map-all" src="assets/img/01-map.jpg" alt="UBSeats live campus map" />
+            <img id="map-free" src="assets/img/02-filter.jpg" alt="UBSeats map filtered to Now Available Rooms" />
+          </div>
+          <div id="map-shade" class="fill"></div>
+          <div id="chip-ring"></div>
+          <div id="ring"></div>
+
+          <div id="cap1" class="cap"><span class="dot"></span>Every building on campus.</div>
+          <div id="cap2" class="cap"><span class="dot"></span>Only what’s free. Right now.</div>
+          <div id="cap3" class="cap"><span class="dot g"></span>Free until 10pm. Go study.</div>
+
+          <div id="panel">
+            <div id="p-head">
+              <span class="badge">IBLC</span>
+              <div id="p-title">Irving K. Barber Learning Centre (IKB)</div>
+              <div id="p-addr">1961 East Mall</div>
+              <div id="p-hours">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                Open · Closes at 12am
+              </div>
+            </div>
+            <div id="p-photo"></div>
+            <div id="p-spaces">Spaces (3)</div>
+            <div id="room">
+              <div id="room-top">
+                <div>
+                  <span class="tag">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20" /><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" /><path d="m7 21 5-5 5 5" /></svg>
+                    Classroom
+                  </span>
+                  <div id="room-name">IBLC – Room 461</div>
+                  <div id="room-cap">Capacity: 25</div>
+                </div>
+                <span class="view">View
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>
+                </span>
+              </div>
+              <div id="room-tt">
+                <div id="room-row" class="tt-row"></div>
+                <div id="tip-mark"></div>
+                <div id="tip">3:30pm–3:45pm · Available</div>
+              </div>
+              <div id="room-labels"></div>
+            </div>
+          </div>
+
+          <div id="cursor">
+            <svg width="56" height="56" viewBox="0 0 32 32"><path d="M4 2 L4 26 L10.5 20 L15 30 L19 28.2 L14.6 18.6 L23.5 18.6 Z" fill="#ffffff" stroke="#111827" stroke-width="2" stroke-linejoin="round" /></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Scene 5 — Proof (15.1 – 18.9) ============ -->
+      <section id="s5" class="clip" data-start="15.1" data-duration="3.8" data-track-index="4">
+        <div id="s5-wrap" class="fill">
+          <div id="s5-bg" class="fill"></div>
+          <div id="s5-map"></div>
+          <div id="s5-glow"></div>
+          <div id="s5-head">Built on real UBC data</div>
+          <div id="s5-list">
+            <div id="stat1" class="stat">
+              <span class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0069d1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20" /><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" /><path d="m7 21 5-5 5 5" /></svg></span>
+              <span class="tx"><b id="count">347</b> classrooms, live</span>
+            </div>
+            <div id="stat2" class="stat">
+              <span class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0069d1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg></span>
+              <span class="tx">Library rooms synced every <b>15 min</b></span>
+            </div>
+            <div id="stat3" class="stat">
+              <span class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0069d1" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg></span>
+              <span class="tx">Hours for every building</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Scene 6 — Outro (18.4 – 22) ============ -->
+      <section id="s6" class="clip" data-start="18.4" data-duration="3.6" data-track-index="5">
+        <div id="s6-wrap" class="fill">
+          <div id="s6-bg" class="fill"></div>
+          <div id="s6-glow"></div>
+          <div id="s6-stage">
+            <div id="s6-lockup">
+              <svg id="s6-pin" class="pin" width="170" height="170" viewBox="0 0 24 24" fill="none" stroke="#0080ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <div id="s6-word">UBSeats</div>
+            </div>
+            <div id="s6-tag">Stop wandering. Start studying.</div>
+            <div id="s6-url">ubseats.ca</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Audio ============ -->
+      <audio id="music" src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3" data-start="0" data-duration="22" data-track-index="10" data-volume="0.32"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.32},{"t":20.6,"v":0.32},{"t":22,"v":0}]}]}'></audio>
+      <audio id="sfx-taken" src="assets/sfx/impactSoft_medium_001.ogg" data-start="1.0" data-duration="0.18" data-track-index="11" data-volume="0.7"></audio>
+      <audio id="sfx-pin" src="assets/sfx/impactSoft_medium_004.ogg" data-start="3.0" data-duration="0.14" data-track-index="12" data-volume="0.7"></audio>
+      <audio id="sfx-chip" src="assets/sfx/click2.ogg" data-start="7.85" data-duration="0.05" data-track-index="13" data-volume="0.8"></audio>
+      <audio id="sfx-marker" src="assets/sfx/click2.ogg" data-start="10.35" data-duration="0.05" data-track-index="14" data-volume="0.75"></audio>
+      <audio id="sfx-panel" src="assets/sfx/card-slide-1.ogg" data-start="10.5" data-duration="0.6" data-track-index="15" data-volume="0.55"></audio>
+      <audio id="sfx-tip" src="assets/sfx/rollover2.ogg" data-start="12.6" data-duration="0.05" data-track-index="16" data-volume="0.7"></audio>
+      <audio id="sfx-stat1" src="assets/sfx/drop_001.ogg" data-start="15.5" data-duration="0.1" data-track-index="17" data-volume="0.65"></audio>
+      <audio id="sfx-stat2" src="assets/sfx/drop_002.ogg" data-start="16.0" data-duration="0.19" data-track-index="18" data-volume="0.65"></audio>
+      <audio id="sfx-stat3" src="assets/sfx/drop_001.ogg" data-start="16.5" data-duration="0.1" data-track-index="19" data-volume="0.65"></audio>
+      <audio id="sfx-logo" src="assets/sfx/impactBell_heavy_000.ogg" data-start="18.5" data-duration="1.48" data-track-index="20" data-volume="0.6"></audio>
+    </div>
+
+    <script>
+      // ---------- build data-driven DOM (synchronous, deterministic) ----------
+      // Hook strip: 9am–7:30pm in 15-min blocks (44 blocks), almost all booked.
+      (function () {
+        var strip = document.getElementById("s1-strip");
+        for (var i = 0; i < 44; i++) {
+          var b = document.createElement("div");
+          b.className = "blk u";
+          strip.appendChild(b);
+        }
+      })();
+
+      // IBLC Room 461 (from live capture): 2:00 free, 2:15–3:30 booked, 3:30–10:00 free, 10:00–11:30 closed.
+      var ROOM_BLOCKS = ["a", "u", "u", "u", "u", "u"];
+      for (var k = 0; k < 26; k++) ROOM_BLOCKS.push("a");
+      for (var c = 0; c < 6; c++) ROOM_BLOCKS.push("c");
+      (function () {
+        var row = document.getElementById("room-row");
+        ROOM_BLOCKS.forEach(function (s) {
+          var b = document.createElement("div");
+          b.className = "blk " + s;
+          row.appendChild(b);
+        });
+        var labels = document.getElementById("room-labels");
+        var hours = ["2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"];
+        hours.forEach(function (h, i) {
+          var s = document.createElement("span");
+          s.textContent = h;
+          s.style.left = i * 4 * 21 + "px";
+          labels.appendChild(s);
+        });
+      })();
+
+      // ---------- timeline ----------
+      var tl = gsap.timeline({ paused: true });
+
+      // ===== Scene 1 — Hook =====
+      tl.fromTo("#s1-l1", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0.12);
+            tl.fromTo("#s1-map", { scale: 1.08 }, { scale: 1.0, duration: 3.4, ease: "none" }, 0);
+      tl.fromTo("#s1-strip .blk", { scaleY: 0, transformOrigin: "50% 100%" },
+        { scaleY: 1, duration: 0.22, ease: "back.out(2)", stagger: 0.016 }, 0.45);
+      tl.fromTo("#s1-strip-labels", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.6);
+      tl.fromTo("#s1-l2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.95);
+      tl.fromTo("#s1-l2 .taken", { scale: 1.25, transformOrigin: "0% 60%" }, { scale: 1, duration: 0.4, ease: "back.out(3)" }, 1.0);
+      // exit: lift away as the brand wipe arrives
+      tl.to("#s1-copy, #s1-strip, #s1-strip-labels", { y: -60, opacity: 0, duration: 0.4, ease: "power2.in", stagger: 0.04 }, 2.95);
+
+      // ===== Scene 2 — Reveal (circle wipe in at 3.0) =====
+      tl.fromTo("#s2-wrap", { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: 0.5, ease: "power3.inOut" }, 3.0);
+      // beat-locked: 3.02s — pin lands on the first beat of the grid
+      tl.fromTo("#s2-pin", { y: -260, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "bounce.out" }, 3.1);
+      tl.fromTo("#s2-word", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.3);
+      tl.fromTo("#s2-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 3.75);
+      tl.fromTo("#s2-glow", { scale: 0.8, opacity: 0 }, { scale: 1.05, opacity: 1, duration: 2.4, ease: "sine.out" }, 3.1);
+      // exit: zoom through into the map
+      tl.to("#s2-stage", { scale: 1.6, opacity: 0, duration: 0.45, ease: "power3.in" }, 5.55);
+      tl.to("#s2-bg, #s2-glow", { opacity: 0, duration: 0.4, ease: "power2.in" }, 5.6);
+
+      // ===== Scenes 3+4 — map → filter → IKB =====
+      // Camera: transform-origin 0 0; screen = cam.x + s * P. IBLC is framed at screen (470,400). Values precomputed from the 1920x1080 frame.
+      // Filter chip "Now Available Rooms" sits at P=(309,131); IBLC marker at P=(842,416).
+      tl.fromTo("#s3-wrap", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 5.6);
+      tl.fromTo("#cam", { scale: 1.12, x: -37, y: -16 }, { scale: 1.0, x: 0, y: 0, duration: 0.8, ease: "power3.out" }, 5.6);
+      tl.to("#cam", { scale: 1.05, x: -15.5, y: -6.6, duration: 1.6, ease: "sine.inOut" }, 6.4);
+      tl.fromTo("#map-free", { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "power1.out" }, 7.95);
+      tl.to("#cam", { scale: 1.5, x: -793, y: -224, duration: 1.6, ease: "power2.inOut" }, 8.6);
+      tl.to("#cam", { scale: 1.56, x: -843.5, y: -249, duration: 5.3, ease: "none" }, 10.2);
+      tl.fromTo("#map-shade", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 10.5);
+
+      // captions (each holds ≥ reading floor)
+      tl.fromTo("#cap1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 6.15);
+      tl.to("#cap1", { y: 20, opacity: 0, duration: 0.25, ease: "power2.in" }, 7.65);
+      tl.fromTo("#cap2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 8.15);
+      tl.to("#cap2", { y: 20, opacity: 0, duration: 0.25, ease: "power2.in" }, 10.05);
+      tl.fromTo("#cap3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 12.95);
+
+      // cursor: enter → chip click → IBLC click
+      tl.set("#cursor", { x: 980, y: 760 }, 0);
+      tl.fromTo("#cursor", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 6.35);
+      tl.to("#cursor", { x: 300, y: 124, duration: 1.2, ease: "power2.inOut" }, 6.5);
+      tl.to("#cursor", { scale: 0.82, duration: 0.08, ease: "power2.in", transformOrigin: "10% 10%" }, 7.82);
+      tl.to("#cursor", { scale: 1, duration: 0.16, ease: "power2.out" }, 7.9);
+      tl.fromTo("#chip-ring", { scale: 0.9, opacity: 0.9 }, { scale: 1.25, opacity: 0, duration: 0.5, ease: "power2.out", immediateRender: false }, 7.85);
+      tl.to("#cursor", { x: 760, y: 330, duration: 1.0, ease: "power2.inOut" }, 8.5);
+      tl.to("#cursor", { x: 468, y: 398, duration: 0.75, ease: "power2.out" }, 9.5);
+      tl.to("#cursor", { scale: 0.82, duration: 0.08, ease: "power2.in" }, 10.32);
+      tl.to("#cursor", { scale: 1, duration: 0.16, ease: "power2.out" }, 10.4);
+      tl.fromTo("#ring", { scale: 0.85, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, 10.35);
+      tl.to("#cursor", { opacity: 0, duration: 0.3 }, 10.75);
+
+      // panel
+      tl.fromTo("#panel", { x: 1000 }, { x: 0, duration: 0.6, ease: "power3.out" }, 10.5);
+      tl.fromTo("#p-head > *", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out", stagger: 0.06 }, 10.7);
+      tl.fromTo("#p-photo", { opacity: 0, scale: 0.97 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" }, 10.9);
+      tl.fromTo("#p-spaces", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 11.0);
+      tl.fromTo("#room", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 11.1);
+      tl.fromTo("#room-row .blk", { scaleY: 0, transformOrigin: "50% 100%" },
+        { scaleY: 1, duration: 0.2, ease: "back.out(2)", stagger: 0.026 }, 11.4);
+      tl.fromTo("#room-labels", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 11.6);
+      tl.fromTo("#tip-mark", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 12.6);
+      tl.fromTo("#tip", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(2)" }, 12.6);
+      tl.to("#s3-wrap", { opacity: 0, duration: 0.4, ease: "power2.in" }, 15.1);
+
+      // ===== Scene 5 — proof =====
+      tl.fromTo("#s5-wrap", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 15.1);
+      tl.fromTo("#s5-head", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 15.2);
+      // beat-grid: stat 1 at 15.52s, stat 2 at 16.02s, stat 3 at 16.52s — full set then holds to 18.4
+      tl.fromTo("#stat1", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 15.52);
+      tl.fromTo("#stat2", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 16.02);
+      tl.fromTo("#stat3", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 16.52);
+      var counter = { v: 0 };
+      tl.fromTo(counter, { v: 0 }, {
+        v: 347, duration: 0.7, ease: "power2.out",
+        onUpdate: function () { document.getElementById("count").textContent = Math.round(counter.v); },
+      }, 15.55);
+      tl.fromTo("#s5-glow", { x: 0 }, { x: -60, duration: 3.8, ease: "none" }, 15.1);
+      tl.to("#s5-list, #s5-head", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, 18.3);
+
+      // ===== Scene 6 — outro =====
+      tl.fromTo("#s6-wrap", { clipPath: "circle(0% at 50% 45%)" }, { clipPath: "circle(80% at 50% 45%)", duration: 0.45, ease: "power3.inOut" }, 18.4);
+      // beat-locked: 18.52s — logo lands on the strong cue
+      tl.fromTo("#s6-pin", { y: -200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "bounce.out" }, 18.5);
+      tl.fromTo("#s6-word", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 18.6);
+      tl.fromTo("#s6-tag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 19.15);
+      // beat-locked: 20.02s — URL settles on the strong cue
+      tl.fromTo("#s6-url", { y: 24, scale: 0.9, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }, 19.75);
+
+      // ===== Audio-reactive: music RMS breathes the glows (subtle, no visualiser) =====
+      (function () {
+        var fps = window.AUDIO_FPS, rms = window.AUDIO_RMS, bass = window.AUDIO_BASS;
+        var g1 = document.getElementById("s1-glow");
+        var g5 = document.getElementById("s5-glow");
+        var g6 = document.getElementById("s6-glow");
+        for (var f = 0; f < rms.length; f++) {
+          tl.call((function (r, b) {
+            return function () {
+              var o = 0.55 + r * 0.45;
+              var s = 0.94 + b * 0.1;
+              gsap.set(g1, { opacity: o, scale: s });
+              gsap.set(g5, { opacity: o, scale: s });
+              gsap.set(g6, { opacity: 0.6 + r * 0.4, scale: s });
+            };
+          })(rms[f], bass[f]), [], f / fps);
+        }
+      })();
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
