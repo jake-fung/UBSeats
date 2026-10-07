@@ -159,6 +159,38 @@ export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayB
   });
 }
 
+/** A Date's local wall-clock time in the app's display format, e.g. `9:30 AM`. */
+export function formatClockTime(date: Date): string {
+  const hh = date.getHours().toString().padStart(2, '0');
+  const mm = date.getMinutes().toString().padStart(2, '0');
+  return formatTime(`${hh}:${mm}`);
+}
+
+const SUMMARY_LABELS: Record<Exclude<BlockStatus, 'closed'>, string> = {
+  available: 'Available',
+  unavailable: 'Booked',
+};
+
+/**
+ * Text alternative for the room timetable strip: adjacent same-status blocks merged, closed time
+ * skipped, e.g. `Available 9:00 AM–11:00 AM; Booked 11:00 AM–12:30 PM`. Empty when nothing is open.
+ */
+export function summarizeDayBlocks(blocks: DayBlock[]): string {
+  const runs: { status: Exclude<BlockStatus, 'closed'>; start: Date; end: Date }[] = [];
+  for (const block of blocks) {
+    if (block.status === 'closed') continue;
+    const last = runs[runs.length - 1];
+    if (last && last.status === block.status && last.end.getTime() === block.start.getTime()) {
+      last.end = block.end;
+    } else {
+      runs.push({ status: block.status, start: block.start, end: block.end });
+    }
+  }
+  return runs
+    .map((run) => `${SUMMARY_LABELS[run.status]} ${formatClockTime(run.start)}–${formatClockTime(run.end)}`)
+    .join('; ');
+}
+
 export interface BookingInterval {
   startsAt: string; // ISO 8601
   endsAt: string; // ISO 8601

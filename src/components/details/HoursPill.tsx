@@ -25,6 +25,10 @@ export const HoursPill = ({ status, owner }: HoursPillProps) => {
   // The selected day's week: a synced library may differ week to week, or not be published yet.
   const hours = hoursForDate(owner, selectedDate);
   const listId = useId();
+  const dayText = hours ? formatDayHours(hours.find((h) => h.dayOfWeek === highlightedDay)) : 'Hours not published yet';
+  // Colour alone never carries open/closed: say it in words whenever the colour does.
+  const statusPrefix = isToday && status ? (status.isOpen ? 'Open · ' : 'Closed · ') : '';
+  const pillLabel = statusPrefix === 'Closed · ' && dayText === 'Closed' ? 'Closed' : statusPrefix + dayText;
   const hasList = !!hours && hours.length > 0;
 
   return (
@@ -41,13 +45,13 @@ export const HoursPill = ({ status, owner }: HoursPillProps) => {
           'z-10 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors',
           isToday && status
             ? status.isOpen
-              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-              : 'bg-red-100 text-red-700 hover:bg-red-200'
+              ? 'bg-status-open text-status-open-fg hover:bg-green-200'
+              : 'bg-status-closed text-status-closed-fg hover:bg-red-200'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
         )}
       >
         <Clock className="h-3 w-3" aria-hidden="true" />
-        {hours ? formatDayHours(hours.find((h) => h.dayOfWeek === highlightedDay)) : 'Hours not published yet'}
+        {pillLabel}
         <div className={cn('flex items-center gap-1 transition-transform duration-200', expanded ? 'rotate-180' : '')}>
           <ChevronDown className="h-3 w-3" aria-hidden="true" />
         </div>

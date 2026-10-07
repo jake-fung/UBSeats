@@ -11,7 +11,7 @@ export const SelectedDayHint = () => {
   if (isToday) return null;
 
   return (
-    <div className="flex items-center gap-1.5 text-sm font-bold text-red-500">
+    <div className="flex items-center gap-1.5 text-sm font-bold text-primary">
       <CalendarDays size={16} className="shrink-0" aria-hidden="true" />
       <span>Showing {formatShortDay(selectedDate)} opening hours & timetable</span>
     </div>

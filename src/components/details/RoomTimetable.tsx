@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BlockStatus, TimeSlot, computeDayBlocks, formatTime } from '@/utils/hoursUtils';
+import { BlockStatus, TimeSlot, computeDayBlocks, formatClockTime, summarizeDayBlocks } from '@/utils/hoursUtils';
 import { isSameLocalDay } from '@/utils/dateUtils';
 import { cn } from '@/utils/cnUtils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,10 +10,11 @@ export interface RoomTimetableProps {
   date: Date;
 }
 
+// Available vs booked differ in lightness and pattern (hatching), not hue alone; closed is hollow.
 const STATUS_CLASSES: Record<BlockStatus, string> = {
-  available: 'bg-green-400',
-  unavailable: 'bg-red-400',
-  closed: 'bg-gray-300',
+  available: 'bg-slot-available',
+  unavailable: 'slot-booked',
+  closed: 'border border-slot-closed bg-transparent',
 };
 
 const STATUS_LABELS: Record<BlockStatus, string> = {
@@ -21,12 +22,6 @@ const STATUS_LABELS: Record<BlockStatus, string> = {
   unavailable: 'Unavailable',
   closed: 'Closed',
 };
-
-function blockTime(date: Date): string {
-  const hh = date.getHours().toString().padStart(2, '0');
-  const mm = date.getMinutes().toString().padStart(2, '0');
-  return formatTime(`${hh}:${mm}`);
-}
 
 export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -42,6 +37,7 @@ export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
     }
     return filtered;
   }, [blocks, now, isToday]);
+  const summary = useMemo(() => summarizeDayBlocks(visibleBlocks), [visibleBlocks]);
   const firstOpenIndex = isToday ? 0 : visibleBlocks.findIndex((block) => block.status !== 'closed');
   const scrollRef = useRef<HTMLDivElement>(null);
   const firstOpenRef = useRef<HTMLDivElement>(null);
@@ -58,7 +54,8 @@ export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
 
   return (
     <div ref={scrollRef} className="no-scrollbar w-full overflow-x-scroll p-1">
-      <div className="relative">
+      {summary && <p className="sr-only">{summary}</p>}
+      <div className="relative" aria-hidden="true">
         <div className="flex gap-px">
           {visibleBlocks.map((block, i) => (
             <Tooltip
@@ -91,7 +88,7 @@ export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
                 }}
                 onEscapeKeyDown={() => setOpenId(null)}
               >
-                <div>{`${blockTime(block.start)}–${blockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</div>
+                <div>{`${formatClockTime(block.start)}–${formatClockTime(block.end)} · ${STATUS_LABELS[block.status]}`}</div>
                 {block.title && <div className="text-muted-foreground">{block.title}</div>}
               </TooltipContent>
             </Tooltip>
@@ -103,7 +100,7 @@ export const RoomTimetable = ({ slots, date }: RoomTimetableProps) => {
               key={`label-${block.start.toISOString()}`}
               className="w-3 shrink-0 text-[9px] leading-tight whitespace-nowrap text-gray-500"
             >
-              {block.start.getMinutes() === 0 ? blockTime(block.start) : ''}
+              {block.start.getMinutes() === 0 ? formatClockTime(block.start) : ''}
             </div>
           ))}
         </div>
