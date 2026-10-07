@@ -75,7 +75,7 @@ const Index = () => {
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              customWrapperCss={mobileMenuOpened || isMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
+              isHidden={mobileMenuOpened || isMenuOpened || showSearch}
             />
           </div>
 

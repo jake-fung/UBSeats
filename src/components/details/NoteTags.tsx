@@ -57,7 +57,9 @@ export const NoteTags = ({ notes }: NoteTagsProps) => {
                 style={{ color: note.color ?? '#6B7280' }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  openerRef.current = e.currentTarget;
+                  // Return focus only to keyboard users (a keyboard click has detail 0): refocusing after a
+                  // tap/click would pop this button's tooltip open and leave it lingering on touch screens.
+                  openerRef.current = e.detail === 0 ? e.currentTarget : null;
                   setOpenNote(note);
                 }}
               >

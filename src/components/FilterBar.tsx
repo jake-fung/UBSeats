@@ -34,14 +34,11 @@ const SKELETON_COUNT = 4;
 interface FilterBarProps {
   onFilterChange: (filter: Filter) => void;
   activeFilters: Filter;
-  customWrapperCss?: string;
+  /** Faded out behind an open panel or the search drawer: also taken out of the Tab order. */
+  isHidden?: boolean;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({
-  onFilterChange,
-  activeFilters,
-  customWrapperCss: mobileCustomWrapperCss,
-}) => {
+const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange, activeFilters, isHidden = false }) => {
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { isToday } = useSelectedDate();
   const visibleCategories = isToday ? categories : categories?.filter((category) => !isNowOnlyCategory(category.id));
@@ -53,9 +50,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div
+      inert={isHidden}
       className={cn(
         'pointer-events-auto fixed top-21.25 z-10 w-full opacity-100 transition-all duration-300 ease-in-out',
-        mobileCustomWrapperCss,
+        isHidden && 'pointer-events-none opacity-0',
       )}
     >
       <div className="no-scrollbar flex items-center gap-2 overflow-x-scroll px-6 py-2 md:px-[10vw]">

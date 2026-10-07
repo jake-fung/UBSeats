@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 interface NotePopupProps {
   note: Note | null;
   onClose: () => void;
-  /** The note button that opened the popup; focus returns there on close (no DialogTrigger here). */
+  /** Where focus returns on close (no DialogTrigger here); null leaves focus where it lands. */
   returnFocusRef: RefObject<HTMLElement | null>;
 }
 

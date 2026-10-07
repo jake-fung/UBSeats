@@ -48,26 +48,28 @@ export const VenueCard = ({ venue }: VenueCardProps) => {
     <div className="overflow-hidden rounded-2xl bg-white/70 shadow-lg transition-all hover:shadow-xl motion-safe:hover:-translate-y-0.5">
       {photo}
       <div className="px-5 py-4">
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={listId}
-          onClick={() => setExpanded(!expanded)}
-          className="mb-2 flex w-full items-center justify-between gap-2 rounded-lg text-left"
-        >
-          <span className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            <h4 className="text-base font-semibold text-gray-900">
-              {venue.name} ({count} {count === 1 ? 'Space' : 'Spaces'})
-            </h4>
-          </span>
-          <span className="flex items-center justify-center px-2 py-1 text-gray-700">
-            <ChevronDown
-              className={cn('h-4 w-4 transition-transform duration-200', expanded ? 'rotate-180' : '')}
-              aria-hidden="true"
-            />
-          </span>
-        </button>
+        <h4 className="mb-2">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={listId}
+            onClick={() => setExpanded(!expanded)}
+            className="flex w-full items-center justify-between gap-2 rounded-lg text-left"
+          >
+            <span className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              <span className="text-base font-semibold text-gray-900">
+                {venue.name} ({count} {count === 1 ? 'Space' : 'Spaces'})
+              </span>
+            </span>
+            <span className="flex items-center justify-center px-2 py-1 text-gray-700">
+              <ChevronDown
+                className={cn('h-4 w-4 transition-transform duration-200', expanded ? 'rotate-180' : '')}
+                aria-hidden="true"
+              />
+            </span>
+          </button>
+        </h4>
         {showHours && <HoursPill status={status} owner={venue} />}
         <div
           id={listId}
