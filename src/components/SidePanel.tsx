@@ -19,13 +19,20 @@ export const SidePanel = ({ building, isOpen, onClose, onToggle }: SidePanelProp
       )}
     >
       <button
+        type="button"
+        aria-label={isOpen ? 'Collapse panel' : 'Expand panel'}
+        aria-expanded={isOpen}
         onClick={onToggle}
         className={cn(
           'absolute top-1/2 -left-10 z-20 flex h-20 w-10 -translate-y-1/2 items-center justify-center rounded-l-2xl bg-white/60 shadow-2xl shadow-gray-600 backdrop-blur-lg',
           !building && 'hidden',
         )}
       >
-        {isOpen ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
+        {isOpen ? (
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
+        ) : (
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+        )}
       </button>
 
       <BuildingDetailContent building={building} isOpen={isOpen} onClose={onClose} variant="panel" />

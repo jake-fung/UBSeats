@@ -4,6 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useSelectedDate } from '@/hooks/useSelectedDate';
 import { formatShortDay, isSameLocalDay, pickerDays, startOfLocalDay, toDateKey } from '@/utils/dateUtils';
 import { cn } from '@/utils/cnUtils';
+import { RoundButton } from '@/components/ui/round-button';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const FULL_LABEL = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -22,21 +23,18 @@ const DatePicker = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          aria-label={isToday ? 'Pick a day' : `Showing ${FULL_LABEL.format(selectedDate)}. Pick a day`}
-          className={cn(
-            'flex flex-row items-center gap-2 rounded-full p-3 shadow-lg',
-            isToday ? 'bg-white text-gray-700' : 'bg-primary text-white',
-          )}
+        <RoundButton
+          label={isToday ? 'Pick a day' : `Showing ${FULL_LABEL.format(selectedDate)}. Pick a day`}
+          className={isToday ? undefined : 'bg-primary text-white'}
         >
-          <CalendarDays />
+          <CalendarDays aria-hidden="true" />
           {!isToday && <span className="pr-1 text-sm font-medium">{formatShortDay(selectedDate)}</span>}
-        </button>
+        </RoundButton>
       </PopoverTrigger>
       <PopoverContent side="top" align="start" sideOffset={12} className="w-auto bg-white p-3">
         <div className="grid grid-cols-7 gap-1 text-center">
           {WEEKDAYS.map((weekday) => (
-            <div key={weekday} className="text-[10px] font-medium text-gray-400">
+            <div key={weekday} className="text-[10px] font-medium text-gray-500">
               {weekday}
             </div>
           ))}

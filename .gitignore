@@ -15,3 +15,6 @@ CLAUDE.md
 scraper/.auth
 scraper/out
 scraper/fixtures
+# /brag launch-video output (local only)
+brag/
+brag-output*/

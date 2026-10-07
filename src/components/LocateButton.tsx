@@ -1,5 +1,5 @@
 import { LocateFixed } from 'lucide-react';
-import { cn } from '@/utils/cnUtils';
+import { RoundButton } from '@/components/ui/round-button';
 
 interface LocateButtonProps {
   enabled: boolean;
@@ -7,17 +7,9 @@ interface LocateButtonProps {
 }
 
 const LocateButton = ({ enabled, onToggle }: LocateButtonProps) => (
-  <button
-    aria-label="Show my location"
-    aria-pressed={enabled}
-    onClick={onToggle}
-    className={cn(
-      'flex items-center rounded-full p-3 shadow-lg',
-      enabled ? 'bg-primary text-white' : 'bg-white text-gray-700',
-    )}
-  >
-    <LocateFixed />
-  </button>
+  <RoundButton label="Show my location" pressed={enabled} onClick={onToggle}>
+    <LocateFixed aria-hidden="true" />
+  </RoundButton>
 );
 
 export default LocateButton;

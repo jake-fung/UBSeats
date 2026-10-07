@@ -48,7 +48,7 @@ const Index = () => {
         <div
           id="loader_container"
           className={cn(
-            'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
+            'fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-1000',
             appReady ? 'pointer-events-none opacity-0' : 'opacity-100',
           )}
         >
@@ -57,7 +57,7 @@ const Index = () => {
       )}
       {!isBuildingsLoading && (
         <>
-          <header className="fixed z-10">
+          <div className="fixed z-10">
             <Header
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -75,11 +75,11 @@ const Index = () => {
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              customWrapperCss={mobileMenuOpened || isMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
+              isHidden={mobileMenuOpened || isMenuOpened || showSearch}
             />
-          </header>
+          </div>
 
-          <main className="h-screen overflow-hidden">
+          <main className="h-dvh overflow-hidden">
             <SpotMap
               buildings={buildings}
               onBuildingSelect={handleBuildingSelect}

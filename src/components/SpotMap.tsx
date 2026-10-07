@@ -218,7 +218,7 @@ const SpotMap: React.FC<SpotMapProps> = ({
   }, [mapLoaded, userPosition]);
 
   return (
-    <div className="z-0 h-[calc(100vh+36px)] w-screen">
+    <div className="z-0 h-[calc(100dvh+36px)] w-screen">
       <div ref={mapContainer} className="h-full w-full" />
     </div>
   );

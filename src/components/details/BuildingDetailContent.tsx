@@ -64,7 +64,13 @@ export const BuildingDetailContent = ({
   );
 
   return (
-    <div className={cn('no-scrollbar h-full', overflowClass, v.scroll)} ref={contentRef} {...bodyDragProps}>
+    // Off-screen while closed (the panel/sheet only translates away), so keep it out of the Tab order.
+    <div
+      inert={!isOpen}
+      className={cn('no-scrollbar h-full', overflowClass, v.scroll)}
+      ref={contentRef}
+      {...bodyDragProps}
+    >
       <div
         className={cn(
           'sticky top-0 z-10 -mx-6 px-6 pb-2 transition-all duration-200',

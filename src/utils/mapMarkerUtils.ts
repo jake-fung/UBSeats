@@ -23,7 +23,7 @@ export function createBuildingMarkerElement(building: Building, isSelected: bool
 
   const label = document.createElement('div');
   label.className =
-    'marker-label absolute left-1/2 top-full -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none';
+    'marker-label absolute left-1/2 top-full -translate-x-1/2 mt-1 text-base font-medium text-white whitespace-nowrap pointer-events-none';
   label.textContent = building.name;
   wrapper.appendChild(label);
 

@@ -1,11 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
-
-/* v3 `darkMode: ['class']` equivalent */
-@custom-variant dark (&:where(.dark, .dark *));
 
 /* Theme tokens — replaces `theme.extend` from the former tailwind.config.ts */
 @theme {
@@ -19,6 +14,7 @@
 
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-hover: hsl(var(--primary-hover));
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-destructive: hsl(var(--destructive));
@@ -32,87 +28,20 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  /* Custom colors for study spot categories */
-  --color-library: #4361ee;
-  --color-cafe: #e67e22;
-  --color-quiet: #27ae60;
-  --color-outdoor: #16a085;
-  --color-group: #9b59b6;
+  /* Status — open/closed pills and room-timetable slots. Never colour alone: pair with text or pattern. */
+  --color-status-open: var(--color-green-100);
+  --color-status-open-fg: var(--color-green-700);
+  --color-status-closed: var(--color-red-100);
+  --color-status-closed-fg: var(--color-red-700);
+  --color-slot-available: var(--color-green-400);
+  --color-slot-booked: var(--color-red-700);
+  --color-slot-closed: var(--color-gray-400);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
   --shadow-soft: 0px 2px 15px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0px 10px 30px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0px 20px 40px rgba(0, 0, 0, 0.1);
-
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-pulse-soft: pulse-soft 3s infinite ease-in-out;
-  --animate-fade-in-up: fade-in-up 0.5s ease-out;
-  --animate-fade-in: fade-in 0.5s ease-out;
-  --animate-gradient: gradient 3s ease infinite;
-}
-
-@keyframes accordion-down {
-  0% {
-    height: 0;
-  }
-  100% {
-    height: var(--radix-accordion-content-height);
-  }
-}
-
-@keyframes accordion-up {
-  0% {
-    height: var(--radix-accordion-content-height);
-  }
-  100% {
-    height: 0;
-  }
-}
-
-@keyframes pulse-soft {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes gradient {
-  0%,
-  100% {
-    background-size: 200% 200%;
-    background-position: left center;
-  }
-  50% {
-    background-size: 200% 200%;
-    background-position: right center;
-  }
 }
 
 @layer base {
@@ -126,8 +55,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 210 40% 98%;
+    /* UBC blue #0055b7 (white on it 7.04:1); hover/pressed #003d82 */
+    --primary: 212.1 100% 35.9%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 211.8 100% 25.5%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -143,39 +74,9 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 212.1 100% 35.9%;
 
     --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 100% 50%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -193,6 +94,11 @@
 
   button {
     cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
@@ -212,110 +118,12 @@
   }
 }
 
-/* Animation classes */
+/* Booked timetable slot: darker red plus white hatching so it reads without colour. */
 @layer components {
-  .fade-in {
-    animation: fadeIn 0.5s ease-in-out forwards;
+  .slot-booked {
+    background-color: var(--color-slot-booked);
+    background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / 0.45) 3px 5px);
   }
-
-  .slide-up {
-    animation: slideUp 0.4s ease-out forwards;
-  }
-
-  .scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-
-  .float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-    background-image: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0,
-      rgba(255, 255, 255, 0.2) 20%,
-      rgba(255, 255, 255, 0.5) 60%,
-      rgba(255, 255, 255, 0)
-    );
-    animation: shimmer 2s infinite;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Glass morphism */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.glass-dark {
-  background: rgba(17, 25, 40, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.125);
 }
 
 .marker-label {
@@ -329,7 +137,7 @@
   opacity: 1;
 }
 
-/* SpotMap's container is 36px taller than the viewport (h-[calc(100vh+36px)], clipped by <main>),
+/* SpotMap's container is 36px taller than the viewport (h-[calc(100dvh+36px)], clipped by <main>),
    which would hide Mapbox's required wordmark and attribution; lift them back into view. */
 .mapboxgl-ctrl-bottom-right {
   bottom: 36px;

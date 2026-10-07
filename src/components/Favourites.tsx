@@ -1,6 +1,6 @@
 import { Heart } from 'lucide-react';
 import { Filter } from '@/supabase/schema';
-import { cn } from '@/utils/cnUtils';
+import { RoundButton } from '@/components/ui/round-button';
 
 interface FavouritesProps {
   onFilterChange: (filter: Filter) => void;
@@ -10,24 +10,12 @@ interface FavouritesProps {
 const Favourites = ({ onFilterChange, activeFilters }: FavouritesProps) => {
   const isActive = activeFilters.category === 'favourites';
   const handleFavouriteClick = () => {
-    if (isActive) {
-      onFilterChange({ ...activeFilters, category: undefined });
-    } else {
-      onFilterChange({ ...activeFilters, category: 'favourites' });
-    }
+    onFilterChange({ ...activeFilters, category: isActive ? undefined : 'favourites' });
   };
   return (
-    <button
-      aria-label="Favourites only"
-      aria-pressed={isActive}
-      onClick={handleFavouriteClick}
-      className={cn(
-        'flex items-center rounded-full p-3 shadow-lg',
-        isActive ? 'bg-primary text-white' : 'bg-white text-gray-700',
-      )}
-    >
-      <Heart />
-    </button>
+    <RoundButton label="Favourites only" pressed={isActive} onClick={handleFavouriteClick}>
+      <Heart aria-hidden="true" />
+    </RoundButton>
   );
 };
 
