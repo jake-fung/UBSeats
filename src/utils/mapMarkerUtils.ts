@@ -6,6 +6,7 @@ export function createBuildingMarkerElement(building: Building, isSelected: bool
   const wrapper = document.createElement('div');
   // `marker-wrapper` / `is-selected` are hooks for the label visibility rules in index.css.
   wrapper.className = cn('marker-wrapper flex flex-col items-center cursor-pointer z-5', isSelected && 'is-selected');
+  wrapper.dataset.testid = 'building-marker';
 
   const pill = document.createElement('div');
   pill.className =

@@ -18,3 +18,6 @@ scraper/fixtures
 # /brag launch-video output (local only)
 brag/
 brag-output*/
+
+test-results/
+playwright-report/
