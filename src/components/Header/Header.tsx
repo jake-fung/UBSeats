@@ -1,8 +1,8 @@
 import { MapPin, Search } from 'lucide-react';
 
 import { cn } from '@/utils/cnUtils';
-import SearchBar from './SearchBar';
-import SearchField from './SearchField';
+import SearchBar from '@/components/SearchBar';
+import SearchField from '@/components/SearchField';
 
 interface HeaderProps {
   searchQuery: string;

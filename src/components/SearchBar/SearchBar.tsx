@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cnUtils';
-import SearchField from './SearchField';
+import SearchField from '@/components/SearchField';
 
 interface SearchBarProps {
   searchQuery: string;

@@ -14,8 +14,8 @@ import { CategoryType, Filter } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 import { isNowOnlyCategory, useCategories } from '@/hooks/useBuildings';
 import { useSelectedDate } from '@/hooks/useSelectedDate';
-import { Skeleton } from './ui/skeleton';
-import { Chip } from './ui/chip';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Chip } from '@/components/ui/chip';
 
 const ICON_MAP = {
   Book,
