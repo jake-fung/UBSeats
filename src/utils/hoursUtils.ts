@@ -1,4 +1,5 @@
-import { DayHours } from '@/supabase/schema/types';
+import { DayHours } from '@/supabase/schema';
+import { toDateKey } from '@/utils/dateUtils';
 
 export interface BuildingStatus {
   isOpen: boolean;
@@ -24,6 +25,46 @@ export function formatTime(time: string): string {
   const suffix = h >= 12 ? 'pm' : 'am';
   const hour = h % 12 || 12;
   return m === 0 ? `${hour}${suffix}` : `${hour}:${m.toString().padStart(2, '0')}${suffix}`;
+}
+
+const VANCOUVER_DATE_TIME = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Vancouver',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZoneName: 'short',
+});
+
+/** An instant as Vancouver wall-clock time whatever the viewer's zone, e.g. "Sep 28, 3:41 PM PDT". */
+export function formatVancouverDateTime(date: Date | number): string {
+  return VANCOUVER_DATE_TIME.format(date);
+}
+
+/** A building or venue: hand-entered weekly hours, plus synced actual hours per week. */
+export interface HoursOwner {
+  hours: DayHours[];
+  hoursByWeek: Map<string, DayHours[]>;
+}
+
+/** The Sunday starting `date`'s week as "YYYY-MM-DD", matching the sync's week_start. */
+export function weekStartOf(date: Date): string {
+  return toDateKey(new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay()));
+}
+
+/**
+ * The hours that apply in `date`'s week. Synced owners use that week's actual hours, and
+ * `null` means the week isn't stored (not published yet, or the sync failed) — callers
+ * show "not published" rather than reusing another week's holidays. Everyone else keeps
+ * their hand-entered hours, which repeat every week.
+ */
+export function hoursForDate(owner: HoursOwner, date: Date): DayHours[] | null {
+  if (owner.hoursByWeek.size === 0) return owner.hours;
+  return owner.hoursByWeek.get(weekStartOf(date)) ?? null;
+}
+
+export function hasAnyHours(owner: HoursOwner): boolean {
+  return owner.hours.length > 0 || owner.hoursByWeek.size > 0;
 }
 
 export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
@@ -61,9 +102,9 @@ export function getBuildingStatus(hours: DayHours[]): BuildingStatus | null {
  * do — BuildingDetailContent/VenueCard already track those as separate statuses,
  * and most buildings only carry hours through their venues.
  */
-export function isBuildingOpenNow(hours: DayHours[], venueHours: DayHours[][]): boolean {
-  if (getBuildingStatus(hours)?.isOpen) return true;
-  return venueHours.some((h) => getBuildingStatus(h)?.isOpen === true);
+export function isBuildingOpenNow(building: HoursOwner, venues: HoursOwner[]): boolean {
+  const now = new Date();
+  return [building, ...venues].some((owner) => getBuildingStatus(hoursForDate(owner, now) ?? [])?.isOpen === true);
 }
 
 export type BlockStatus = 'available' | 'unavailable' | 'closed';
@@ -116,6 +157,38 @@ export function computeDayBlocks(slots: TimeSlot[] | undefined, now: Date): DayB
     const titles = [...new Set(booked.map((slot) => slot.title).filter((t): t is string => !!t))];
     return { start, end, status: 'unavailable' as const, title: titles.join(', ') || null };
   });
+}
+
+/** A Date's local wall-clock time in the app's display format, e.g. `9:30 AM`. */
+export function formatClockTime(date: Date): string {
+  const hh = date.getHours().toString().padStart(2, '0');
+  const mm = date.getMinutes().toString().padStart(2, '0');
+  return formatTime(`${hh}:${mm}`);
+}
+
+const SUMMARY_LABELS: Record<Exclude<BlockStatus, 'closed'>, string> = {
+  available: 'Available',
+  unavailable: 'Booked',
+};
+
+/**
+ * Text alternative for the room timetable strip: adjacent same-status blocks merged, closed time
+ * skipped, e.g. `Available 9:00 AM–11:00 AM; Booked 11:00 AM–12:30 PM`. Empty when nothing is open.
+ */
+export function summarizeDayBlocks(blocks: DayBlock[]): string {
+  const runs: { status: Exclude<BlockStatus, 'closed'>; start: Date; end: Date }[] = [];
+  for (const block of blocks) {
+    if (block.status === 'closed') continue;
+    const last = runs[runs.length - 1];
+    if (last && last.status === block.status && last.end.getTime() === block.start.getTime()) {
+      last.end = block.end;
+    } else {
+      runs.push({ status: block.status, start: block.start, end: block.end });
+    }
+  }
+  return runs
+    .map((run) => `${SUMMARY_LABELS[run.status]} ${formatClockTime(run.start)}–${formatClockTime(run.end)}`)
+    .join('; ');
 }
 
 export interface BookingInterval {

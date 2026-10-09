@@ -1,17 +1,17 @@
 import { supabase } from '@/supabase/client';
-import {
+import type {
   Building,
   Category,
+  Database,
   DayHours,
   FeedbackInput,
   Note,
   Room,
   RoomAvailability,
   Venue,
-} from '@/supabase/schema/types';
-import type { Database } from '@/supabase/schema/database.types';
+} from '@/supabase/schema';
 import { validateCategoryType } from '@/utils/spotUtils';
-import { bookingsToSlots, classroomWindowCoversDate, BookingInterval } from '@/utils/hoursUtils';
+import { bookingsToSlots, classroomWindowCoversDate, BookingInterval, TimeSlot } from '@/utils/hoursUtils';
 import { parseAvailability } from '@/supabase/functions/sync-libcal-availability/parseAvailability';
 
 type Tables = Database['public']['Tables'];
@@ -42,6 +42,24 @@ function buildHoursMap<T extends { day_of_week: number; opens_at: string | null;
     const list = map.get(key) ?? [];
     list.push({ dayOfWeek: row.day_of_week, opensAt: row.opens_at, closesAt: row.closes_at });
     map.set(key, list);
+  });
+  return map;
+}
+
+/**
+ * Group `*_hours_by_week` rows into `Map<ownerKey, Map<weekStart, DayHours[]>>`. Shared by
+ * building and venue hours, like buildHoursMap.
+ */
+function buildWeeklyHoursMap<
+  T extends { week_start: string; day_of_week: number; opens_at: string; closes_at: string },
+>(rows: T[], keyOf: (row: T) => string): Map<string, Map<string, DayHours[]>> {
+  const map = new Map<string, Map<string, DayHours[]>>();
+  rows.forEach((row) => {
+    const byWeek = map.get(keyOf(row)) ?? new Map<string, DayHours[]>();
+    const list = byWeek.get(row.week_start) ?? [];
+    list.push({ dayOfWeek: row.day_of_week, opensAt: row.opens_at, closesAt: row.closes_at });
+    byWeek.set(row.week_start, list);
+    map.set(keyOf(row), byWeek);
   });
   return map;
 }
@@ -85,6 +103,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     venueHoursData,
     venueImagesData,
     roomImagesData,
+    weeklyHoursData,
+    venueWeeklyHoursData,
   ] = await Promise.all([
     selectAll('buildings'),
     selectAll('building_images'),
@@ -97,6 +117,8 @@ export async function fetchBuildings(): Promise<Building[]> {
     selectAll('venue_hours'),
     selectAll('venue_images'),
     selectAll('room_images'),
+    selectAll('building_hours_by_week'),
+    selectAll('venue_hours_by_week'),
   ]);
 
   const imageMap = buildImageMap(imagesData, (img) => img.building_uuid);
@@ -105,6 +127,8 @@ export async function fetchBuildings(): Promise<Building[]> {
 
   const hoursMap = buildHoursMap(hoursData, (h) => h.building_uuid);
   const venueHoursMap = buildHoursMap(venueHoursData, (h) => h.venue_id);
+  const weeklyHoursMap = buildWeeklyHoursMap(weeklyHoursData, (h) => h.building_uuid);
+  const venueWeeklyHoursMap = buildWeeklyHoursMap(venueWeeklyHoursData, (h) => h.venue_id);
 
   const categoriesMap = new Map<string, string[]>();
   categoriesData.forEach((c) => {
@@ -174,6 +198,7 @@ export async function fetchBuildings(): Promise<Building[]> {
       name: v.name,
       kind: v.kind === 'cafe' ? 'cafe' : 'library',
       hours: venueHoursMap.get(v.id) ?? [],
+      hoursByWeek: venueWeeklyHoursMap.get(v.id) ?? new Map(),
       rooms: venueRoomsMap.get(v.id) ?? [],
       image: venueImagesMap.get(v.id),
     });
@@ -192,6 +217,7 @@ export async function fetchBuildings(): Promise<Building[]> {
       image: imageMap.get(b.uuid),
       rooms: roomsMap.get(b.uuid) ?? [],
       hours: hoursMap.get(b.uuid) ?? [],
+      hoursByWeek: weeklyHoursMap.get(b.uuid) ?? new Map(),
       venues: venuesMap.get(b.uuid) ?? [],
     }))
     .filter((b) => b.rooms.length > 0 || b.venues.some((v) => v.rooms.length > 0));
@@ -201,7 +227,7 @@ const STALE_AFTER_MS = 30 * 60 * 1000;
 
 const BOOKINGS_PAGE_SIZE = 1000;
 
-/** Today's classroom bookings, paginated past PostgREST's 1000-row cap. */
+/** One day's classroom bookings, paginated past PostgREST's 1000-row cap. */
 async function selectClassroomBookingsForDay(
   dayStart: Date,
   dayEnd: Date,
@@ -224,22 +250,23 @@ async function selectClassroomBookingsForDay(
 }
 
 /**
- * Availability for classroom-tagged rooms, derived by inverting today's
- * schedule bookings. Returns an empty map when there is no scrape whose
- * current+next-week window still covers today (stale data must not render
- * as a fully free day).
+ * Every classroom-tagged room's slots for `date`'s local day, derived by inverting that
+ * day's schedule bookings. Returns null when there is no scrape whose current+next-week
+ * window covers `date` (stale data must not render as a fully free day).
  */
-export async function fetchClassroomAvailability(now: Date): Promise<Map<string, RoomAvailability>> {
+async function loadClassroomDay(
+  date: Date,
+): Promise<{ scrapedAt: string; slotsByRoom: Map<string, TimeSlot[]> } | null> {
   const { data: latest, error: latestError } = await supabase
     .from('classroom_bookings')
     .select('scraped_at')
     .order('scraped_at', { ascending: false })
     .limit(1);
   if (latestError) throw latestError;
-  if (!latest?.length || !classroomWindowCoversDate(latest[0].scraped_at, now)) return new Map();
+  if (!latest?.length || !classroomWindowCoversDate(latest[0].scraped_at, date)) return null;
 
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
 
   const [tagsResult, bookings] = await Promise.all([
     supabase.from('room_categories').select('room_uuid').eq('categories_id', 'classroom'),
@@ -254,16 +281,33 @@ export async function fetchClassroomAvailability(now: Date): Promise<Map<string,
     bookingsByRoom.set(b.room_uuid, list);
   });
 
-  const map = new Map<string, RoomAvailability>();
+  const slotsByRoom = new Map<string, TimeSlot[]>();
   (tagsResult.data ?? []).forEach(({ room_uuid }) => {
     if (!room_uuid) return;
-    const slots = bookingsToSlots(bookingsByRoom.get(room_uuid) ?? [], now);
+    slotsByRoom.set(room_uuid, bookingsToSlots(bookingsByRoom.get(room_uuid) ?? [], date));
+  });
+  return { scrapedAt: latest[0].scraped_at, slotsByRoom };
+}
+
+/** Classroom slots for a picked day. Empty when no scrape covers that day. */
+export async function fetchClassroomDaySlots(date: Date): Promise<Map<string, TimeSlot[]>> {
+  return (await loadClassroomDay(date))?.slotsByRoom ?? new Map();
+}
+
+/** Today's availability for classroom-tagged rooms, summarised against `now`. */
+export async function fetchClassroomAvailability(now: Date): Promise<Map<string, RoomAvailability>> {
+  const map = new Map<string, RoomAvailability>();
+  const day = await loadClassroomDay(now);
+  if (!day) return map;
+
+  day.slotsByRoom.forEach((slots, room_uuid) => {
     const summary = parseAvailability(slots, now);
     map.set(room_uuid, {
       isAvailableNow: summary.isAvailableNow,
       availableUntil: summary.availableUntil,
       nextAvailableAt: summary.nextAvailableAt,
-      checkedAt: latest[0].scraped_at,
+      scrapedAt: day.scrapedAt,
+      checkedAt: null,
       slots,
     });
   });
@@ -293,6 +337,7 @@ export async function fetchRoomAvailability(): Promise<Map<string, RoomAvailabil
       availableUntil: summary.availableUntil,
       nextAvailableAt: summary.nextAvailableAt,
       checkedAt: row.checked_at,
+      scrapedAt: null,
       slots,
     });
   });

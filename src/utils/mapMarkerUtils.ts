@@ -1,11 +1,12 @@
 import mapboxgl from 'mapbox-gl';
-import { Building } from '@/supabase/schema/types';
+import { Building } from '@/supabase/schema';
 import { cn } from '@/utils/cnUtils';
 
 export function createBuildingMarkerElement(building: Building, isSelected: boolean): HTMLDivElement {
   const wrapper = document.createElement('div');
   // `marker-wrapper` / `is-selected` are hooks for the label visibility rules in index.css.
   wrapper.className = cn('marker-wrapper flex flex-col items-center cursor-pointer z-5', isSelected && 'is-selected');
+  wrapper.dataset.testid = 'building-marker';
 
   const pill = document.createElement('div');
   pill.className =
@@ -23,7 +24,7 @@ export function createBuildingMarkerElement(building: Building, isSelected: bool
 
   const label = document.createElement('div');
   label.className =
-    'marker-label absolute left-1/2 top-full -translate-x-1/2 mt-1 text-md font-medium text-white whitespace-nowrap pointer-events-none';
+    'marker-label absolute left-1/2 top-full -translate-x-1/2 mt-1 text-base font-medium text-white whitespace-nowrap pointer-events-none';
   label.textContent = building.name;
   wrapper.appendChild(label);
 
@@ -33,4 +34,29 @@ export function createBuildingMarkerElement(building: Building, isSelected: bool
 export function clearMarkers(markers: mapboxgl.Marker[]): mapboxgl.Marker[] {
   markers.forEach((marker) => marker.remove());
   return [];
+}
+
+const EARTH_CIRCUMFERENCE_M = 40075016.686;
+const TILE_SIZE_PX = 512;
+
+/** Converts a ground distance to screen pixels at a latitude and zoom (Web Mercator). */
+export function accuracyRadiusPx(accuracyM: number, lat: number, zoom: number): number {
+  const metresPerPixel = (EARTH_CIRCUMFERENCE_M * Math.cos((lat * Math.PI) / 180)) / (TILE_SIZE_PX * 2 ** zoom);
+  return accuracyM / metresPerPixel;
+}
+
+export function createUserLocationMarkerElement(): { element: HTMLDivElement; ring: HTMLDivElement } {
+  const element = document.createElement('div');
+  element.className = 'relative pointer-events-none';
+
+  // Sized in px by SpotMap from the fix's accuracy; `user-location-*` hooks live in index.css.
+  const ring = document.createElement('div');
+  ring.className =
+    'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/15 border border-primary/40';
+
+  const dot = document.createElement('div');
+  dot.className = 'user-location-dot relative h-4 w-4 rounded-full border-2 border-white bg-primary shadow-md';
+
+  element.append(ring, dot);
+  return { element, ring };
 }

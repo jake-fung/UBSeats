@@ -11,6 +11,13 @@ CLAUDE.md
 .understand-anything
 .idea
 .superpowers
+.vibe-wise
 scraper/.auth
 scraper/out
 scraper/fixtures
+# /brag launch-video output (local only)
+brag/
+brag-output*/
+
+test-results/
+playwright-report/

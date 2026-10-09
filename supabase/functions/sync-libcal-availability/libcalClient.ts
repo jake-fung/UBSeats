@@ -1,6 +1,8 @@
 import type { Slot } from './parseAvailability.ts';
 
-const REQUEST_TIMEOUT_MS = 10_000;
+// The two-week grid for a whole LibCal group runs to ~6k slots (AMS), well past the
+// one-day response the old 10 s budget was sized for.
+const REQUEST_TIMEOUT_MS = 20_000;
 
 // Both LibCal hosts this adapter targets (libcal.library.ubc.ca and amsubc.libcal.com)
 // serve UBC Vancouver campus buildings, which are all in this IANA zone.
@@ -62,22 +64,38 @@ async function fetchLidAndGid(host: string, spaceId: string): Promise<{ lid: str
   return result;
 }
 
+// Constructing an Intl.DateTimeFormat is expensive (it resolves locale and zone data),
+// and tzOffsetMinutes runs twice per slot, ~1k times per room for a two-week grid. Building
+// one per call pushed a sync run past the Edge Function CPU limit, so formatters are
+// cached per time zone for the lifetime of the module instance. They hold no state.
+const tzFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function tzFormatter(timeZone: string): Intl.DateTimeFormat {
+  let formatter = tzFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    tzFormatters.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 /**
  * Returns the offset (in minutes) between UTC and `timeZone` at instant `at`, defined
  * so that: utcMs = wallClockFieldsTreatedAsUtcMs - offsetMinutes * 60_000.
- * (For America/Vancouver in PDT this evaluates to -420; in PST, -480.)
+ * (For America/Vancouver in PDT this evaluates to -420; in PST, -480.) Depends on the
+ * runtime's tzdata, so libcalTimestampToISOString bypasses it from B_C_PERMANENT_UTC_MINUS_7.
  */
 function tzOffsetMinutes(at: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).formatToParts(at);
+  const parts = tzFormatter(timeZone).formatToParts(at);
 
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
   const wallClockAsUtcMs = Date.UTC(
@@ -93,11 +111,19 @@ function tzOffsetMinutes(at: Date, timeZone: string): number {
 }
 
 /**
+ * B.C. stays on UTC-7 year-round from this date: the 2026-11-01 fall-back was abolished.
+ * Deno's bundled tzdata (2.9.x) still applies the old rule, so wall-clock times from here on
+ * use a fixed -420 minutes instead of asking Intl.
+ */
+const B_C_PERMANENT_UTC_MINUS_7 = '2026-11-01';
+const UTC_MINUS_7_MINUTES = -420;
+
+/**
  * LibCal returns naive "YYYY-MM-DD HH:mm:ss" timestamps with no UTC offset; they are
  * wall-clock time in the venue's local zone. Converts to a correct-instant ISO 8601
- * string, resolving PST vs. PDT dynamically via Intl instead of a hardcoded offset so
- * this stays correct across the DST boundary (verified empirically against a live
- * response on 2026-07-08, when America/Vancouver was in PDT/UTC-07:00).
+ * string. Before B_C_PERMANENT_UTC_MINUS_7 it resolves PST vs. PDT via Intl (verified
+ * against a live response on 2026-07-08, in PDT/UTC-07:00); from then on the offset is
+ * fixed at UTC-7, whatever the runtime's tzdata says.
  *
  * Implementation note: `guessUtcMs` treats the wall-clock fields as if they were UTC,
  * which is off by the zone's real offset (~7-8h) but close enough to land on the
@@ -105,7 +131,7 @@ function tzOffsetMinutes(at: Date, timeZone: string): number {
  * (DST switches happen at 2am local, never during bookable hours). That's used only
  * to look up which offset rule applies; the actual instant is then computed exactly.
  */
-function libcalTimestampToISOString(timestamp: string): string {
+export function libcalTimestampToISOString(timestamp: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(timestamp);
   if (!match) {
     throw new Error(`Unexpected LibCal timestamp format: ${timestamp}`);
@@ -113,7 +139,11 @@ function libcalTimestampToISOString(timestamp: string): string {
 
   const [year, month, day, hour, minute, second] = match.slice(1).map(Number);
   const guessUtcMs = Date.UTC(year, month - 1, day, hour, minute, second);
-  const offsetMinutes = tzOffsetMinutes(new Date(guessUtcMs), LIBCAL_TIME_ZONE);
+  // The wall-clock date is already Vancouver-local, so the cutover needs no conversion.
+  const offsetMinutes =
+    timestamp.slice(0, 10) >= B_C_PERMANENT_UTC_MINUS_7
+      ? UTC_MINUS_7_MINUTES
+      : tzOffsetMinutes(new Date(guessUtcMs), LIBCAL_TIME_ZONE);
   const utcMs = guessUtcMs - offsetMinutes * 60_000;
 
   return new Date(utcMs).toISOString();
@@ -121,25 +151,30 @@ function libcalTimestampToISOString(timestamp: string): string {
 
 /**
  * Returns the `[start, end)` calendar-day pair (both "YYYY-MM-DD") to request from the
- * grid endpoint: `start` is `date`'s calendar day in `timeZone`, `end` is the following
- * calendar day. `date` is an instant (e.g. "now"), so its UTC calendar date can differ
- * from its Vancouver-local one — UTC midnight is ~5pm PDT / 4pm PST, so naively using
- * `date.toISOString()` queries tomorrow while the venue is still mid-business-day for
- * any call made in the evening.
+ * grid endpoint. `start` is `date`'s calendar day in `timeZone`. `end` is the Monday after
+ * next, so the window covers the rest of this Monday-based week plus all of next week,
+ * the range the frontend's day picker offers. The grid endpoint returns a multi-day range
+ * in one response, so this costs no extra requests.
  *
- * `end` is derived from `start`'s date *components* plus one, not by adding 24h to the
- * instant: on the fall-back DST day (25 real hours long), adding 24h to an early-morning
- * instant can land back on the same local calendar date instead of the next one. Doing
- * the +1 on the (year, month, day) triple via `Date.UTC` instead sidesteps DST entirely,
- * since UTC has no DST and `Date.UTC` rolls over day/month/year overflow correctly.
+ * `date` is an instant (e.g. "now"), so its UTC calendar date can differ from its
+ * Vancouver-local one. UTC midnight is ~5pm PDT / 4pm PST, so naively using
+ * `date.toISOString()` would start the window tomorrow for any call made in the evening.
+ *
+ * `end` is derived from `start`'s date *components*, not by adding hours to the instant:
+ * on the fall-back DST day (25 real hours long), adding 24h to an early-morning instant can
+ * land back on the same local calendar date. Doing the arithmetic on the (year, month, day)
+ * triple via `Date.UTC` sidesteps DST entirely, since UTC has no DST and `Date.UTC` rolls
+ * over day/month/year overflow correctly.
  */
-function vancouverDateRange(date: Date, timeZone: string): { start: string; end: string } {
+export function vancouverWindow(date: Date, timeZone: string): { start: string; end: string } {
   // The "en-CA" locale formats dates as YYYY-MM-DD, so this gives the local calendar
   // date directly without hand-assembling it from formatToParts.
   const start = new Intl.DateTimeFormat('en-CA', { timeZone }).format(date);
 
   const [year, month, day] = start.split('-').map(Number);
-  const end = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+  // getUTCDay of the local triple at UTC midnight is that local date's weekday (0 = Sunday).
+  const daysSinceMonday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+  const end = new Date(Date.UTC(year, month - 1, day - daysSinceMonday + 14)).toISOString().slice(0, 10);
 
   return { start, end };
 }
@@ -166,11 +201,18 @@ function toSlots(entries: RawLibcalSlot[], itemId: number): Slot[] {
     }));
 }
 
-export async function fetchLibcalSlots(host: string, spaceId: string, date: Date): Promise<Slot[]> {
-  const { lid, gid } = await fetchLidAndGid(host, spaceId);
-
-  const { start, end } = vancouverDateRange(date, LIBCAL_TIME_ZONE);
-
+/**
+ * POSTs one grid request and returns its raw entries. The response covers every item in
+ * the `lid`/`gid` group, not just `eid`; callers filter it with `toSlots`.
+ */
+async function fetchGrid(
+  host: string,
+  spaceId: string,
+  lid: string,
+  gid: string,
+  start: string,
+  end: string,
+): Promise<RawLibcalSlot[]> {
   const body = new URLSearchParams({
     lid,
     gid,
@@ -203,5 +245,52 @@ export async function fetchLibcalSlots(host: string, spaceId: string, date: Date
   }
 
   const data: LibcalGridResponse = await response.json();
-  return toSlots(Array.isArray(data.slots) ? data.slots : [], Number(spaceId));
+  return Array.isArray(data.slots) ? data.slots : [];
+}
+
+export type LibcalFetcher = (host: string, spaceId: string, date: Date) => Promise<Slot[]>;
+
+/**
+ * Returns a fetcher that shares one grid request per LibCal group and window across every
+ * room it is asked for. A group's two-week grid is large (AMS: ~6k slots, ~800 KB) and is the
+ * same whichever of its rooms asks, so fetching it once per room multiplied the load on
+ * LibCal, which throttles bursts.
+ *
+ * Create one fetcher per sync run and drop it afterwards. The Edge Function's module
+ * instance can stay warm across invocations, so a module-level cache would serve a stale
+ * grid to the next run; a fetcher's cache lives only as long as the fetcher.
+ *
+ * The in-flight promise is shared, so rooms fetched concurrently still make one request.
+ * The request carries the first room's `eid` and is paged (`pageSize: 18`), so it is not
+ * guaranteed to include every other room in the group. Any room with no entries in the
+ * shared response, or whose shared request failed, makes its own request instead, so
+ * sharing can never drop a room's data.
+ */
+export function createLibcalFetcher(): LibcalFetcher {
+  const grids = new Map<string, { eid: string; entries: Promise<RawLibcalSlot[]> }>();
+
+  return async (host, spaceId, date) => {
+    const { lid, gid } = await fetchLidAndGid(host, spaceId);
+    const { start, end } = vancouverWindow(date, LIBCAL_TIME_ZONE);
+    const itemId = Number(spaceId);
+    const key = `${host}:${lid}:${gid}:${start}:${end}`;
+
+    const shared = grids.get(key);
+    if (!shared || shared.eid === spaceId) {
+      const entries = shared?.entries ?? fetchGrid(host, spaceId, lid, gid, start, end);
+      if (!shared) grids.set(key, { eid: spaceId, entries });
+      return toSlots(await entries, itemId);
+    }
+
+    const sharedEntries = await shared.entries.catch(() => null);
+    if (sharedEntries?.some((entry) => entry.itemId === itemId)) {
+      return toSlots(sharedEntries, itemId);
+    }
+    return toSlots(await fetchGrid(host, spaceId, lid, gid, start, end), itemId);
+  };
+}
+
+/** Fetches one room's slots with its own grid request (nothing shared). */
+export function fetchLibcalSlots(host: string, spaceId: string, date: Date): Promise<Slot[]> {
+  return createLibcalFetcher()(host, spaceId, date);
 }

@@ -9,6 +9,8 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/utils/cnUtils';
 import Utilities from '@/components/About';
 import Favourites from '@/components/Favourites';
+import DatePicker from '@/components/DatePicker';
+import LocateButton from '@/components/LocateButton';
 
 const Index = () => {
   const {
@@ -30,6 +32,8 @@ const Index = () => {
     handleSearchIconClicked,
     mapLoaded,
     setMapLoaded,
+    userLocation,
+    handleUserOutOfBounds,
   } = useMapState();
 
   const isMobile = useIsMobile();
@@ -44,7 +48,7 @@ const Index = () => {
         <div
           id="loader_container"
           className={cn(
-            'fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-white transition-opacity duration-1000',
+            'fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-1000',
             appReady ? 'pointer-events-none opacity-0' : 'opacity-100',
           )}
         >
@@ -53,7 +57,7 @@ const Index = () => {
       )}
       {!isBuildingsLoading && (
         <>
-          <header className="fixed z-10">
+          <div className="fixed z-10">
             <Header
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -71,11 +75,11 @@ const Index = () => {
             <FilterBar
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
-              customWrapperCss={mobileMenuOpened || isMenuOpened || showSearch ? 'opacity-0 pointer-events-none' : ''}
+              isHidden={mobileMenuOpened || isMenuOpened || showSearch}
             />
-          </header>
+          </div>
 
-          <main className="h-screen overflow-hidden">
+          <main className="h-dvh overflow-hidden">
             <SpotMap
               buildings={buildings}
               onBuildingSelect={handleBuildingSelect}
@@ -84,6 +88,8 @@ const Index = () => {
               mapLoaded={mapLoaded}
               setMapLoaded={setMapLoaded}
               isMobile={isMobile}
+              userPosition={userLocation.position}
+              onUserOutOfBounds={handleUserOutOfBounds}
             />
           </main>
 
@@ -98,8 +104,13 @@ const Index = () => {
             />
           )}
 
-          <Utilities />
-          <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
+          {/* wrap-reverse: on narrow phones the overflow line stacks above, never below the screen edge. */}
+          <div className="fixed bottom-6 left-6 z-10 flex max-w-[calc(100vw-3rem)] flex-wrap-reverse items-center gap-4">
+            <Utilities />
+            <Favourites onFilterChange={handleFilterChange} activeFilters={activeFilters} />
+            {userLocation.supported && <LocateButton enabled={userLocation.enabled} onToggle={userLocation.toggle} />}
+            <DatePicker />
+          </div>
         </>
       )}
     </div>

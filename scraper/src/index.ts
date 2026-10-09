@@ -4,6 +4,9 @@ import { fetchGridPages } from './scrape';
 import { parseGrid } from './parseGrid';
 import { transformBookings, type BookingRow } from './transform';
 import { writeToSupabase } from './supabaseWriter';
+import { assertTzdata } from './tzGuard';
+
+assertTzdata(process.versions.tz);
 
 const args = new Set(process.argv.slice(2));
 const headed = args.has('--headed');

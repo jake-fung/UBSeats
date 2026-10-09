@@ -25,12 +25,12 @@ test('converts weekday + local time to UTC instants (PDT, -7)', () => {
   ]);
 });
 
-test('handles the fall DST boundary (PST, -8)', () => {
+test('keeps UTC-7 after B.C. drops the fall time change (2026-11-02)', () => {
   const { rows } = transformBookings(
     [{ locationName: 'HENN 201', weekday: 'Monday', start: '9:00', end: '10:00', title: null }],
-    new Date(2026, 10, 2), // week after clocks fall back on 2026-11-01
+    new Date(2026, 10, 2), // clocks no longer fall back on 2026-11-01
   );
-  assert.equal(rows[0].starts_at, '2026-11-02T17:00:00.000Z');
+  assert.equal(rows[0].starts_at, '2026-11-02T16:00:00.000Z');
 });
 
 test('collects unmatched locations instead of dropping them silently', () => {

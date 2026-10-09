@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import Index from './pages/Index';
+import { SelectedDateProvider } from '@/components/SelectedDateProvider';
 
 const queryClient = new QueryClient();
 
@@ -12,9 +13,11 @@ const App = () => (
     <BrowserRouter>
       <Toaster />
       <TooltipProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
+        <SelectedDateProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+          </Routes>
+        </SelectedDateProvider>
       </TooltipProvider>
       <Analytics />
     </BrowserRouter>
