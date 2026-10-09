@@ -4,7 +4,6 @@ export type BuildingRoomsTable = {
   Row: {
     building_uuid: string;
     capacity: number | null;
-    library_id: string | null;
     venue_id: string | null;
     link: string | null;
     room_name: string | null;
@@ -14,7 +13,6 @@ export type BuildingRoomsTable = {
   Insert: {
     building_uuid?: string;
     capacity?: number | null;
-    library_id?: string | null;
     venue_id?: string | null;
     link?: string | null;
     room_name?: string | null;
@@ -24,7 +22,6 @@ export type BuildingRoomsTable = {
   Update: {
     building_uuid?: string;
     capacity?: number | null;
-    library_id?: string | null;
     venue_id?: string | null;
     link?: string | null;
     room_name?: string | null;

@@ -49,43 +49,8 @@ export type Database = {
       venue_images: VenueImagesTable;
       venues: VenuesTable;
     };
-    // Compatibility views from the venues expand migration. They are dropped, along
-    // with building_rooms.library_id, by supabase/migrations-pending/2026-08-24-venues-contract.sql.
     Views: {
-      libraries: {
-        Row: {
-          building_uuid: string | null;
-          id: string | null;
-          name: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'venues_building_uuid_fkey';
-            columns: ['building_uuid'];
-            isOneToOne: false;
-            referencedRelation: 'buildings';
-            referencedColumns: ['uuid'];
-          },
-        ];
-      };
-      library_hours: {
-        Row: {
-          closes_at: string | null;
-          day_of_week: number | null;
-          id: string | null;
-          library_id: string | null;
-          opens_at: string | null;
-        };
-        Relationships: [];
-      };
-      library_images: {
-        Row: {
-          id: string | null;
-          image_url: string | null;
-          library_id: string | null;
-        };
-        Relationships: [];
-      };
+      [_ in never]: never;
     };
     Functions: {
       [_ in never]: never;
