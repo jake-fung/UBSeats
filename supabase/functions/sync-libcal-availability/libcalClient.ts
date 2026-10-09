@@ -91,7 +91,8 @@ function tzFormatter(timeZone: string): Intl.DateTimeFormat {
 /**
  * Returns the offset (in minutes) between UTC and `timeZone` at instant `at`, defined
  * so that: utcMs = wallClockFieldsTreatedAsUtcMs - offsetMinutes * 60_000.
- * (For America/Vancouver in PDT this evaluates to -420; in PST, -480.)
+ * (For America/Vancouver in PDT this evaluates to -420; in PST, -480.) Depends on the
+ * runtime's tzdata, so libcalTimestampToISOString bypasses it from B_C_PERMANENT_UTC_MINUS_7.
  */
 function tzOffsetMinutes(at: Date, timeZone: string): number {
   const parts = tzFormatter(timeZone).formatToParts(at);
@@ -110,11 +111,19 @@ function tzOffsetMinutes(at: Date, timeZone: string): number {
 }
 
 /**
+ * B.C. stays on UTC-7 year-round from this date: the 2026-11-01 fall-back was abolished.
+ * Deno's bundled tzdata (2.9.x) still applies the old rule, so wall-clock times from here on
+ * use a fixed -420 minutes instead of asking Intl.
+ */
+const B_C_PERMANENT_UTC_MINUS_7 = '2026-11-01';
+const UTC_MINUS_7_MINUTES = -420;
+
+/**
  * LibCal returns naive "YYYY-MM-DD HH:mm:ss" timestamps with no UTC offset; they are
  * wall-clock time in the venue's local zone. Converts to a correct-instant ISO 8601
- * string, resolving PST vs. PDT dynamically via Intl instead of a hardcoded offset so
- * this stays correct across the DST boundary (verified empirically against a live
- * response on 2026-07-08, when America/Vancouver was in PDT/UTC-07:00).
+ * string. Before B_C_PERMANENT_UTC_MINUS_7 it resolves PST vs. PDT via Intl (verified
+ * against a live response on 2026-07-08, in PDT/UTC-07:00); from then on the offset is
+ * fixed at UTC-7, whatever the runtime's tzdata says.
  *
  * Implementation note: `guessUtcMs` treats the wall-clock fields as if they were UTC,
  * which is off by the zone's real offset (~7-8h) but close enough to land on the
@@ -130,7 +139,11 @@ export function libcalTimestampToISOString(timestamp: string): string {
 
   const [year, month, day, hour, minute, second] = match.slice(1).map(Number);
   const guessUtcMs = Date.UTC(year, month - 1, day, hour, minute, second);
-  const offsetMinutes = tzOffsetMinutes(new Date(guessUtcMs), LIBCAL_TIME_ZONE);
+  // The wall-clock date is already Vancouver-local, so the cutover needs no conversion.
+  const offsetMinutes =
+    timestamp.slice(0, 10) >= B_C_PERMANENT_UTC_MINUS_7
+      ? UTC_MINUS_7_MINUTES
+      : tzOffsetMinutes(new Date(guessUtcMs), LIBCAL_TIME_ZONE);
   const utcMs = guessUtcMs - offsetMinutes * 60_000;
 
   return new Date(utcMs).toISOString();

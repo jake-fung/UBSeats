@@ -57,8 +57,16 @@ Deno.test('libcalTimestampToISOString: a PDT wall-clock time is UTC-07:00', () =
   assertEquals(libcalTimestampToISOString('2026-09-22 09:00:00'), '2026-09-22T16:00:00.000Z');
 });
 
-Deno.test('libcalTimestampToISOString: a PST wall-clock time is UTC-08:00', () => {
-  assertEquals(libcalTimestampToISOString('2026-11-02 09:00:00'), '2026-11-02T17:00:00.000Z');
+Deno.test('libcalTimestampToISOString: from 2026-11-01 B.C. stays at UTC-07:00', () => {
+  assertEquals(libcalTimestampToISOString('2026-11-02 09:00:00'), '2026-11-02T16:00:00.000Z');
+});
+
+Deno.test('libcalTimestampToISOString: B.C. stays at UTC-07:00 through winter', () => {
+  assertEquals(libcalTimestampToISOString('2027-01-15 09:00:00'), '2027-01-15T16:00:00.000Z');
+});
+
+Deno.test('libcalTimestampToISOString: the first hour of 2026-11-01 is UTC-07:00', () => {
+  assertEquals(libcalTimestampToISOString('2026-11-01 01:30:00'), '2026-11-01T08:30:00.000Z');
 });
 
 Deno.test('libcalTimestampToISOString: a malformed timestamp throws', () => {
