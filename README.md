@@ -20,7 +20,7 @@ UBSeats combines data from a few places, refreshed at different cadences:
 - **Bookable room & study space details** — sourced from [UBC Learning Spaces](https://learningspaces.ubc.ca/), then curated and stored in Supabase (`building_rooms`, `venues`, `notes`, etc.). Populated and maintained manually as new buildings/rooms are added.
 - **Classroom (general teaching space) availability** — scraped from UBC's Scientia "List Timetable" (`sws-van.as.it.ubc.ca`) by the standalone [`scraper/`](scraper/) tool. This system sits behind UBC's CWL login and campus network, so the scraper is run manually/on-demand from campus Wi-Fi or the UBC VPN — see [`scraper/README.md`](scraper/README.md) for details. Results are written to `classroom_bookings` and inverted client-side into free/busy status.
 - **Library bookable-room availability** — synced from LibCal (`libcal.library.ubc.ca`, `amsubc.libcal.com`) every 15 minutes by the `sync-libcal-availability` Supabase Edge Function ([`supabase/functions/sync-libcal-availability`](supabase/functions/sync-libcal-availability)). Each run reads the public availability grid for the rest of this week and all of next week, merges adjacent same-status slots, and writes them into `room_availability`.
-- **Map tiles** — Mapbox, via a public access token restricted to this app's domains.
+- **Map tiles** — Mapbox, via two URL-restricted public tokens: a production token allowed only on `https://ubseats.ca` (set in Vercel), and a dev/CI token allowed only on `http://localhost:8080` and `http://localhost:4173` (local `.env` and the GitHub Actions secret). Vercel preview deployments match neither, so they load without a map.
 
 Two caveats worth knowing:
 
@@ -87,6 +87,8 @@ VITE_MAPBOX_STYLE_URL=mapbox://styles/...
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_KEY=your_supabase_anon_key
 ```
+
+Use the **dev/CI** Mapbox token locally: it only works on `localhost:8080` (`npm run dev`) and `localhost:4173` (`npm run test:e2e`). If you run either on another port, add that origin to the token's URL restrictions in Mapbox.
 
 The `scraper/` package has its own `.env` with a Supabase **service role** key — see [`scraper/README.md`](scraper/README.md).
 
