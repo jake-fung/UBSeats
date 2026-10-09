@@ -26,5 +26,8 @@ export function renderWithProviders(ui: ReactElement, opts: Options = {}): Rende
     );
   };
 
-  return { user: userEvent.setup(), ...render(ui, { wrapper: Providers }) };
+  // Not inlined into the return: the annotated return type would contextually type render's
+  // generic Q and drop the bound queries from the inferred result.
+  const result = render(ui, { wrapper: Providers });
+  return { user: userEvent.setup(), ...result };
 }
