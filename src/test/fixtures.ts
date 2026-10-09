@@ -47,3 +47,12 @@ export function makeBuilding(overrides: Partial<Building> = {}): Building {
     ...overrides,
   };
 }
+
+/** The building the detail-container tests share: ICICS, open Wednesdays 9–5, one room, one photo. */
+export function makeIcics(): Building {
+  return makeBuilding({
+    hours: weekdayHours(3, '09:00', '17:00'),
+    image: 'https://x/icics.jpg',
+    rooms: [makeRoom({ uuid: 'room-1', name: 'Room 101' })],
+  });
+}
